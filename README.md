@@ -2,18 +2,18 @@
   <img alt="flutter_blue_ultra" src=".github/flutter_blue_ultra.png" width="360" />
 </p>
 
-### Flutter Blue Ultra
+### 🩵 Flutter Blue Ultra
 
 An open-source, free to use Bluetooth Low Energy (BLE) plugin for Flutter.
 Flutter Blue Ultra continues support and maintenance for the legacy 1.x API of `flutter_blue_plus`, while adding new capabilities and keeping pace with the evolution of the underlying native Bluetooth stacks.
 
-### Why Flutter Blue Ultra?
+### 🙂 Why Flutter Blue Ultra?
 - **Legacy 1.x compatibility**: keep using the well-known `flutter_blue_plus` 1.x API surface.
 - **Cross‑platform**: iOS, Android, macOS, Linux, and Web (central role).
 - **New functionalities**: actively expands features while preserving the familiar API.
 - **Tracks native evolution**: maintained to follow Android/iOS/macOS/Linux/Web Bluetooth API changes.
 
-### Quick start
+### ⚡ Quick start
 1) Add the package in your app (temporary path or git until pub release):
 ```yaml
 dependencies:
@@ -41,7 +41,7 @@ void main() async {
 }
 ```
 
-### Documentation
+### 📘 Documentation
 - Getting started: `docs/getting_started.md`
 - Usage & code samples: `docs/usage.md`
 - Background behavior: `docs/background.md`
@@ -49,16 +49,16 @@ void main() async {
 - Common problems: `docs/common_problems.md`
 - Versioning: `docs/versioning.md`
 
-### Migrating from flutter_blue_plus
+### 🚇 Migrating from flutter_blue_plus
 - If you are on `flutter_blue_plus` 1.x, this project is a drop‑in alternative focused on keeping that API alive and maintained.
 - For original migration notes between FlutterBlue and Flutter Blue Plus, see the 1.x guide here:
   - `packages/flutter_blue_plus/MIGRATION.md`
 
-### Credits and origins
+### 🤖 Credits and origins
 - This project is a community continuation of `flutter_blue_plus` 1.x.
 - Original work: `flutter_blue_plus` (`https://github.com/chipweinberger/flutter_blue_plus`) and `flutter_blue` (`https://github.com/pauldemarco/flutter_blue`).
 
-### License
+### 📜 License
 Licensed under the BSD 3‑Clause license. See `LICENSE`.
 
 
