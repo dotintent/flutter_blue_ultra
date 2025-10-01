@@ -56,7 +56,7 @@ void main() async {
 
 ### Credits and origins
 - This project is a community continuation of `flutter_blue_plus` 1.x.
-- Original work: `flutter_blue_plus` (`https://github.com/boskokg/flutter_blue_plus`) and `flutter_blue` (`https://github.com/pauldemarco/flutter_blue`).
+- Original work: `flutter_blue_plus` (`https://github.com/chipweinberger/flutter_blue_plus`) and `flutter_blue` (`https://github.com/pauldemarco/flutter_blue`).
 
 ### License
 Licensed under the BSD 3‑Clause license. See `LICENSE`.
