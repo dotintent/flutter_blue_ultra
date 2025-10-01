@@ -4,12 +4,14 @@
 
 ### Flutter Blue Ultra
 
-An open-source, free to use Bluetooth Low Energy (BLE) plugin for Flutter. Flutter Blue Ultra continues support and maintenance for the legacy 1.x API of `flutter_blue_plus`, providing a stable alternative for apps that rely on that series while keeping the project community-driven.
+An open-source, free to use Bluetooth Low Energy (BLE) plugin for Flutter.
+Flutter Blue Ultra continues support and maintenance for the legacy 1.x API of `flutter_blue_plus`, while adding new capabilities and keeping pace with the evolution of the underlying native Bluetooth stacks.
 
 ### Why Flutter Blue Ultra?
 - **Legacy 1.x compatibility**: keep using the well-known `flutter_blue_plus` 1.x API surface.
 - **Cross‑platform**: iOS, Android, macOS, Linux, and Web (central role).
-- **Open and free**: community-first, no sponsorship section, transparent roadmap via issues/PRs.
+- **New functionalities**: actively expands features while preserving the familiar API.
+- **Tracks native evolution**: maintained to follow Android/iOS/macOS/Linux/Web Bluetooth API changes.
 
 ### Quick start
 1) Add the package in your app (temporary path or git until pub release):
@@ -17,7 +19,7 @@ An open-source, free to use Bluetooth Low Energy (BLE) plugin for Flutter. Flutt
 dependencies:
   flutter_blue_ultra:
     git:
-      url: https://github.com/intent-dev/flutter_blue_ultra.git
+      url: https://github.com/dotintent/flutter_blue_ultra.git
 ```
 
 2) Minimal usage example:
