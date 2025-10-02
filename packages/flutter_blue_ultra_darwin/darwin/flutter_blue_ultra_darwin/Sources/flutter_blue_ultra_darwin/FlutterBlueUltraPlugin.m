@@ -479,7 +479,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
             // check readable
             if ((characteristic.properties & CBCharacteristicPropertyRead) == 0) {
                 NSString* s = @"The READ property is not supported by this BLE characteristic";
-                result([FlutterError errorWithCode:@"writeCharacteristic" message:s details:NULL]);
+                result([FlutterError errorWithCode:@"readCharacteristic" message:s details:NULL]);
                 return;
             }
 
@@ -1310,7 +1310,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
         @"remote_id":                remoteId,
         @"connection_state":         @([self bmConnectionStateEnum:peripheral.state]),
         @"disconnect_reason_code":   error ? @(error.code) : @(bmUserCanceledErrorCode),
-        @"disconnect_reason_string": error ? [error localizedDescription] : @("connection canceled"),
+        @"disconnect_reason_string": error ? [error localizedDescription] : @"connection canceled",
     };
 
     // Send connection state
@@ -1567,14 +1567,13 @@ didDiscoverCharacteristicsForService:(CBService *)service
     // Oddly iOS does not update the CCCD descriptors when didUpdateNotificationState is called. 
     // So instead of using characteristic.descriptors we have to manually recreate the
     // CCCD descriptor using isNotifying & characteristic.properties
-    int value = 0;
-    if(characteristic.isNotifying) {
-        // in iOS, if a characteristic supports both indications and notifications, 
-        // then CoreBluetooth will default to indications
+    uint16_t value = 0;
+    if (characteristic.isNotifying) {
+        // in iOS, if a characteristic supports both indications and notifications,
+        // CoreBluetooth defaults to indications
         bool supportsNotify = (characteristic.properties & CBCharacteristicPropertyNotify) != 0;
         bool supportsIndicate = (characteristic.properties & CBCharacteristicPropertyIndicate) != 0;
-        if (characteristic.isNotifying && supportsIndicate) {value = 2;} // '2' comes from the CCCD BLE spec
-        if (characteristic.isNotifying && supportsNotify) {value = 1;} // '1' comes from the CCCD BLE spec
+        value = supportsIndicate ? 2 : (supportsNotify ? 1 : 0); // CCCD spec: 2=indicate, 1=notify
     }
     
     // See BmDescriptorData
@@ -1753,7 +1752,7 @@ didDiscoverCharacteristicsForService:(CBService *)service
     NSString  *serviceUuid        = request[@"service_uuid"];
     NSString  *characteristicUuid = request[@"characteristic_uuid"];
     NSNumber  *instanceId         = request[@"instance_id"];
-    NSString  *value              = request[@"value"];
+    NSData    *value              = [request[@"value"] data];
 
     // Find characteristic
     NSError *error = nil;
@@ -2087,7 +2086,7 @@ didDiscoverCharacteristicsForService:(CBService *)service
         // mask
         if (mask.length == 0 && data.length > 0) {
             uint8_t *bytes = malloc(data.length);
-            memset(bytes, 1, data.length); 
+            memset(bytes, 0xFF, data.length);
             mask = [NSData dataWithBytesNoCopy:bytes length:data.length freeWhenDone:YES];
         }
 
@@ -2121,7 +2120,7 @@ didDiscoverCharacteristicsForService:(CBService *)service
         // mask
         if (mask.length == 0 && data.length > 0) {
             uint8_t *bytes = malloc(data.length);
-            memset(bytes, 1, data.length); 
+            memset(bytes, 0xFF, data.length);
             mask = [NSData dataWithBytesNoCopy:bytes length:data.length freeWhenDone:YES];
         }
 
