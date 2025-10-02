@@ -351,79 +351,65 @@ final class FlutterBlueUltraDarwin extends FlutterBlueUltraPlatform {
       FlutterBlueUltraPlatform.log('[FBU] $func result: $result');
     }
 
+    // Convert arguments to Map<String, dynamic>
+    final Map<String, dynamic> args = call.arguments is Map ? Map<String, dynamic>.from(call.arguments as Map) : {};
+
     // handle method call
     switch (call.method) {
       case 'OnAdapterStateChanged':
         return _onAdapterStateChangedController.add(
-          BmBluetoothAdapterState.fromMap(
-            call.arguments,
-          ),
+          BmBluetoothAdapterState.fromMap(args),
         );
       case 'OnCharacteristicReceived':
         return _onCharacteristicReceivedController.add(
-          BmCharacteristicData.fromMap(
-            call.arguments,
-          ),
+          BmCharacteristicData.fromMap(args),
         );
       case 'OnCharacteristicWritten':
         return _onCharacteristicWrittenController.add(
-          BmCharacteristicData.fromMap(
-            call.arguments,
-          ),
+          BmCharacteristicData.fromMap(args),
         );
       case 'OnConnectionStateChanged':
         return _onConnectionStateChangedController.add(
-          BmConnectionStateResponse.fromMap(
-            call.arguments,
-          ),
+          BmConnectionStateResponse.fromMap(args),
         );
       case 'OnDescriptorRead':
         return _onDescriptorReadController.add(
-          BmDescriptorData.fromMap(
-            call.arguments,
-          ),
+          BmDescriptorData.fromMap(args),
         );
       case 'OnDescriptorWritten':
         return _onDescriptorWrittenController.add(
-          BmDescriptorData.fromMap(
-            call.arguments,
-          ),
+          BmDescriptorData.fromMap(args),
         );
       case 'OnDiscoveredServices':
         return _onDiscoveredServicesController.add(
-          BmDiscoverServicesResult.fromMap(
-            call.arguments,
-          ),
+          BmDiscoverServicesResult.fromMap(args),
         );
       case 'OnMtuChanged':
         return _onMtuChangedController.add(
-          BmMtuChangedResponse.fromMap(
-            call.arguments,
-          ),
+          BmMtuChangedResponse.fromMap(args),
         );
       case 'OnNameChanged':
         return _onNameChangedController.add(
-          BmNameChanged.fromMap(
-            call.arguments,
-          ),
+          BmNameChanged.fromMap(args),
         );
       case 'OnReadRssi':
         return _onReadRssiController.add(
-          BmReadRssiResult.fromMap(
-            call.arguments,
-          ),
+          BmReadRssiResult.fromMap(args),
         );
       case 'OnScanResponse':
-        return _onScanResponseController.add(
-          BmScanResponse.fromMap(
-            call.arguments,
-          ),
-        );
+        try {
+          return _onScanResponseController.add(
+            BmScanResponse.fromMap(args),
+          );
+        } catch (e, stackTrace) {
+          FlutterBlueUltraPlatform.log('[FBU] Error parsing OnScanResponse: $e');
+          FlutterBlueUltraPlatform.log('[FBU] Args: $args');
+          FlutterBlueUltraPlatform.log('[FBU] StackTrace: $stackTrace');
+          rethrow;
+        }
       case 'OnServicesReset':
         return _onServicesResetController.add(
-          BmBluetoothDevice.fromMap(
-            call.arguments,
-          ),
+          BmBluetoothDevice.fromMap(args),
         );
     }
   }

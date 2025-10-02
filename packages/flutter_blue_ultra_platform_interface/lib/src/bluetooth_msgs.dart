@@ -148,36 +148,44 @@ class BmScanAdvertisement {
   });
 
   factory BmScanAdvertisement.fromMap(Map<String, dynamic> json) {
-    // Get raw data
-    final rawManufacturerData = json['manufacturer_data'] as Map<String, dynamic>? ?? {};
-    final rawServiceData = json['service_data'] as Map<String, dynamic>? ?? {};
-    final rawServiceUuids = json['service_uuids'] as List<dynamic>? ?? [];
+    // Helper to convert Map with any key type to Map<int, List<int>>
+    Map<int, List<int>> parseManufacturerData(dynamic data) {
+      if (data == null) return {};
+      final Map<dynamic, dynamic> rawMap = data is Map ? Map.from(data) : {};
+      final Map<int, List<int>> result = {};
+      rawMap.forEach((k, v) {
+        // Key can be int or string representation of int
+        final int? key = k is int ? k : int.tryParse(k.toString());
+        if (key != null && v is List) {
+          result[key] = List<int>.from(v);
+        }
+      });
+      return result;
+    }
 
-    // Cast the data to the right type
-    final Map<int, List<int>> manufacturerData = {};
-    rawManufacturerData.forEach((k, v) {
-      manufacturerData[int.parse(k)] = (v as List<dynamic>).cast<int>();
-    });
-
-    // Cast the data to the right type
-    final Map<Guid, List<int>> serviceData = {};
-    rawServiceData.forEach((k, v) {
-      serviceData[Guid(k)] = (v as List<dynamic>).cast<int>();
-    });
-
-    // Cast the data to the right type
-    final List<Guid> serviceUuids = rawServiceUuids.map((e) => Guid(e as String)).toList();
+    // Helper to convert Map with any key type to Map<Guid, List<int>>
+    Map<Guid, List<int>> parseServiceData(dynamic data) {
+      if (data == null) return {};
+      final Map<dynamic, dynamic> rawMap = data is Map ? Map.from(data) : {};
+      final Map<Guid, List<int>> result = {};
+      rawMap.forEach((k, v) {
+        if (v is List) {
+          result[Guid(k.toString())] = List<int>.from(v);
+        }
+      });
+      return result;
+    }
 
     return BmScanAdvertisement(
       remoteId: DeviceIdentifier(json['remote_id'] as String),
       platformName: json['platform_name'] as String?,
       advName: json['adv_name'] as String?,
-      connectable: json['connectable'] != null ? json['connectable'] as int != 0 : false,
+      connectable: json['connectable'] is int ? json['connectable'] != 0 : (json['connectable'] as bool? ?? false),
       txPowerLevel: json['tx_power_level'] as int?,
       appearance: json['appearance'] as int?,
-      manufacturerData: manufacturerData,
-      serviceData: serviceData,
-      serviceUuids: serviceUuids,
+      manufacturerData: parseManufacturerData(json['manufacturer_data']),
+      serviceData: parseServiceData(json['service_data']),
+      serviceUuids: (json['service_uuids'] as List<dynamic>? ?? []).map((e) => Guid(e as String)).toList(),
       rssi: json['rssi'] as int? ?? 0,
     );
   }
@@ -200,7 +208,9 @@ class BmScanResponse {
     final List<BmScanAdvertisement> advertisements = [];
     final advList = json['advertisements'] as List<dynamic>;
     for (final item in advList) {
-      advertisements.add(BmScanAdvertisement.fromMap(item as Map<String, dynamic>));
+      // Convert nested Map to Map<String, dynamic>
+      final Map<String, dynamic> itemMap = item is Map ? Map<String, dynamic>.from(item) : item as Map<String, dynamic>;
+      advertisements.add(BmScanAdvertisement.fromMap(itemMap));
     }
 
     final bool success = json['success'] == null || json['success'] as int != 0;
