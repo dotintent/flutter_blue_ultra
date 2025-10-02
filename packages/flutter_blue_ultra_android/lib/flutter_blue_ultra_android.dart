@@ -168,9 +168,10 @@ final class FlutterBlueUltraAndroid extends FlutterBlueUltraPlatform {
     BmBluetoothAdapterNameRequest request,
   ) async {
     return BmBluetoothAdapterName(
-      adapterName: await _callAndroidMethod<String?>(
-        'getAdapterName',
-      ),
+      adapterName: await _callAndroidMethod<String>(
+            'getAdapterName',
+          ) ??
+          '',
     );
   }
 
@@ -178,56 +179,66 @@ final class FlutterBlueUltraAndroid extends FlutterBlueUltraPlatform {
   Future<BmBluetoothAdapterState> getAdapterState(
     BmBluetoothAdapterStateRequest request,
   ) async {
-    return BmBluetoothAdapterState.fromMap(
-      await _callAndroidMethod<Map<String, dynamic>>(
-        'getAdapterState',
-      ),
+    final result = await _callAndroidMethod<Map<String, dynamic>>(
+      'getAdapterState',
     );
+    if (result == null) {
+      throw Exception('Failed to get adapter state');
+    }
+    return BmBluetoothAdapterState.fromMap(result);
   }
 
   @override
   Future<BmBondStateResponse> getBondState(
     BmBondStateRequest request,
   ) async {
-    return BmBondStateResponse.fromMap(
-      await _callAndroidMethod<Map<String, dynamic>>(
-        'getBondState',
-        request.remoteId.str,
-      ),
+    final result = await _callAndroidMethod<Map<String, dynamic>>(
+      'getBondState',
+      request.remoteId.str,
     );
+    if (result == null) {
+      throw Exception('Failed to get bond state');
+    }
+    return BmBondStateResponse.fromMap(result);
   }
 
   @override
   Future<BmDevicesList> getBondedDevices(
     BmBondedDevicesRequest request,
   ) async {
-    return BmDevicesList.fromMap(
-      await _callAndroidMethod<Map<String, dynamic>>(
-        'getBondedDevices',
-      ),
+    final result = await _callAndroidMethod<Map<String, dynamic>>(
+      'getBondedDevices',
     );
+    if (result == null) {
+      throw Exception('Failed to get bonded devices');
+    }
+    return BmDevicesList.fromMap(result);
   }
 
   @override
   Future<PhySupport> getPhySupport(
     PhySupportRequest request,
   ) async {
-    return PhySupport.fromMap(
-      await _callAndroidMethod<Map<String, dynamic>>(
-        'getPhySupport',
-      ),
+    final result = await _callAndroidMethod<Map<String, dynamic>>(
+      'getPhySupport',
     );
+    if (result == null) {
+      throw Exception('Failed to get PHY support');
+    }
+    return PhySupport.fromMap(result);
   }
 
   @override
   Future<BmDevicesList> getSystemDevices(
     BmSystemDevicesRequest request,
   ) async {
-    return BmDevicesList.fromMap(
-      await _callAndroidMethod<Map<String, dynamic>>(
-        'getSystemDevices',
-      ),
+    final result = await _callAndroidMethod<Map<String, dynamic>>(
+      'getSystemDevices',
     );
+    if (result == null) {
+      throw Exception('Failed to get system devices');
+    }
+    return BmDevicesList.fromMap(result);
   }
 
   @override
@@ -438,18 +449,23 @@ final class FlutterBlueUltraAndroid extends FlutterBlueUltraPlatform {
     }
 
     // invoke
-    final out = await methodChannel.invokeMethod<T>(method, arguments);
+    final result = await methodChannel.invokeMethod(method, arguments);
 
     // log result
     if (_logLevel == LogLevel.verbose) {
       var func = '($method)';
-      var result = out.toString();
+      var resultStr = result.toString();
       func = _logColor ? '\x1B[1;30m$func\x1B[0m' : func;
-      result = _logColor ? '\x1B[1;33m$result\x1B[0m' : result;
-      FlutterBlueUltraPlatform.log('[FBU] $func result: $result');
+      resultStr = _logColor ? '\x1B[1;33m$resultStr\x1B[0m' : resultStr;
+      FlutterBlueUltraPlatform.log('[FBU] $func result: $resultStr');
     }
 
-    return out;
+    // Convert Map types properly
+    if (result is Map && T.toString().contains('Map<String, dynamic>')) {
+      return Map<String, dynamic>.from(result) as T;
+    }
+
+    return result as T?;
   }
 
   Future<void> _flutterRestart() async {

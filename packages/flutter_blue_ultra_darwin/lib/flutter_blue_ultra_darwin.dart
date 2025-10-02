@@ -128,9 +128,10 @@ final class FlutterBlueUltraDarwin extends FlutterBlueUltraPlatform {
     BmBluetoothAdapterNameRequest request,
   ) async {
     return BmBluetoothAdapterName(
-      adapterName: await _callDarwinMethod<String?>(
-        'getAdapterName',
-      ),
+      adapterName: await _callDarwinMethod<String>(
+            'getAdapterName',
+          ) ??
+          '',
     );
   }
 
@@ -138,23 +139,27 @@ final class FlutterBlueUltraDarwin extends FlutterBlueUltraPlatform {
   Future<BmBluetoothAdapterState> getAdapterState(
     BmBluetoothAdapterStateRequest request,
   ) async {
-    return BmBluetoothAdapterState.fromMap(
-      await _callDarwinMethod<Map<String, dynamic>>(
-        'getAdapterState',
-      ),
+    final result = await _callDarwinMethod<Map<String, dynamic>>(
+      'getAdapterState',
     );
+    if (result == null) {
+      throw Exception('Failed to get adapter state');
+    }
+    return BmBluetoothAdapterState.fromMap(result);
   }
 
   @override
   Future<BmDevicesList> getSystemDevices(
     BmSystemDevicesRequest request,
   ) async {
-    return BmDevicesList.fromMap(
-      await _callDarwinMethod<Map<String, dynamic>>(
-        'getSystemDevices',
-        request.toMap(),
-      ),
+    final result = await _callDarwinMethod<Map<String, dynamic>>(
+      'getSystemDevices',
+      request.toMap(),
     );
+    if (result == null) {
+      throw Exception('Failed to get system devices');
+    }
+    return BmDevicesList.fromMap(result);
   }
 
   @override
@@ -301,18 +306,23 @@ final class FlutterBlueUltraDarwin extends FlutterBlueUltraPlatform {
     }
 
     // invoke
-    final out = await methodChannel.invokeMethod<T>(method, arguments);
+    final result = await methodChannel.invokeMethod(method, arguments);
 
     // log result
     if (_logLevel == LogLevel.verbose) {
       var func = '($method)';
-      var result = out.toString();
+      var resultStr = result.toString();
       func = _logColor ? '\x1B[1;30m$func\x1B[0m' : func;
-      result = _logColor ? '\x1B[1;33m$result\x1B[0m' : result;
-      FlutterBlueUltraPlatform.log('[FBU] $func result: $result');
+      resultStr = _logColor ? '\x1B[1;33m$resultStr\x1B[0m' : resultStr;
+      FlutterBlueUltraPlatform.log('[FBU] $func result: $resultStr');
     }
 
-    return out;
+    // Convert Map types properly
+    if (result is Map && T.toString().contains('Map<String, dynamic>')) {
+      return Map<String, dynamic>.from(result) as T;
+    }
+
+    return result as T?;
   }
 
   Future<void> _flutterRestart() async {
