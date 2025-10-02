@@ -128,7 +128,7 @@ final class FlutterBlueUltraDarwin extends FlutterBlueUltraPlatform {
     BmBluetoothAdapterNameRequest request,
   ) async {
     return BmBluetoothAdapterName(
-      adapterName: await _callDarwinMethod<String>(
+      adapterName: await _callDarwinMethod<String?>(
         'getAdapterName',
       ),
     );

@@ -168,7 +168,7 @@ final class FlutterBlueUltraAndroid extends FlutterBlueUltraPlatform {
     BmBluetoothAdapterNameRequest request,
   ) async {
     return BmBluetoothAdapterName(
-      adapterName: await _callAndroidMethod<String>(
+      adapterName: await _callAndroidMethod<String?>(
         'getAdapterName',
       ),
     );
