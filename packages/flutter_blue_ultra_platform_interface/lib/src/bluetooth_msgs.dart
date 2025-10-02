@@ -301,7 +301,8 @@ class BmBluetoothService {
     final List<BmBluetoothCharacteristic> chrs = [];
     final chrList = json['characteristics'] as List<dynamic>;
     for (final v in chrList) {
-      chrs.add(BmBluetoothCharacteristic.fromMap(v as Map<String, dynamic>));
+      final Map<String, dynamic> chrMap = v is Map ? Map<String, dynamic>.from(v) : v as Map<String, dynamic>;
+      chrs.add(BmBluetoothCharacteristic.fromMap(chrMap));
     }
 
     return BmBluetoothService(
@@ -337,8 +338,14 @@ class BmBluetoothCharacteristic {
     final List<BmBluetoothDescriptor> descs = [];
     final descList = json['descriptors'] as List<dynamic>;
     for (final v in descList) {
-      descs.add(BmBluetoothDescriptor.fromMap(v as Map<String, dynamic>));
+      final Map<String, dynamic> descMap = v is Map ? Map<String, dynamic>.from(v) : v as Map<String, dynamic>;
+      descs.add(BmBluetoothDescriptor.fromMap(descMap));
     }
+
+    // convert properties
+    final dynamic propertiesRaw = json['properties'];
+    final Map<String, dynamic> propertiesMap =
+        propertiesRaw is Map ? Map<String, dynamic>.from(propertiesRaw) : propertiesRaw as Map<String, dynamic>;
 
     return BmBluetoothCharacteristic(
       remoteId: DeviceIdentifier(json['remote_id'] as String),
@@ -347,7 +354,7 @@ class BmBluetoothCharacteristic {
       characteristicUuid: Guid(json['characteristic_uuid'] as String),
       instanceId: json['instance_id'] as int,
       descriptors: descs,
-      properties: BmCharacteristicProperties.fromMap(json['properties'] as Map<String, dynamic>),
+      properties: BmCharacteristicProperties.fromMap(propertiesMap),
     );
   }
 }
@@ -449,7 +456,7 @@ class BmDiscoverServicesResult {
     return BmDiscoverServicesResult(
       remoteId: DeviceIdentifier(json['remote_id'] as String),
       services: (json['services'] as List<dynamic>)
-          .map((e) => BmBluetoothService.fromMap(e as Map<String, dynamic>))
+          .map((e) => BmBluetoothService.fromMap(e is Map ? Map<String, dynamic>.from(e) : e as Map<String, dynamic>))
           .toList(),
       success: json['success'] as int != 0,
       errorCode: json['error_code'] as int,
@@ -757,7 +764,9 @@ class BmDevicesList {
     final List<BmBluetoothDevice> devices = [];
     final deviceList = json['devices'] as List<dynamic>;
     for (final device in deviceList) {
-      devices.add(BmBluetoothDevice.fromMap(device as Map<String, dynamic>));
+      final Map<String, dynamic> deviceMap =
+          device is Map ? Map<String, dynamic>.from(device) : device as Map<String, dynamic>;
+      devices.add(BmBluetoothDevice.fromMap(deviceMap));
     }
     return BmDevicesList(devices: devices);
   }
