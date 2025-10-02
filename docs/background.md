@@ -13,7 +13,6 @@ Apple docs: https://developer.apple.com/library/archive/documentation/Networking
 <array>
   <string>bluetooth-central</string>
   <!-- Add others as needed -->
-  
 </array>
 ```
 

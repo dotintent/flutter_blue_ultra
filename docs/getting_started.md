@@ -11,7 +11,7 @@ dependencies:
       url: https://github.com/intent-dev/flutter_blue_ultra.git
 ```
 
-The API is the same as `flutter_blue_plus` 1.x.
+The API is designed to be familiar to users of `flutter_blue_plus` 1.x, with a compatibility layer for legacy code.
 
 ### Android minSdkVersion
 
@@ -64,7 +64,7 @@ Set `androidUsesFineLocation: true` when scanning if needed.
 Add in `android/app/proguard-rules.pro`:
 
 ```
--keep class com.lib.flutter_blue_plus.* { *; }
+-keep class com.lib.flutter_blue_ultra.* { *; }
 ```
 
 ### iOS permissions

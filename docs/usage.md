@@ -1,19 +1,19 @@
 ## Usage
 
-This project preserves the `flutter_blue_plus` 1.x API surface, so most examples remain valid.
+This project provides a modern API while maintaining compatibility with the `flutter_blue_plus` 1.x API surface through a compatibility layer.
 
 ### Error handling
 
 Every error returned by the native platform is checked and thrown as an exception where appropriate.
 
-Streams returned by the library never emit errors and never close. The one exception is `FlutterBluePlus.scanResults`, which you should handle `onError`.
+Streams returned by the library never emit errors and never close. The one exception is `FlutterBlueUltra.scanResults`, which you should handle `onError`.
 
 ### Set log level
 
 ```dart
-FlutterBluePlus.setLogLevel(LogLevel.verbose, color:false);
+FlutterBlueUltra.setLogLevel(LogLevel.verbose, color:false);
 
-FlutterBluePlus.logs.listen((String s) {
+FlutterBlueUltra.logs.listen((String s) {
   // Forward logs as needed
 });
 ```
@@ -21,18 +21,18 @@ FlutterBluePlus.logs.listen((String s) {
 ### Bluetooth on & off
 
 ```dart
-if (await FlutterBluePlus.isSupported == false) {
+if (await FlutterBlueUltra.isSupported == false) {
   return;
 }
 
-final sub = FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
+final sub = FlutterBlueUltra.adapterState.listen((BluetoothAdapterState state) {
   if (state == BluetoothAdapterState.on) {
     // safe to start scanning/connecting
   }
 });
 
 if (!kIsWeb && Platform.isAndroid) {
-  await FlutterBluePlus.turnOn();
+  await FlutterBlueUltra.turnOn();
 }
 
 sub.cancel();
@@ -41,26 +41,26 @@ sub.cancel();
 ### Scan for devices
 
 ```dart
-final sub = FlutterBluePlus.onScanResults.listen((results) {
+final sub = FlutterBlueUltra.onScanResults.listen((results) {
   if (results.isNotEmpty) {
     final r = results.last;
     print('${r.device.remoteId}: "${r.advertisementData.advName}"');
   }
 }, onError: (e) => print(e));
 
-FlutterBluePlus.cancelWhenScanComplete(sub);
+FlutterBlueUltra.cancelWhenScanComplete(sub);
 
-await FlutterBluePlus.adapterState
+await FlutterBlueUltra.adapterState
     .where((s) => s == BluetoothAdapterState.on)
     .first;
 
-await FlutterBluePlus.startScan(
+await FlutterBlueUltra.startScan(
   withServices: [Guid('180D')],
   withNames: ['Bluno'],
   timeout: Duration(seconds: 15),
 );
 
-await FlutterBluePlus.isScanning.where((v) => v == false).first;
+await FlutterBlueUltra.isScanning.where((v) => v == false).first;
 ```
 
 ### Connect / disconnect
@@ -175,10 +175,10 @@ device.onServicesReset.listen(() async {
 ### Connected & System devices
 
 ```dart
-final connected = FlutterBluePlus.connectedDevices;
+final connected = FlutterBlueUltra.connectedDevices;
 
 final withServices = [Guid('180F')];
-final system = await FlutterBluePlus.systemDevices(withServices);
+final system = await FlutterBlueUltra.systemDevices(withServices);
 ```
 
 ### Bonding (Android)
@@ -193,7 +193,7 @@ await device.removeBond();
 ### Events API (all devices)
 
 ```dart
-FlutterBluePlus.events.onConnectionStateChanged.listen((event) {
+FlutterBlueUltra.events.onConnectionStateChanged.listen((event) {
   print('${event.device} ${event.connectionState}');
 });
 ```
