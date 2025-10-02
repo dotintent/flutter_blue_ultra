@@ -168,13 +168,62 @@ class _ScanScreenState extends State<ScanScreen> {
     return _scanResults.map((r) => ScanResultTile(result: r, onTap: () => onConnectPressed(r.device)));
   }
 
+  Widget _buildColumnHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[400]!, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 50,
+            child: Text(
+              'RSSI',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              'Device Name',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 80,
+            child: Text(
+              'Action',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
       key: Snackbar.snackBarKeyB,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Find Devices'),
+          title: const Text('Nearby Devices'),
           actions: [buildScanButton(), const SizedBox(width: 15)],
         ),
         body: RefreshIndicator(
@@ -182,6 +231,7 @@ class _ScanScreenState extends State<ScanScreen> {
           child: ListView(
             children: <Widget>[
               ..._buildSystemDeviceTiles(),
+              if (_scanResults.isNotEmpty || _isScanning) _buildColumnHeader(),
               ..._buildScanResultTiles(),
             ],
           ),
