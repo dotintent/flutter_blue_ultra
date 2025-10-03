@@ -209,7 +209,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
             result(@"Mac Bluetooth Adapter");
     #endif
         }
-        if ([@"getAdapterState" isEqualToString:call.method])
+        else if ([@"getAdapterState" isEqualToString:call.method])
         {
             // get state
             int adapterState = 0; // BmAdapterStateEnum.unknown
@@ -382,11 +382,19 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
 
             // options
             NSMutableDictionary *options = [[NSMutableDictionary alloc] init];
+            #if TARGET_OS_IOS
             if (@available(iOS 17, *)) {
                 // note: use CBConnectPeripheralOptionEnableAutoReconnect constant
-                // when all developers can be excpected to be on iOS 17+
+                // when all developers can be expected to be on iOS 17+
                 [options setObject:autoConnect forKey:@"kCBConnectOptionEnableAutoReconnect"];
-            } 
+            }
+            #else // MacOS
+            if (@available(macOS 14, *)) {
+                // note: use CBConnectPeripheralOptionEnableAutoReconnect constant
+                // when all developers can be expected to be on macOS 14+
+                [options setObject:autoConnect forKey:@"kCBConnectOptionEnableAutoReconnect"];
+            }
+            #endif 
 
             [self.centralManager connectPeripheral:peripheral options:options];
 
@@ -400,18 +408,16 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
             // remoteId is passed raw, not in a NSDictionary
             NSString *remoteId = [call arguments];
 
-            // already disconnected?
-            CBPeripheral *peripheral = nil;
-            if (peripheral == nil ) {
-                peripheral = [self.currentlyConnectingPeripherals objectForKey:remoteId];
-                if (peripheral != nil) {
-                    Log(LDEBUG, @"disconnect: cancelling connection in progress");
-                    [self.currentlyConnectingPeripherals removeObjectForKey:remoteId];
-                }   
-            }
-            if (peripheral == nil) {
+            // Check if currently connecting first
+            CBPeripheral *peripheral = [self.currentlyConnectingPeripherals objectForKey:remoteId];
+            if (peripheral != nil) {
+                Log(LDEBUG, @"disconnect: cancelling connection in progress");
+                [self.currentlyConnectingPeripherals removeObjectForKey:remoteId];
+            } else {
+                // Otherwise check if connected
                 peripheral = [self getConnectedPeripheral:remoteId];
             }
+            
             if (peripheral == nil) {
                 Log(LDEBUG, @"already disconnected");
                 result(@NO); // no work to do
@@ -2138,6 +2144,11 @@ didDiscoverCharacteristicsForService:(CBService *)service
 - (BOOL)findData:(NSData *)find inData:(NSData *)data usingMask:(NSData *)mask {
     // Ensure find & mask are same length
     if ([find length] != [mask length]) {
+        return NO;
+    }
+    
+    // Ensure data is at least as long as the search pattern
+    if ([data length] < [find length]) {
         return NO;
     }
     
