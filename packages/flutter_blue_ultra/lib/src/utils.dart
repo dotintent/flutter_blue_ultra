@@ -133,15 +133,9 @@ class _BufferStream<T> {
 
   _BufferStream.listen(this._inputStream) {
     _controller = StreamController<T>(
-      onCancel: () {
-        _subscription?.cancel();
-      },
-      onPause: () {
-        _subscription?.pause();
-      },
-      onResume: () {
-        _subscription?.resume();
-      },
+      onCancel: () => _subscription?.cancel(),
+      onPause: () => _subscription?.pause(),
+      onResume: () => _subscription?.resume(),
       onListen: () {}, // inputStream is already listened to
     );
 
