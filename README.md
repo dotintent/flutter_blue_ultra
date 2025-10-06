@@ -1,1 +1,1 @@
-packages/flutter_blue_plus/README.md
+packages/flutter_blue_ultra/README.md

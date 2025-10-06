@@ -1,0 +1,29 @@
+name: flutter_blue_ultra_web
+description: Web implementation of the flutter_blue_ultra plugin.
+version: 8.0.0
+homepage: https://github.com/dotintent/flutter_blue_ultra
+
+environment:
+  sdk: ^3.3.0
+  flutter: '>=3.19.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_blue_ultra_platform_interface: 7.0.0
+  flutter_web_plugins:
+    sdk: flutter
+  web: '>=0.5.0 <2.0.0'
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    implements: flutter_blue_ultra
+    platforms:
+      web:
+        pluginClass: FlutterBlueUltraWeb
+        fileName: flutter_blue_ultra_web.dart

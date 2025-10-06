@@ -1,0 +1,31 @@
+name: flutter_blue_ultra_darwin
+description: iOS and macOS implementation of the flutter_blue_ultra plugin.
+version: 8.0.0
+homepage: https://github.com/dotintent/flutter_blue_ultra
+
+environment:
+  sdk: ^3.0.0
+  flutter: '>=3.7.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_blue_ultra_platform_interface: 7.0.0
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    implements: flutter_blue_ultra
+    platforms:
+      ios:
+        pluginClass: FlutterBlueUltraPlugin
+        dartPluginClass: FlutterBlueUltraDarwin
+        sharedDarwinSource: true
+      macos:
+        pluginClass: FlutterBlueUltraPlugin
+        dartPluginClass: FlutterBlueUltraDarwin
+        sharedDarwinSource: true
