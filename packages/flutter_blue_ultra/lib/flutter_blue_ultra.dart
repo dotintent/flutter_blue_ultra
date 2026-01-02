@@ -21,4 +21,4 @@ part 'src/bluetooth_service.dart';
 part 'src/bluetooth_utils.dart';
 part 'src/flutter_blue_ultra.dart';
 part 'src/utils.dart';
-part 'src/flutter_blue_plus_compat.dart';
+part 'src/flutter_blue_ultra_compat.dart';

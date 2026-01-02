@@ -19,7 +19,7 @@ A full example is [here](https://dsavir-h.medium.com/mocking-bluetooth-in-flutte
 Create the following class:
 
 ```dart
-import '../flutter_blue_plus.dart';
+import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
 
 /// Wrapper for FlutterBluePlus in order to easily mock it
 /// Wraps all static calls for testing purposes

@@ -44,7 +44,7 @@ class FlutterBlueUltra {
   /// the last known adapter state
   static BmAdapterStateEnum? _adapterStateNow;
 
-  /// FlutterBluePlus log level
+  /// FlutterBlueUltra log level
   static LogLevel _logLevel = LogLevel.debug;
 
   ////////////////////
@@ -95,7 +95,7 @@ class FlutterBlueUltra {
   /// Get access to all device event streams
   static final BluetoothEvents events = BluetoothEvents();
 
-  /// Get access to FBP logs
+  /// Get access to FBU logs
   static Stream<String> get logs => FlutterBlueUltraPlatform.logs;
 
   /// Set configurable options
@@ -459,7 +459,7 @@ class FlutterBlueUltra {
         _deviceSubscriptions[r.remoteId]?.forEach((s) => s.cancel());
         _deviceSubscriptions.remove(r.remoteId);
 
-        // Note: to make FBP easier to use, we do not clear `knownServices`,
+        // Note: to make FBU easier to use, we do not clear `knownServices`,
         // otherwise `servicesList` would be more annoying to use. We also
         // do not clear `bondState`, for faster performance.
 

@@ -17,7 +17,7 @@
 @interface FlutterBlueUltraPlugin : NSObject<FlutterPlugin, CBCentralManagerDelegate, CBPeripheralDelegate>
 @end
 
-@interface FlutterBluePlusStreamHandler : NSObject<FlutterStreamHandler>
+@interface FlutterBlueUltraStreamHandler : NSObject<FlutterStreamHandler>
 @property FlutterEventSink sink;
 @property NSDictionary *cachedBluetoothAdapterState;
 @end
