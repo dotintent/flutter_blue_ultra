@@ -1,0 +1,11 @@
+# Files to exclude from pub.dev publishing
+# These files are tracked in git but should not be published
+
+# VS Code settings (ignored by .gitignore but tracked)
+example/.vscode/settings.json
+**/.vscode/settings.json
+
+# Old Java file location (moved to new location, but still in git history)
+example/android/app/src/main/java/com/boskokg/flutter_blue_plus_example/MainActivity.java
+**/com/boskokg/flutter_blue_plus_example/**
+
