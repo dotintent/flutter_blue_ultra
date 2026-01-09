@@ -1,3 +1,12 @@
+## 2.0.0
+* Introduce Flutter Blue Ultra
+* **[Breaking Change]** Renamed package from `flutter_blue_plus` to `flutter_blue_ultra`
+* **[Breaking Change]** Renamed core class from `FlutterBluePlus` to `FlutterBlueUltra`
+* **[Feature]** Added backward compatibility wrapper to allow legacy code using `FlutterBluePlus` to continue working
+* **[Improve]** Updated all platform-specific implementations to use the new naming
+* **[Improve]** Updated all documentation to reflect the new package name
+* **[Fix]** Updated all log tags from [FBP] to [FBU]
+
 ## 1.37.0
 * Introduce Flutter Blue Ultra
 * **[Breaking Change]** Renamed package from `flutter_blue_plus` to `flutter_blue_ultra`

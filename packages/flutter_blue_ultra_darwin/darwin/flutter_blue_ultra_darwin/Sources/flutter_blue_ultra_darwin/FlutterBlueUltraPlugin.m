@@ -5,7 +5,7 @@
 #import "./include/flutter_blue_ultra_darwin/FlutterBlueUltraPlugin.h"
 #include <Foundation/NSObjCRuntime.h>
 
-#define Log(LEVEL, FORMAT, ...) [self log:LEVEL format:@"[FBP-iOS] " FORMAT, ##__VA_ARGS__]
+#define Log(LEVEL, FORMAT, ...) [self log:LEVEL format:@"[FBU-iOS] " FORMAT, ##__VA_ARGS__]
 
 NSString * const CCCD = @"2902";
 
@@ -128,7 +128,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
             }
 
             if ([self.restoreState boolValue]) {
-                options[CBCentralManagerOptionRestoreIdentifierKey] = @"flutterBluePlusRestoreIdentifier";
+                options[CBCentralManagerOptionRestoreIdentifierKey] = @"flutterBlueUltraRestoreIdentifier";
             }
 
             Log(LDEBUG, @"showPowerAlert: %@", [self.showPowerAlert boolValue] ? @"yes" : @"no");
@@ -883,7 +883,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     {
         NSString* s = [NSString stringWithFormat:@"primary service not found '%@'", primaryServiceUuid];
         NSDictionary* d = @{NSLocalizedDescriptionKey : s};
-        *error = [NSError errorWithDomain:@"flutterBluePlus" code:1000 userInfo:d];
+        *error = [NSError errorWithDomain:@"flutterBlueUltra" code:1000 userInfo:d];
         return nil;
     }
 
@@ -895,7 +895,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
         if (error && !secondaryService) {
             NSString* s = [NSString stringWithFormat:@"secondary service not found '%@' (primary service %@)", serviceUuid, primaryServiceUuid];
             NSDictionary* d = @{NSLocalizedDescriptionKey : s};
-            *error = [NSError errorWithDomain:@"flutterBluePlus" code:1001 userInfo:d];
+            *error = [NSError errorWithDomain:@"flutterBlueUltra" code:1001 userInfo:d];
             return nil;
         }
     }
@@ -913,7 +913,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
         NSString* format = @"characteristic not found in service (chr: '%@', svc: '%@')";
         NSString* s = [NSString stringWithFormat:format, characteristicId, serviceUuid];
         NSDictionary* d = @{NSLocalizedDescriptionKey : s};
-        *error = [NSError errorWithDomain:@"flutterBluePlus" code:1002 userInfo:d];
+        *error = [NSError errorWithDomain:@"flutterBlueUltra" code:1002 userInfo:d];
         return nil;
     }
     return characteristic;
@@ -928,7 +928,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
         NSString* format = @"descriptor not found in characteristic (desc: '%@', chr: '%@')";
         NSString* s = [NSString stringWithFormat:format, descriptorId, [characteristic.UUID uuidStr]];
         NSDictionary* d = @{NSLocalizedDescriptionKey : s};
-        *error = [NSError errorWithDomain:@"flutterBluePlus" code:1002 userInfo:d];
+        *error = [NSError errorWithDomain:@"flutterBlueUltra" code:1002 userInfo:d];
         return nil;
     }
     return descriptor;

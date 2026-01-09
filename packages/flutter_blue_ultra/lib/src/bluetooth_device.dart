@@ -27,7 +27,7 @@ class BluetoothDevice {
 
   /// Advertised Named
   ///  - this is the name advertised by the device during scanning
-  ///  - it is only available after you scan with FlutterBluePlus
+  ///  - it is only available after you scan with FlutterBlueUltra
   ///  - it is cleared when the app restarts.
   ///  - not all devices advertise a name
   String get advName => FlutterBlueUltra._advNames[remoteId] ?? "";
@@ -184,7 +184,7 @@ class BluetoothDevice {
   ///     of the fbp operation queue, which is useful to cancel an in-progress connection attempt.
   ///   - [androidDelay] Android only. Minimum gap in milliseconds between connect and disconnect to
   ///     workaround a race condition that leaves connection stranded. A stranded connection in this case
-  ///     refers to a connection that FBP and Android Bluetooth stack are not aware of and thus cannot be
+  ///     refers to a connection that FBU and Android Bluetooth stack are not aware of and thus cannot be
   ///     disconnected because there is no gatt handle.
   ///     https://issuetracker.google.com/issues/37121040
   ///     From testing, 2 second delay appears to be enough.
@@ -662,7 +662,7 @@ class BluetoothDevice {
   /// Workaround race condition between connect and disconnect.
   /// The bug: If you call disconnect right as android is establishing a connection
   /// android may still connect to the device. Worse, "onConnectionStateChange" will not be called
-  /// so FBP will have no idea this connection is active. Adding a delay fixes this issue.
+  /// so FBU will have no idea this connection is active. Adding a delay fixes this issue.
   /// https://issuetracker.google.com/issues/37121040
   Future<void> _ensureAndroidDisconnectionDelay(int androidDelay) async {
     if (!kIsWeb && Platform.isAndroid) {

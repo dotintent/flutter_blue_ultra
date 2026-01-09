@@ -10,16 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # use specific versions. 
-  #  - users otherwise forget to update all
-  #  - simpler bug reporting
-  #  - unified changelog
-  #  - users can still manually override
-  flutter_blue_ultra_platform_interface: 8.0.0
-  flutter_blue_ultra_android: 8.0.0
-  flutter_blue_ultra_darwin: 8.0.0
-  flutter_blue_ultra_linux: 8.0.0
-  flutter_blue_ultra_web: 8.0.0
+  # Use caret constraints to allow compatible versions
+  # This allows users to use the package with other packages that depend on these
+  flutter_blue_ultra_platform_interface: ^8.0.0
+  flutter_blue_ultra_android: ^8.0.0
+  flutter_blue_ultra_darwin: ^8.0.0
+  flutter_blue_ultra_linux: ^8.0.0
+  flutter_blue_ultra_web: ^8.0.0
 
 dev_dependencies:
   flutter_lints: ^5.0.0
