@@ -146,7 +146,7 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text('Characteristic', style: TextStyle(color: Theme.of(context).primaryColor)),
+            Text('Characteristic', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
             buildUuid(context),
             buildValue(context),
           ],

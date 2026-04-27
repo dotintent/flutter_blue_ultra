@@ -139,3 +139,12 @@ class FlutterBluePlus {
   @Deprecated('removed. read MIGRATION.md for simple alternatives')
   static Stream<ScanResult> scan() => FlutterBlueUltra.scan();
 }
+
+@Deprecated('Use FlutterBlueUltraException instead')
+typedef FlutterBluePlusException = FlutterBlueUltraException;
+
+@Deprecated('Use FbuErrorCode instead')
+typedef FbpErrorCode = FbuErrorCode;
+
+@Deprecated('Use FbuError instead')
+typedef FbpError = FbuError;

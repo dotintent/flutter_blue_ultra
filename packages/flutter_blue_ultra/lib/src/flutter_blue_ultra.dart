@@ -131,7 +131,7 @@ class FlutterBlueUltra {
 
       // check response
       if (response.userAccepted == false) {
-        throw FlutterBlueUltraException(ErrorPlatform.fbp, "turnOn", FbuErrorCode.userRejected.index, "user rejected");
+        throw FlutterBlueUltraException(ErrorPlatform.fbu, "turnOn", FbuErrorCode.userRejected.index, "user rejected");
       }
 
       // wait for adapter to turn on
@@ -405,7 +405,7 @@ class FlutterBlueUltra {
     // check android
     if (kIsWeb || !Platform.isAndroid) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "getPhySupport", FbuErrorCode.androidOnly.index, "android-only");
+          ErrorPlatform.fbu, "getPhySupport", FbuErrorCode.androidOnly.index, "android-only");
     }
 
     return await _invokePlatform(() => FlutterBlueUltraPlatform.instance.getPhySupport(PhySupportRequest()));
@@ -751,11 +751,13 @@ class AdvertisementData {
 }
 
 enum ErrorPlatform {
-  fbp,
+  fbu,
   android,
   apple,
   linux,
   web,
+  @Deprecated('Use fbu instead')
+  fbp,
 }
 
 final ErrorPlatform _nativeError = (() {
@@ -768,7 +770,7 @@ final ErrorPlatform _nativeError = (() {
   } else if (Platform.isLinux) {
     return ErrorPlatform.linux;
   } else {
-    return ErrorPlatform.fbp;
+    return ErrorPlatform.fbu;
   }
 })();
 

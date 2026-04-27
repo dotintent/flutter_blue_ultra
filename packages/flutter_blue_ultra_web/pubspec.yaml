@@ -2,6 +2,12 @@ name: flutter_blue_ultra_web
 description: Web implementation of the flutter_blue_ultra plugin.
 version: 8.0.0
 homepage: https://github.com/dotintent/flutter_blue_ultra
+repository: https://github.com/dotintent/flutter_blue_ultra
+issue_tracker: https://github.com/dotintent/flutter_blue_ultra/issues
+topics:
+  - bluetooth
+  - ble
+  - bluetooth-low-energy
 
 environment:
   sdk: ^3.3.0
@@ -10,7 +16,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_blue_ultra_platform_interface: 7.0.0
+  flutter_blue_ultra_platform_interface: ^8.0.0
   flutter_web_plugins:
     sdk: flutter
   web: '>=0.5.0 <2.0.0'

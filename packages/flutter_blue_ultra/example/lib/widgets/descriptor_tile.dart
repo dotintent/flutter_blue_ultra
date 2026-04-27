@@ -105,7 +105,7 @@ class _DescriptorTileState extends State<DescriptorTile> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Descriptor', style: TextStyle(color: Theme.of(context).primaryColor)),
+          Text('Descriptor', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
           buildUuid(context),
           buildValue(context),
         ],

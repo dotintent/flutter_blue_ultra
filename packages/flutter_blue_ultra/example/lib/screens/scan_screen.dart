@@ -121,7 +121,7 @@ class _ScanScreenState extends State<ScanScreen> {
         : ElevatedButton(
             onPressed: onScanPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Colors.white,
             ),
             child: const Text("SCAN"),
