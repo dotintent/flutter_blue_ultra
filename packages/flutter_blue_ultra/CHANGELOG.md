@@ -1,3 +1,13 @@
+## 2.1.0
+* **[Improve]** Bumped Flutter SDK to 3.41.7 (FVM)
+* **[Breaking Change]** Renamed `FbpError` to `FbuError` — deprecated `FbpError` typedef kept for compat
+* **[Breaking Change]** Renamed `ErrorPlatform.fbp` to `ErrorPlatform.fbu` — deprecated `fbp` value kept for compat
+* **[Compat]** Added `@Deprecated` typedefs: `FlutterBluePlusException`, `FbpErrorCode`, `FbpError`
+* **[Fix]** Replaced deprecated `Theme.primaryColor` with `colorScheme.primary` in example app
+* **[Fix]** Replaced deprecated `primaryTextTheme` with `textTheme` in example app
+* **[Improve]** Added `repository`, `issue_tracker`, and `topics` to all platform package pubspecs
+* **[Fix]** Corrected `flutter_blue_ultra_platform_interface` version constraint from `7.0.0` to `^8.0.0` in all platform packages
+
 ## 2.0.0
 * Introduce Flutter Blue Ultra
 * **[Breaking Change]** Renamed package from `flutter_blue_plus` to `flutter_blue_ultra`

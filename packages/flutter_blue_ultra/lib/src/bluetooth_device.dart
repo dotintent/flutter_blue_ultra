@@ -158,7 +158,7 @@ class BluetoothDevice {
         if (response.connectionState == BmConnectionStateEnum.disconnected) {
           if (response.disconnectReasonCode == bmUserCanceledErrorCode) {
             throw FlutterBlueUltraException(
-                ErrorPlatform.fbp, "connect", FbuErrorCode.connectionCanceled.index, "connection canceled");
+                ErrorPlatform.fbu, "connect", FbuErrorCode.connectionCanceled.index, "connection canceled");
           } else {
             throw FlutterBlueUltraException(
                 _nativeError, "connect", response.disconnectReasonCode, response.disconnectReasonString);
@@ -247,7 +247,7 @@ class BluetoothDevice {
     // check connected
     if (isDisconnected) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "discoverServices", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
+          ErrorPlatform.fbu, "discoverServices", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
     // Only allow a single ble operation to be underway at a time
@@ -355,7 +355,7 @@ class BluetoothDevice {
     // check connected
     if (isDisconnected) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "readRssi", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
+          ErrorPlatform.fbu, "readRssi", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
     // Only allow a single ble operation to be underway at a time
@@ -398,13 +398,13 @@ class BluetoothDevice {
   Future<int> requestMtu(int desiredMtu, {double predelay = 0.35, int timeout = 15}) async {
     // check android
     if (kIsWeb || !Platform.isAndroid) {
-      throw FlutterBlueUltraException(ErrorPlatform.fbp, "requestMtu", FbuErrorCode.androidOnly.index, "android-only");
+      throw FlutterBlueUltraException(ErrorPlatform.fbu, "requestMtu", FbuErrorCode.androidOnly.index, "android-only");
     }
 
     // check connected
     if (isDisconnected) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "requestMtu", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
+          ErrorPlatform.fbu, "requestMtu", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
     // Only allow a single ble operation to be underway at a time
@@ -466,12 +466,12 @@ class BluetoothDevice {
     // check android
     if (kIsWeb || !Platform.isAndroid) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "requestConnectionPriority", FbuErrorCode.androidOnly.index, "android-only");
+          ErrorPlatform.fbu, "requestConnectionPriority", FbuErrorCode.androidOnly.index, "android-only");
     }
 
     // check connected
     if (isDisconnected) {
-      throw FlutterBlueUltraException(ErrorPlatform.fbp, "requestConnectionPriority",
+      throw FlutterBlueUltraException(ErrorPlatform.fbu, "requestConnectionPriority",
           FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
@@ -497,13 +497,13 @@ class BluetoothDevice {
     // check android
     if (kIsWeb || !Platform.isAndroid) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "setPreferredPhy", FbuErrorCode.androidOnly.index, "android-only");
+          ErrorPlatform.fbu, "setPreferredPhy", FbuErrorCode.androidOnly.index, "android-only");
     }
 
     // check connected
     if (isDisconnected) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "setPreferredPhy", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
+          ErrorPlatform.fbu, "setPreferredPhy", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
     var request = BmPreferredPhy(
@@ -522,13 +522,13 @@ class BluetoothDevice {
   Future<void> createBond({int timeout = 90, Uint8List? pin}) async {
     // check android
     if (kIsWeb || !Platform.isAndroid) {
-      throw FlutterBlueUltraException(ErrorPlatform.fbp, "createBond", FbuErrorCode.androidOnly.index, "android-only");
+      throw FlutterBlueUltraException(ErrorPlatform.fbu, "createBond", FbuErrorCode.androidOnly.index, "android-only");
     }
 
     // check connected
     if (isDisconnected) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "createBond", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
+          ErrorPlatform.fbu, "createBond", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
     // Only allow a single ble operation to be underway at a time
@@ -556,7 +556,7 @@ class BluetoothDevice {
 
         // success?
         if (bs.bondState != BmBondStateEnum.bonded) {
-          throw FlutterBlueUltraException(ErrorPlatform.fbp, "createBond", FbuErrorCode.createBondFailed.hashCode,
+          throw FlutterBlueUltraException(ErrorPlatform.fbu, "createBond", FbuErrorCode.createBondFailed.hashCode,
               "Failed to create bond. ${bs.bondState}");
         }
       }
@@ -569,7 +569,7 @@ class BluetoothDevice {
   Future<void> removeBond({int timeout = 30}) async {
     // check android
     if (kIsWeb || !Platform.isAndroid) {
-      throw FlutterBlueUltraException(ErrorPlatform.fbp, "removeBond", FbuErrorCode.androidOnly.index, "android-only");
+      throw FlutterBlueUltraException(ErrorPlatform.fbu, "removeBond", FbuErrorCode.androidOnly.index, "android-only");
     }
 
     // Only allow a single ble operation to be underway at a time
@@ -594,7 +594,7 @@ class BluetoothDevice {
 
         // success?
         if (bs.bondState != BmBondStateEnum.none) {
-          throw FlutterBlueUltraException(ErrorPlatform.fbp, "createBond", FbuErrorCode.removeBondFailed.hashCode,
+          throw FlutterBlueUltraException(ErrorPlatform.fbu, "createBond", FbuErrorCode.removeBondFailed.hashCode,
               "Failed to remove bond. ${bs.bondState}");
         }
       }
@@ -608,13 +608,13 @@ class BluetoothDevice {
     // check android
     if (kIsWeb || !Platform.isAndroid) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "clearGattCache", FbuErrorCode.androidOnly.index, "android-only");
+          ErrorPlatform.fbu, "clearGattCache", FbuErrorCode.androidOnly.index, "android-only");
     }
 
     // check connected
     if (isDisconnected) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "clearGattCache", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
+          ErrorPlatform.fbu, "clearGattCache", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
     // invoke
@@ -626,7 +626,7 @@ class BluetoothDevice {
   Stream<BluetoothBondState> get bondState async* {
     // check android
     if (kIsWeb || !Platform.isAndroid) {
-      throw FlutterBlueUltraException(ErrorPlatform.fbp, "bondState", FbuErrorCode.androidOnly.index, "android-only");
+      throw FlutterBlueUltraException(ErrorPlatform.fbu, "bondState", FbuErrorCode.androidOnly.index, "android-only");
     }
 
     // get current state if needed

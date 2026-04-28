@@ -2,6 +2,12 @@ name: flutter_blue_ultra_platform_interface
 description: A common platform interface for the flutter_blue_ultra plugin.
 version: 8.0.0
 homepage: https://github.com/dotintent/flutter_blue_ultra
+repository: https://github.com/dotintent/flutter_blue_ultra
+issue_tracker: https://github.com/dotintent/flutter_blue_ultra/issues
+topics:
+  - bluetooth
+  - ble
+  - bluetooth-low-energy
 
 environment:
   sdk: ^3.0.0

@@ -15,7 +15,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_blue_ultra_darwin/darwin"
 
 SPEC CHECKSUMS:
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_blue_ultra_darwin: 7c6c006ac4a642effb6d1fe8a11f1bea82261b8a
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796

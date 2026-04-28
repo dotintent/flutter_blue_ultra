@@ -77,7 +77,7 @@ class BluetoothDescriptor {
     // check connected
     if (device.isDisconnected) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "readDescriptor", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
+          ErrorPlatform.fbu, "readDescriptor", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
     // Only allow a single ble operation to be underway at a time
@@ -135,7 +135,7 @@ class BluetoothDescriptor {
     // check connected
     if (device.isDisconnected) {
       throw FlutterBlueUltraException(
-          ErrorPlatform.fbp, "writeDescriptor", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
+          ErrorPlatform.fbu, "writeDescriptor", FbuErrorCode.deviceIsDisconnected.index, "device is not connected");
     }
 
     // Only allow a single ble operation to be underway at a time
