@@ -12,7 +12,7 @@
 fvm flutter pub run ffigen --config ffigen.yaml
 ```
 - check the outputs of generator
-- update `flutter_accessorysetup.dart` if required
+- update `flutter_blue_ultra_accessory_setup.dart` if required
 - set lowest supported flutter version, for now it is `3.24.5`
 ```
 fvm install 3.24.5
@@ -29,8 +29,8 @@ cd -
 Dart code will call that functions as native ones,
  and will fail if there is nothing to call.
 ```
-cd example/build/ios/Debug-iphonesimulator/flutter_accessorysetup/flutter_accessorysetup.framework
-nm flutter_accessorysetup
+cd example/build/ios/Debug-iphonesimulator/flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.framework
+nm flutter_blue_ultra_accessory_setup
 ```
 - verify that app works as expected
 
@@ -40,7 +40,7 @@ nm flutter_accessorysetup
     - open `Package.swift` with Xcode and uncomment  `// type: .dynamic,`
     - build it with Xcode
     - find the dynamic lib binary inside the folder:
-    `.../DerivedData/flutter_accessorysetup-cxdfwrtgxkutoqhlafpyoelbredk/Build/Products/Debug-iphoneos/PackageFrameworks/flutter-accessorysetup.framework`
+    `.../DerivedData/flutter_blue_ultra_accessory_setup-cxdfwrtgxkutoqhlafpyoelbredk/Build/Products/Debug-iphoneos/PackageFrameworks/flutter-blue-ultra-accessory-setup.framework`
     - check that library's binary contains functions from `AccessorySetupBindings.m` 
     - comment `// type: .dynamic,` back
 
@@ -65,7 +65,7 @@ nm flutter_accessorysetup
     the dependencies section should contains something similar to: 
     ```
      dependencies: [
-        .package(name: "flutter_accessorysetup", path: ".../flutter-accessorysetup/ios/flutter_accessorysetup"),
+        .package(name: "flutter_blue_ultra_accessory_setup", path: ".../flutter-blue-ultra-accessory-setup/ios/flutter_blue_ultra_accessory_setup"),
         .package(name: "integration_test", path: .../ios/integration_test")
     ],
     ```

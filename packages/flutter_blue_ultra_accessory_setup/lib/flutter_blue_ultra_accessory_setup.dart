@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:objective_c/objective_c.dart';
 import 'package:flutter/services.dart';
 
-import 'package:flutter_accessorysetup/gen/ios/accessory_setup_bindings.dart';
-import 'package:flutter_accessorysetup/src/helpers.dart';
-import 'package:flutter_accessorysetup/src/testing.dart';
+import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
+import 'package:flutter_blue_ultra_accessory_setup/src/helpers.dart';
+import 'package:flutter_blue_ultra_accessory_setup/src/testing.dart';
 
 /// The main class of the library that provides service functionality
 /// Use it to activate the session and find and configure devices
@@ -35,8 +35,10 @@ class FlutterAccessorySetup {
     NativeCodeError Function(NSError)? nsErrorConverter,
   }) {
     _convertToNSArray = listConverter ?? (list) => list.toNSArray();
-    _convertToNativeCodeError = nsErrorConverter ?? (nsError) => NativeCodeError(nsError);
-    _sessionAdapter = sessionAdapter ?? FFIAccessorySessionAdapter(FFIAccessorySession.alloc().init());
+    _convertToNativeCodeError =
+        nsErrorConverter ?? (nsError) => NativeCodeError(nsError);
+    _sessionAdapter = sessionAdapter ??
+        FFIAccessorySessionAdapter(FFIAccessorySession.alloc().init());
     _delegateAdapter = delegateAdapterFactory(
         handleEvent: _handleEvent,
         didShowPickerWithError: _didShowPicker,
@@ -82,23 +84,29 @@ class FlutterAccessorySetup {
   /// - name: the name of the device to display in picker
   /// - asset: the asset of the device image to display in picker
   /// - serviceID: the service UUID advertised by device (to search for a particular device)
-  Future<void> showPickerForDevice(String name, String asset, String serviceID) async {
+  Future<void> showPickerForDevice(
+      String name, String asset, String serviceID) async {
     final completer = Completer<void>();
     _showPickerCompleter = completer;
 
     final image = await nativeUIImageWithDartAsset(asset);
     if (image == null) {
-      throw FlutterAccessorysetupError(code: 1, description: "Failed to load UIImage for the asset: $asset");
+      throw FlutterAccessorysetupError(
+          code: 1, description: "Failed to load UIImage for the asset: $asset");
     }
     final descriptor = ASDiscoveryDescriptor.alloc().init();
-    descriptor.bluetoothServiceUUID = CBUUID.UUIDWithString_(serviceID.toNSString());
-    final item = ASPickerDisplayItem.alloc().initWithName_productImage_descriptor_(name.toNSString(), image, descriptor);
+    descriptor.bluetoothServiceUUID =
+        CBUUID.UUIDWithString_(serviceID.toNSString());
+    final item = ASPickerDisplayItem.alloc()
+        .initWithName_productImage_descriptor_(
+            name.toNSString(), image, descriptor);
     _sessionAdapter.showPickerForItems_(_convertToNSArray([item]));
     return completer.future;
   }
 
   /// Renames provided accessory using the `ASAccessoryRenameOptions`
-  Future<void> renameAccessory(ASAccessory accessory, ASAccessoryRenameOptions options) async {
+  Future<void> renameAccessory(
+      ASAccessory accessory, ASAccessoryRenameOptions options) async {
     final completer = Completer<void>();
     _renameAccessoryCompleter = completer;
     _sessionAdapter.renameAccessory_options_(accessory, options);
@@ -114,10 +122,12 @@ class FlutterAccessorySetup {
   }
 
   /// Finishes the Authorization for accessory using `ASAccessorySettings`
-  Future<void> finishAuthorizationForAccessory(ASAccessory accessory, ASAccessorySettings settings) async {
+  Future<void> finishAuthorizationForAccessory(
+      ASAccessory accessory, ASAccessorySettings settings) async {
     final completer = Completer<void>();
     _finishAuthorizationForAccessoryCompleter = completer;
-    _sessionAdapter.finishAuthorizationForAccessory_settings_(accessory, settings);
+    _sessionAdapter.finishAuthorizationForAccessory_settings_(
+        accessory, settings);
     return completer.future;
   }
 
@@ -147,7 +157,8 @@ class FlutterAccessorySetup {
 
   void _didRenameAccessory(ASAccessory accessory, NSError? nsError) {
     if (nsError != null) {
-      _renameAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
+      _renameAccessoryCompleter
+          ?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
     _renameAccessoryCompleter?.complete();
@@ -155,7 +166,8 @@ class FlutterAccessorySetup {
 
   void _didRemoveAccessory(ASAccessory accessory, NSError? nsError) {
     if (nsError != null) {
-      _removeAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
+      _removeAccessoryCompleter
+          ?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
     _removeAccessoryCompleter?.complete();
@@ -163,7 +175,8 @@ class FlutterAccessorySetup {
 
   void _didFinishAuthorization(ASAccessory accessory, NSError? nsError) {
     if (nsError != null) {
-      _finishAuthorizationForAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
+      _finishAuthorizationForAccessoryCompleter
+          ?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
     _finishAuthorizationForAccessoryCompleter?.complete();
@@ -171,7 +184,8 @@ class FlutterAccessorySetup {
 
   void _didFailAuthorization(ASAccessory accessory, NSError? nsError) {
     if (nsError != null) {
-      _failAuthorizationForAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
+      _failAuthorizationForAccessoryCompleter
+          ?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
     _failAuthorizationForAccessoryCompleter?.complete();
@@ -208,7 +222,8 @@ class FlutterAccessorysetupError extends Error {
   FlutterAccessorysetupError({required this.code, required this.description});
 
   @override
-  String toString() => 'FlutterAccessorysetupError(code: $code, description: $description)';
+  String toString() =>
+      'FlutterAccessorysetupError(code: $code, description: $description)';
 }
 
 /// The class for errors occurred in the Native code of the library
@@ -224,7 +239,8 @@ class NativeCodeError extends Error {
   }
 
   @override
-  String toString() => 'NativeCodeError(domain: $domain, code: $code, description: $description)';
+  String toString() =>
+      'NativeCodeError(domain: $domain, code: $code, description: $description)';
 }
 
 /// Exposing native properties as Dart types

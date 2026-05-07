@@ -1,6 +1,6 @@
 PODS:
   - Flutter (1.0.0)
-  - flutter_accessorysetup (0.0.2):
+  - flutter_blue_ultra_accessory_setup (0.0.2):
     - Flutter
   - flutter_blue_plus (0.0.1):
     - Flutter
@@ -11,7 +11,7 @@ PODS:
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - flutter_accessorysetup (from `.symlinks/plugins/flutter_accessorysetup/ios`)
+  - flutter_blue_ultra_accessory_setup (from `.symlinks/plugins/flutter_blue_ultra_accessory_setup/ios`)
   - flutter_blue_plus (from `.symlinks/plugins/flutter_blue_plus/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - objective_c (from `.symlinks/plugins/objective_c/ios`)
@@ -19,8 +19,8 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
-  flutter_accessorysetup:
-    :path: ".symlinks/plugins/flutter_accessorysetup/ios"
+  flutter_blue_ultra_accessory_setup:
+    :path: ".symlinks/plugins/flutter_blue_ultra_accessory_setup/ios"
   flutter_blue_plus:
     :path: ".symlinks/plugins/flutter_blue_plus/ios"
   integration_test:
@@ -30,7 +30,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_accessorysetup: 740eee0fc3283d0063caed61a0506471effd24e9
+  flutter_blue_ultra_accessory_setup: 740eee0fc3283d0063caed61a0506471effd24e9
   flutter_blue_plus: e5808fc4e5ebc58bb911635f8fdaf5e2b4da2754
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   objective_c: 89e720c30d716b036faf9c9684022048eee1eee2

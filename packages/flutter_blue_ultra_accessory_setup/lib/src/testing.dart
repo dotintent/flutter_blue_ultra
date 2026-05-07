@@ -2,7 +2,7 @@
 
 import 'package:objective_c/objective_c.dart' as objc;
 
-import 'package:flutter_accessorysetup/gen/ios/accessory_setup_bindings.dart';
+import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 
 class FFIAccessorySessionAdapter {
   final FFIAccessorySession _session;
@@ -41,7 +41,8 @@ class FFIAccessorySessionAdapter {
   }
 
   /// renameAccessory:options:
-  void renameAccessory_options_(ASAccessory accessory, ASAccessoryRenameOptions options) {
+  void renameAccessory_options_(
+      ASAccessory accessory, ASAccessoryRenameOptions options) {
     _session.renameAccessoryOptions_(accessory, options);
   }
 
@@ -51,7 +52,8 @@ class FFIAccessorySessionAdapter {
   }
 
   /// finishAuthorizationForAccessory:settings:
-  void finishAuthorizationForAccessory_settings_(ASAccessory accessory, ASAccessorySettings settings) {
+  void finishAuthorizationForAccessory_settings_(
+      ASAccessory accessory, ASAccessorySettings settings) {
     _session.finishAuthorizationForAccessory_settings_(accessory, settings);
   }
 
@@ -63,10 +65,14 @@ class FFIAccessorySessionAdapter {
 typedef DelegateAdapterFactory = DelegateAdapter Function({
   required void Function(ASAccessoryEvent) handleEvent,
   required void Function(objc.NSError?) didShowPickerWithError,
-  required void Function(ASAccessory, objc.NSError?) didRenameAccessoryWithError,
-  required void Function(ASAccessory, objc.NSError?) didRemoveAccessoryWithError,
-  required void Function(ASAccessory, objc.NSError?) didFinishAuthorizationForAccessoryWithError,
-  required void Function(ASAccessory, objc.NSError?) didFailAuthorizationForAccessoryWithError,
+  required void Function(ASAccessory, objc.NSError?)
+      didRenameAccessoryWithError,
+  required void Function(ASAccessory, objc.NSError?)
+      didRemoveAccessoryWithError,
+  required void Function(ASAccessory, objc.NSError?)
+      didFinishAuthorizationForAccessoryWithError,
+  required void Function(ASAccessory, objc.NSError?)
+      didFailAuthorizationForAccessoryWithError,
 });
 
 class DelegateAdapter {
@@ -76,8 +82,10 @@ class DelegateAdapter {
   late void Function(objc.NSError?) didShowPickerWithError;
   late void Function(ASAccessory, objc.NSError?) didRenameAccessoryWithError;
   late void Function(ASAccessory, objc.NSError?) didRemoveAccessoryWithError;
-  late void Function(ASAccessory, objc.NSError?) didFinishAuthorizationForAccessoryWithError;
-  late void Function(ASAccessory, objc.NSError?) didFailAuthorizationForAccessoryWithError;
+  late void Function(ASAccessory, objc.NSError?)
+      didFinishAuthorizationForAccessoryWithError;
+  late void Function(ASAccessory, objc.NSError?)
+      didFailAuthorizationForAccessoryWithError;
 
   DelegateAdapter({
     required this.handleEvent,
@@ -94,7 +102,9 @@ class DelegateAdapter {
         didShowPickerWithError_: didShowPickerWithError,
         didRenameAccessory_withError_: didRenameAccessoryWithError,
         didRemoveAccessory_withError_: didRemoveAccessoryWithError,
-        didFinishAuthorizationForAccessory_withError_: didFinishAuthorizationForAccessoryWithError,
-        didFailAuthorizationForAccessory_withError_: didFailAuthorizationForAccessoryWithError);
+        didFinishAuthorizationForAccessory_withError_:
+            didFinishAuthorizationForAccessoryWithError,
+        didFailAuthorizationForAccessory_withError_:
+            didFailAuthorizationForAccessoryWithError);
   }
 }

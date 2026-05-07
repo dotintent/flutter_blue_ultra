@@ -5,7 +5,7 @@ import 'package:ffi/ffi.dart';
 import 'package:objective_c/objective_c.dart';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_accessorysetup/gen/ios/accessory_setup_bindings.dart';
+import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 
 NSObject? _convertKnownType(Object? o) {
   return switch (o) {

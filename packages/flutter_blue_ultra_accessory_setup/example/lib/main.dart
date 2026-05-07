@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter_accessorysetup/flutter_accessorysetup.dart';
-import 'package:flutter_accessorysetup/gen/ios/accessory_setup_bindings.dart';
-import 'package:flutter_accessorysetup_example/gen/assets.gen.dart';
+import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
+import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
+import 'package:flutter_blue_ultra_accessory_setup_example/gen/assets.gen.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 void main() {

@@ -1,6 +1,6 @@
 import 'package:objective_c/objective_c.dart' as objc;
 
-import 'package:flutter_accessorysetup/src/testing.dart';
+import 'package:flutter_blue_ultra_accessory_setup/src/testing.dart';
 
 import 'objc_ns_array_mock.dart';
 
@@ -25,7 +25,7 @@ class DelegateAdapterMock extends DelegateAdapter {
 }
 
 DelegateAdapterMock mockDelegateAdapter() {
-    return DelegateAdapterMock(
+  return DelegateAdapterMock(
       handleEvent: (_) => {},
       didShowPickerWithError: (_) => {},
       didRenameAccessoryWithError: (_, __) => {},

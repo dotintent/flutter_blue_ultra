@@ -1,4 +1,4 @@
-import 'package:flutter_accessorysetup/flutter_accessorysetup.dart';
+import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
 
 class NativeCodeErrorMock implements NativeCodeError {
   @override

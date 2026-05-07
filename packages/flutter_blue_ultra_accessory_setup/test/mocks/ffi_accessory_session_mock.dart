@@ -1,6 +1,6 @@
 import 'package:objective_c/objective_c.dart' as objc;
 
-import 'package:flutter_accessorysetup/gen/ios/accessory_setup_bindings.dart';
+import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 
 import 'objc_ns_array_mock.dart';
 
@@ -109,7 +109,8 @@ class FFIAccessorySessionMock implements FFIAccessorySession {
   /// renameAccessory:options:
   @override
   // ignore: non_constant_identifier_names
-  void renameAccessory_options_(ASAccessory accessory, ASAccessoryRenameOptions options) {
+  void renameAccessoryOptions_(
+      ASAccessory accessory, ASAccessoryRenameOptions options) {
     calls.add(SessionMockMethodCall.renameAccessoryOptions);
     renameAccessoryOptionsAccessoryValue = accessory;
     renameAccessoryOptionsOptionsValue = options;
@@ -127,7 +128,8 @@ class FFIAccessorySessionMock implements FFIAccessorySession {
   /// finishAuthorizationForAccessory:settings:
   @override
   // ignore: non_constant_identifier_names
-  void finishAuthorizationForAccessory_settings_(ASAccessory accessory, ASAccessorySettings settings) {
+  void finishAuthorizationForAccessory_settings_(
+      ASAccessory accessory, ASAccessorySettings settings) {
     calls.add(SessionMockMethodCall.finishAuthorizationForAccessorySettings);
     finishAuthorizationForAccessorySettingsAccessoryValue = accessory;
     finishAuthorizationForAccessorySettingsSettingsValue = settings;

@@ -1,9 +1,7 @@
-import 'package:flutter_accessorysetup/gen/ios/accessory_setup_bindings.dart';
+import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 
 class FFIASAccessoryEventMock implements ASAccessoryEvent {
-
   final ASAccessoryEventType _eventType;
-
 
   FFIASAccessoryEventMock(this._eventType);
 

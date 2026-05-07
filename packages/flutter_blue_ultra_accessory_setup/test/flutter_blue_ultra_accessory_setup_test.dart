@@ -1,10 +1,10 @@
 import 'package:objective_c/objective_c.dart' as objc;
 
-import 'package:flutter_accessorysetup/flutter_accessorysetup.dart';
-import 'package:flutter_accessorysetup/gen/ios/accessory_setup_bindings.dart';
+import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
+import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_accessorysetup/src/testing.dart';
+import 'package:flutter_blue_ultra_accessory_setup/src/testing.dart';
 
 import 'mocks/ffi_accessory_event_mock.dart';
 import 'mocks/ffi_accessory_mock.dart';

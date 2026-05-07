@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import XCTest
 
-@testable import flutter_accessorysetup
+@testable import flutter_blue_ultra_accessory_setup
 
 // This demonstrates a simple unit test of the Swift portion of this plugin's implementation.
 //

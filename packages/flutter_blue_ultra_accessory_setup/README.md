@@ -1,7 +1,7 @@
 
 # Flutter Accessory Kit
 
-![](.github/flutter-accessorysetup.png)
+![](.github/flutter-blue-ultra-accessory-setup.png)
 
 At this stage the library supports:
 
@@ -16,7 +16,7 @@ At this stage the library supports:
 Install the library using the command line:
 
 ```sh
-flutter pub get flutter_accessorysetup
+flutter pub get flutter_blue_ultra_accessory_setup
 ```
 
 ### ⚙️ Setup

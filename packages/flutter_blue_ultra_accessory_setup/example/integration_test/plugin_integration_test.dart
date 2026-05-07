@@ -6,11 +6,10 @@
 // For more information about Flutter integration tests, please see
 // https://docs.flutter.dev/cookbook/testing/integration/introduction
 
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import 'package:flutter_accessorysetup/flutter_accessorysetup.dart';
+import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +21,9 @@ void main() {
     setup.activate();
     final event = await firstEventFuture.timeout(Duration(seconds: 2));
 
-    expect(event.error, null, reason: 'during activation the error should be null');
-    expect(event.accessory, null, reason: 'during activation the accessory should be null');
+    expect(event.error, null,
+        reason: 'during activation the error should be null');
+    expect(event.accessory, null,
+        reason: 'during activation the accessory should be null');
   });
 }
