@@ -11,14 +11,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_gen: ^5.14.1
 
   flutter_blue_ultra:
     # Note: We use a path dependency because the example app & plugin are bundled together.
     # In *your* app you should use ^1.17.3 or similar
     path: ../
 
+  flutter_blue_ultra_accessory_setup:
+    path: ../../flutter_blue_ultra_accessory_setup
+
 dev_dependencies:
   flutter_lints: ^5.0.0
+  flutter_gen_runner: ^5.14.1
+  build_runner: ^2.15.0
 
 dependency_overrides:
   # Note: We use these dependency overrides to test the example app with the latest changes.
@@ -36,6 +42,9 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  generate: true
+  assets:
+    - assets/images/
 
   # see https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers
   # disable-swift-package-manager: true

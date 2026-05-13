@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
 import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
-import 'package:flutter_blue_ultra_accessory_setup_example/gen/assets.gen.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+
+import '../../../flutter_blue_ultra/example/assets/assets.gen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -45,18 +46,14 @@ class _MyAppState extends State<MyApp> {
       setState(() {
         _events += '\n\r${event.dartDescription};\n\r';
       });
-      if (event.eventType ==
-          ASAccessoryEventType.ASAccessoryEventTypeActivated) {
+      if (event.eventType == ASAccessoryEventType.ASAccessoryEventTypeActivated) {
         connect();
-      } else if (event.eventType ==
-              ASAccessoryEventType.ASAccessoryEventTypeAccessoryAdded ||
-          event.eventType ==
-              ASAccessoryEventType.ASAccessoryEventTypeAccessoryChanged) {
+      } else if (event.eventType == ASAccessoryEventType.ASAccessoryEventTypeAccessoryAdded ||
+          event.eventType == ASAccessoryEventType.ASAccessoryEventTypeAccessoryChanged) {
         setState(() {
           _pickedAccessory = event.accessory;
         });
-      } else if (event.eventType ==
-          ASAccessoryEventType.ASAccessoryEventTypePickerDidDismiss) {
+      } else if (event.eventType == ASAccessoryEventType.ASAccessoryEventTypePickerDidDismiss) {
         debugPrint('user picked accessory: $_pickedAccessory)');
         final accessory = _pickedAccessory;
         setState(() {
@@ -68,8 +65,7 @@ class _MyAppState extends State<MyApp> {
             accessory.state == ASAccessoryState.ASAccessoryStateAuthorized) {
           _connectWithoutScanning(id);
         } else {
-          throw Exception(
-              'added accessory should have identifier and be authorized');
+          throw Exception('added accessory should have identifier and be authorized');
         }
       }
     });
@@ -77,8 +73,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> connect() async {
-    final firstAccessoryId =
-        _accessorySetup.accessories.firstOrNull?.dartBluetoothIdentifier;
+    final firstAccessoryId = _accessorySetup.accessories.firstOrNull?.dartBluetoothIdentifier;
     if (firstAccessoryId != null) {
       debugPrint('Got an accessory, will try to connect: $firstAccessoryId');
       await _connectWithoutScanning(firstAccessoryId);
@@ -89,8 +84,8 @@ class _MyAppState extends State<MyApp> {
       // to make it work you need to set up info plist keys
       // NSAccessorySetupBluetoothServices -> UUID
       // and NSAccessorySetupKitSupports -> Bluetooth
-      _accessorySetup.showPickerForDevice('My Ble', Assets.images.ble.path,
-          '4013ABDE-11C0-49E7-9939-4B4567C26ADA');
+      _accessorySetup.showPickerForDevice(
+          'My Ble', Assets.images.ble.path, '4013ABDE-11C0-49E7-9939-4B4567C26ADA');
     } catch (e) {
       if (e is NativeCodeError) {
         debugPrint('Got native code error: $e');
@@ -133,8 +128,7 @@ class _MyAppState extends State<MyApp> {
       _connectDevice(id);
       return;
     }
-    _adapterStateSubscription =
-        FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
+    _adapterStateSubscription = FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
       debugPrint('got adapter state: $state');
       if (state == BluetoothAdapterState.on) {
         _connectDevice(id);

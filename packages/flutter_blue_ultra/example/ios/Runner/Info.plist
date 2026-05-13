@@ -28,6 +28,14 @@
 	<string>We need BT access because it's a BT App.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>We need BT access because it's a BT App.</string>
+	<key>NSAccessorySetupKitSupports</key>
+	<array>
+		<string>Bluetooth</string>
+	</array>
+	<key>NSAccessorySetupBluetoothServices</key>
+	<array>
+		<string>4013ABDE-11C0-49E7-9939-4B4567C26ADA</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
