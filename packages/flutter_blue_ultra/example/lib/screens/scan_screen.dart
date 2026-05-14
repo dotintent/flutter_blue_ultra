@@ -1,242 +1,340 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
+import '../cubits/scan_cubit.dart';
+import '../theme/app_theme.dart';
+import '../widgets/atoms.dart';
 
-import 'device_screen.dart';
-import '../utils/snackbar.dart';
-import '../widgets/system_device_tile.dart';
-import '../widgets/scan_result_tile.dart';
-import '../utils/extra.dart';
+class ScanScreen extends StatelessWidget {
+  const ScanScreen({super.key, required this.onDeviceSelected});
 
-class ScanScreen extends StatefulWidget {
-  const ScanScreen({super.key});
+  final void Function(BluetoothDevice device, int rssi) onDeviceSelected;
 
   @override
-  State<ScanScreen> createState() => _ScanScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ScanCubit(),
+      child: _ScanView(onDeviceSelected: onDeviceSelected),
+    );
+  }
 }
 
-class _ScanScreenState extends State<ScanScreen> {
-  List<BluetoothDevice> _systemDevices = [];
-  List<ScanResult> _scanResults = [];
-  bool _isScanning = false;
-  late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
-  late StreamSubscription<bool> _isScanningSubscription;
+class _ScanView extends StatefulWidget {
+  const _ScanView({required this.onDeviceSelected});
+
+  final void Function(BluetoothDevice device, int rssi) onDeviceSelected;
+
+  @override
+  State<_ScanView> createState() => _ScanViewState();
+}
+
+class _ScanViewState extends State<_ScanView> {
+  StreamSubscription<String>? _messageSub;
 
   @override
   void initState() {
     super.initState();
-
-    _scanResultsSubscription = FlutterBlueUltra.scanResults.listen((results) {
-      if (mounted) {
-        setState(() => _scanResults = results);
-      }
-    }, onError: (e) {
-      Snackbar.show(ABC.b, prettyException("Scan Error:", e), success: false);
-    });
-
-    _isScanningSubscription = FlutterBlueUltra.isScanning.listen((state) {
-      if (mounted) {
-        setState(() => _isScanning = state);
-      }
+    _messageSub = context.read<ScanCubit>().messages.listen((msg) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     });
   }
 
   @override
   void dispose() {
-    _scanResultsSubscription.cancel();
-    _isScanningSubscription.cancel();
+    _messageSub?.cancel();
     super.dispose();
-  }
-
-  Future onScanPressed() async {
-    try {
-      // `withServices` is required on iOS for privacy purposes, ignored on android.
-      var withServices = [Guid("180f")]; // Battery Level Service
-      _systemDevices = await FlutterBlueUltra.systemDevices(withServices);
-    } catch (e, backtrace) {
-      Snackbar.show(ABC.b, prettyException("System Devices Error:", e), success: false);
-      print(e);
-      print("backtrace: $backtrace");
-    }
-    try {
-      await FlutterBlueUltra.startScan(
-        timeout: const Duration(seconds: 15),
-        webOptionalServices: [
-          Guid("180f"), // battery
-          Guid("180a"), // device info
-          Guid("1800"), // generic access
-          Guid("6e400001-b5a3-f393-e0a9-e50e24dcca9e"), // Nordic UART
-        ],
-      );
-    } catch (e, backtrace) {
-      Snackbar.show(ABC.b, prettyException("Start Scan Error:", e), success: false);
-      print(e);
-      print("backtrace: $backtrace");
-    }
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future onStopPressed() async {
-    try {
-      FlutterBlueUltra.stopScan();
-    } catch (e, backtrace) {
-      Snackbar.show(ABC.b, prettyException("Stop Scan Error:", e), success: false);
-      print(e);
-      print("backtrace: $backtrace");
-    }
-  }
-
-  void onConnectPressed(BluetoothDevice device) {
-    device.connectAndUpdateStream().catchError((e) {
-      Snackbar.show(ABC.c, prettyException("Connect Error:", e), success: false);
-    });
-    MaterialPageRoute route = MaterialPageRoute(
-        builder: (context) => DeviceScreen(device: device), settings: RouteSettings(name: '/DeviceScreen'));
-    Navigator.of(context).push(route);
-  }
-
-  Future onRefresh() {
-    if (_isScanning == false) {
-      FlutterBlueUltra.startScan(timeout: const Duration(seconds: 15));
-    }
-    if (mounted) {
-      setState(() {});
-    }
-    return Future.delayed(Duration(milliseconds: 500));
-  }
-
-  Widget buildScanButton() {
-    final button = _isScanning
-        ? ElevatedButton(
-            onPressed: onStopPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text("STOP"),
-          )
-        : ElevatedButton(
-            onPressed: onScanPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text("SCAN"),
-          );
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (_isScanning) buildSpinner(),
-        button,
-      ],
-    );
-  }
-
-  Widget buildSpinner() {
-    return const Padding(
-      padding: EdgeInsets.only(right: 20.0),
-      child: SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2.5),
-      ),
-    );
-  }
-
-  List<Widget> _buildSystemDeviceTiles() {
-    return _systemDevices
-        .map(
-          (d) => SystemDeviceTile(
-            device: d,
-            onOpen: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DeviceScreen(device: d),
-                settings: RouteSettings(name: '/DeviceScreen'),
-              ),
-            ),
-            onConnect: () => onConnectPressed(d),
-          ),
-        )
-        .toList();
-  }
-
-  Iterable<Widget> _buildScanResultTiles() {
-    return _scanResults.map((r) => ScanResultTile(result: r, onTap: () => onConnectPressed(r.device)));
-  }
-
-  Widget _buildColumnHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[400]!, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 50,
-            child: Text(
-              'RSSI',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: Colors.grey[700],
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'Device Name',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: Colors.grey[700],
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 80,
-            child: Text(
-              'Action',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: Colors.grey[700],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return ScaffoldMessenger(
-      key: Snackbar.snackBarKeyB,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Nearby Devices'),
-          actions: [buildScanButton(), const SizedBox(width: 15)],
-        ),
-        body: RefreshIndicator(
-          onRefresh: onRefresh,
-          child: ListView(
-            children: <Widget>[
-              ..._buildSystemDeviceTiles(),
-              if (_scanResults.isNotEmpty || _isScanning) _buildColumnHeader(),
-              ..._buildScanResultTiles(),
+    final it = IntentTheme.of(context);
+    return BlocBuilder<ScanCubit, ScanState>(
+      // Skip the 200 ms elapsed-timer tick — only the "· 3.2s" status
+      // line needs it, and it has its own BlocSelector below.
+      buildWhen: (p, c) =>
+          p.scanning != c.scanning ||
+          p.results != c.results ||
+          p.adapterState != c.adapterState,
+      builder: (context, state) {
+        final sorted = [...state.results]
+          ..sort((a, b) => b.rssi.compareTo(a.rssi));
+        final cubit = context.read<ScanCubit>();
+        final adapterOn = state.adapterState == BluetoothAdapterState.on;
+        final adapterReady =
+            state.adapterState != BluetoothAdapterState.unknown;
+        final adapterBlocked = adapterReady && !adapterOn;
+
+        return Scaffold(
+          backgroundColor: it.bg,
+          body: Column(
+            children: [
+              const IntentAppBar(brand: true),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '· FLUTTER BLUE ULTRA',
+                            style: IntentTextStyles.monoLabel(11, it.textFaint),
+                          ),
+                          const SizedBox(height: 14),
+                          RichText(
+                            text: TextSpan(
+                              style: IntentTextStyles.serifDisplay(
+                                  40, it.textPrimary,
+                                  letterSpacing: -1.5),
+                              children: [
+                                const TextSpan(text: 'Devices,\n'),
+                                TextSpan(
+                                  text: 'nearby.',
+                                  style: TextStyle(
+                                      color: it.accent,
+                                      fontStyle: FontStyle.italic),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // The 200 ms elapsed tick belongs to just this
+                          // line — selector keeps rebuilds local.
+                          BlocSelector<ScanCubit, ScanState, double>(
+                            selector: (s) => s.elapsed,
+                            builder: (_, elapsed) => Text(
+                              state.scanning && adapterOn
+                                  ? 'Listening for advertising packets · ${elapsed.toStringAsFixed(1)}s'
+                                  : adapterBlocked
+                                      ? 'Bluetooth is unavailable · turn it on to scan'
+                                      : 'Scan stopped · ${state.results.length} found',
+                              style: IntentTextStyles.sans(13.5, it.textDim),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: it.surface,
+                              border: Border.all(color: it.border),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                ScanRipple(
+                                    scanning: state.scanning && adapterOn),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        state.scanning && adapterOn
+                                            ? 'SCAN.IN_PROGRESS'
+                                            : adapterBlocked
+                                                ? 'ADAPTER.OFF'
+                                                : 'SCAN.IDLE',
+                                        style: IntentTextStyles.monoLabel(
+                                            10, it.accent),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      RichText(
+                                        text: TextSpan(
+                                          style: IntentTextStyles.serifDisplay(
+                                              28, it.textPrimary,
+                                              letterSpacing: -0.8),
+                                          children: [
+                                            TextSpan(
+                                                text: state.results.length
+                                                    .toString()
+                                                    .padLeft(2, '0')),
+                                            TextSpan(
+                                              text:
+                                                  ' ${state.results.length == 1 ? 'device' : 'devices'}',
+                                              style: IntentTextStyles.sans(
+                                                  14, it.textDim),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: adapterOn
+                                      ? (state.scanning
+                                          ? cubit.stopScan
+                                          : cubit.startScan)
+                                      : cubit.startScan,
+                                  child: Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: state.scanning && adapterOn
+                                          ? it.textPrimary
+                                          : it.accent,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Center(
+                                      child: state.scanning && adapterOn
+                                          ? Container(
+                                              width: 12,
+                                              height: 12,
+                                              decoration: BoxDecoration(
+                                                color: it.bg,
+                                                borderRadius:
+                                                    BorderRadius.circular(1),
+                                              ),
+                                            )
+                                          : Icon(
+                                              adapterOn
+                                                  ? Icons.refresh
+                                                  : Icons.bluetooth_disabled,
+                                              color: Colors.white,
+                                              size: 18),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (adapterBlocked) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              'Enable Bluetooth in system settings, then tap scan.',
+                              style: IntentTextStyles.sans(12.5, it.textDim),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    SectionHeader(
+                      label: 'Nearby',
+                      count: sorted.length,
+                      trailing: Text('BY RSSI',
+                          style: IntentTextStyles.mono(10, it.textFaint,
+                              letterSpacing: 1)),
+                    ),
+                    if (sorted.isEmpty && state.scanning && adapterOn)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 48),
+                        child: Center(
+                          child: Text(
+                            'Listening…',
+                            style: TextStyle(
+                              fontFamily: 'Bradford',
+                              fontSize: 13,
+                              fontStyle: FontStyle.italic,
+                              color: it.textDim,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ...sorted.map((r) => _DeviceRow(
+                          result: r,
+                          onTap: () =>
+                              widget.onDeviceSelected(r.device, r.rssi),
+                        )),
+                    const SizedBox(height: 80),
+                  ],
+                ),
+              ),
             ],
           ),
+        );
+      },
+    );
+  }
+}
+
+class _DeviceRow extends StatelessWidget {
+  const _DeviceRow({required this.result, required this.onTap});
+
+  final ScanResult result;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final it = IntentTheme.of(context);
+    final name = result.device.platformName;
+    final hasName = name.isNotEmpty;
+    final mac = result.device.remoteId.str;
+    final adCount = result.advertisementData.serviceUuids.length;
+
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: it.border)),
         ),
-        // floatingActionButton: buildScanButton(context),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: it.borderHi),
+              ),
+              child: Center(
+                child: Icon(Icons.bluetooth, size: 20, color: it.textPrimary),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasName ? name : '(unnamed)',
+                    style: hasName
+                        ? IntentTextStyles.serifTitle(16, it.textPrimary)
+                        : TextStyle(
+                            fontFamily: 'Bradford',
+                            fontSize: 16,
+                            color: it.textDim,
+                            fontStyle: FontStyle.italic,
+                          ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(mac,
+                            style: IntentTextStyles.mono(10.5, it.textDim),
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                      if (adCount > 0) ...[
+                        const SizedBox(width: 8),
+                        Text('· $adCount svc',
+                            style: IntentTextStyles.mono(10.5, it.textFaint)),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                RSSIBars(rssi: result.rssi),
+                const SizedBox(height: 4),
+                Text('${result.rssi} dBm',
+                    style: IntentTextStyles.mono(10.5, it.textDim)),
+              ],
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, size: 16, color: it.textFaint),
+          ],
+        ),
       ),
     );
   }
