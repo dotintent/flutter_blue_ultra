@@ -14,6 +14,8 @@ class AccessorySetupScreen extends StatefulWidget {
 }
 
 class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
+  // Keep one session per screen instance so native delegate callbacks have a
+  // stable Dart owner until the route is popped.
   final _accessorySetup = FlutterAccessorySetup();
   StreamSubscription<ASAccessoryEvent>? _eventsSubscription;
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
@@ -28,6 +30,7 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
   @override
   void initState() {
     super.initState();
+    // Subscribe before activation so the initial Activated event is not missed.
     _eventsSubscription = _accessorySetup.eventStream.listen(_onEvent);
     _accessorySetup.activate();
   }
@@ -44,6 +47,8 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
     _log('event: ${event.dartDescription}');
     setState(() {
       _accessories = _accessorySetup.accessories;
+      // AccessorySetupKit reports picker progress and accessory changes through
+      // the same delegate stream, so keep all session state transitions here.
       switch (event.eventType) {
         case ASAccessoryEventType.ASAccessoryEventTypeActivated:
           _isActivated = true;
@@ -62,6 +67,8 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
   }
 
   void _onPickerDismissed() {
+    // The picked accessory usually arrives as AccessoryChanged/AccessoryAdded
+    // before PickerDidDismiss, then PickerDidDismiss is the cue to connect.
     final accessory = _pendingAccessory;
     _pendingAccessory = null;
 
@@ -103,6 +110,7 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
     _log('removing accessory ${accessory.dartBluetoothIdentifier}');
     try {
       await _accessorySetup.removeAccessory(accessory);
+      // Refresh from the native session after the removal callback completes.
       setState(() => _accessories = _accessorySetup.accessories);
     } catch (e) {
       _log('remove error: $e');
@@ -119,6 +127,8 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
       await _connectDevice(id);
       return;
     }
+    // If Bluetooth is still turning on, wait once and connect as soon as the
+    // adapter becomes available.
     _adapterStateSubscription = FlutterBlueUltra.adapterState.listen((state) {
       if (state == BluetoothAdapterState.on) {
         _adapterStateSubscription?.cancel();
@@ -189,7 +199,8 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
                   child: _accessories.isEmpty
                       ? _buildEmptyState('No accessories paired yet')
                       : Column(
-                          children: _accessories.map(_buildAccessoryTile).toList(),
+                          children:
+                              _accessories.map(_buildAccessoryTile).toList(),
                         ),
                 ),
                 const SizedBox(height: 16),
@@ -208,7 +219,8 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
                           children: _eventLog
                               .map(
                                 (e) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 2),
                                   child: Text(
                                     e,
                                     style: const TextStyle(
@@ -240,7 +252,8 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
             Icon(
               _isActivated ? Icons.check_circle_outline : Icons.hourglass_top,
               size: 16,
-              color: _isActivated ? Colors.green.shade700 : Colors.orange.shade700,
+              color:
+                  _isActivated ? Colors.green.shade700 : Colors.orange.shade700,
             ),
             const SizedBox(width: 8),
             Text(
@@ -248,7 +261,9 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: _isActivated ? Colors.green.shade700 : Colors.orange.shade700,
+                color: _isActivated
+                    ? Colors.green.shade700
+                    : Colors.orange.shade700,
               ),
             ),
           ],
@@ -269,7 +284,8 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             if (trailing != null) trailing,
           ],
         ),
