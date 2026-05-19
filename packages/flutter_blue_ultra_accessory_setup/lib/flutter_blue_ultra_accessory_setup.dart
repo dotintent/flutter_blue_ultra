@@ -15,6 +15,7 @@ class FlutterAccessorySetup {
   List<ASAccessory> get accessories => _sessionAdapter.accessories.toList();
   late final FFIAccessorySessionAdapter _sessionAdapter;
   final _eventsController = StreamController<ASAccessoryEvent>();
+  bool _isDisposed = false;
 
   DelegateAdapter? _delegateAdapter;
 
@@ -49,8 +50,12 @@ class FlutterAccessorySetup {
   }
 
   void dispose() {
-    _eventsController.close();
+    if (_isDisposed) {
+      return;
+    }
+    _isDisposed = true;
     _sessionAdapter.invalidate();
+    _eventsController.close();
     _delegateAdapter = null;
   }
 
@@ -59,12 +64,14 @@ class FlutterAccessorySetup {
   /// Activates the session.
   /// You should activate the session before using it
   void activate() {
+    _throwIfDisposed();
     _sessionAdapter.setDelegateAdapter(_delegateAdapter!);
     _sessionAdapter.activate();
   }
 
   /// Shows device picker
   Future<void> showPicker() async {
+    _throwIfDisposed();
     final completer = Completer<void>();
     _showPickerCompleter = completer;
     _sessionAdapter.showPicker();
@@ -73,6 +80,7 @@ class FlutterAccessorySetup {
 
   /// Shows device picker configured with list of `ASPickerDisplayItem`
   Future<void> showPickerForItems(List<ASPickerDisplayItem> items) async {
+    _throwIfDisposed();
     final completer = Completer<void>();
     _showPickerCompleter = completer;
     _sessionAdapter.showPickerForItems_(_convertToNSArray(items));
@@ -86,10 +94,12 @@ class FlutterAccessorySetup {
   /// - serviceID: the service UUID advertised by device (to search for a particular device)
   Future<void> showPickerForDevice(
       String name, String asset, String serviceID) async {
+    _throwIfDisposed();
     final completer = Completer<void>();
     _showPickerCompleter = completer;
 
     final image = await nativeUIImageWithDartAsset(asset);
+    _throwIfDisposed();
     if (image == null) {
       throw FlutterAccessorysetupError(
           code: 1, description: "Failed to load UIImage for the asset: $asset");
@@ -107,6 +117,7 @@ class FlutterAccessorySetup {
   /// Renames provided accessory using the `ASAccessoryRenameOptions`
   Future<void> renameAccessory(
       ASAccessory accessory, ASAccessoryRenameOptions options) async {
+    _throwIfDisposed();
     final completer = Completer<void>();
     _renameAccessoryCompleter = completer;
     _sessionAdapter.renameAccessory_options_(accessory, options);
@@ -115,6 +126,7 @@ class FlutterAccessorySetup {
 
   /// Removes provided accessory (disconnects from the app)
   Future<void> removeAccessory(ASAccessory accessory) async {
+    _throwIfDisposed();
     final completer = Completer<void>();
     _removeAccessoryCompleter = completer;
     _sessionAdapter.removeAccessory_(accessory);
@@ -124,6 +136,7 @@ class FlutterAccessorySetup {
   /// Finishes the Authorization for accessory using `ASAccessorySettings`
   Future<void> finishAuthorizationForAccessory(
       ASAccessory accessory, ASAccessorySettings settings) async {
+    _throwIfDisposed();
     final completer = Completer<void>();
     _finishAuthorizationForAccessoryCompleter = completer;
     _sessionAdapter.finishAuthorizationForAccessory_settings_(
@@ -133,6 +146,7 @@ class FlutterAccessorySetup {
 
   /// Fails the Authorization for the accessory
   Future<void> failAuthorizationForAccessory(ASAccessory accessory) async {
+    _throwIfDisposed();
     final completer = Completer<void>();
     _failAuthorizationForAccessoryCompleter = completer;
     _sessionAdapter.failAuthorizationForAccessory_(accessory);
@@ -144,6 +158,9 @@ class FlutterAccessorySetup {
   // region Delegate
 
   void _handleEvent(ASAccessoryEvent event) {
+    if (_isDisposed) {
+      return;
+    }
     _eventsController.add(event);
   }
 
@@ -195,9 +212,16 @@ class FlutterAccessorySetup {
 
   // region Helpers
 
+  void _throwIfDisposed() {
+    if (_isDisposed) {
+      throw StateError('FlutterAccessorySetup has been disposed.');
+    }
+  }
+
   /// Prints logs from the native code
   /// Use it for debugging the native part of the code
   void printNativeSessionLogs() {
+    _throwIfDisposed();
     final logs = _sessionAdapter.logs.toDartStringList();
     debugPrint("logs count: ${logs.length}");
     for (final log in logs) {

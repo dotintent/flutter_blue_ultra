@@ -80,6 +80,16 @@ void main() {
     expect(sessionMock.calls, equals([SessionMockMethodCall.invalidate]));
   });
 
+  test('session ignores events received after dispose', () async {
+    // Given
+    final event = FFIASAccessoryEventMock(
+        ASAccessoryEventType.ASAccessoryEventTypeInvalidated);
+    sut.dispose();
+    // When / Then
+    expect(() => delegateAdapter.handleEvent(event), returnsNormally);
+    expect(sessionMock.calls, equals([SessionMockMethodCall.invalidate]));
+  });
+
   test('session sends events', () async {
     // Given
     final expectedEvents = [
