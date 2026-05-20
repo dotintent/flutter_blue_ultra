@@ -32,9 +32,11 @@
 	<array>
 		<string>Bluetooth</string>
 	</array>
+	<!-- Replace this with the BLE service UUID advertised by your accessory.
+	     It must match the serviceID passed to showPickerForDevice. -->
 	<key>NSAccessorySetupBluetoothServices</key>
 	<array>
-		<string>4013ABDE-11C0-49E7-9939-4B4567C26ADA</string>
+		<string>58C39754-835C-4AAD-9496-5502A4250229</string>
 	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>

@@ -16,13 +16,13 @@ At this stage the library supports:
 Install the library using the command line:
 
 ```sh
-flutter pub get flutter_blue_ultra_accessory_setup
+flutter pub add flutter_blue_ultra_accessory_setup
 ```
 
 ### ⚙️ Setup
 
 - For the full details refer [apple docs](https://developer.apple.com/documentation/accessorysetupkit/discovering-and-configuring-accessories)
-- You should add the keys to the [Info.plist](./example/ios/Runner/Info.plist) of the iOS app to make it work.
+- You should add the keys to the `Info.plist` of the iOS app to make it work.
   ⚠️ **If you miss the required key the app will crash when you show the picker.** ⚠️
 
   - ALWAYS: (Bluetooth or WiFi, or both)
@@ -45,6 +45,11 @@ flutter pub get flutter_blue_ultra_accessory_setup
   </array>
   ```
 
+  For testing, replace the UUID above with the BLE service UUID advertised by
+  your accessory. The same UUID must also be passed to `showPickerForDevice`
+  as the `serviceID`. `Info.plist` is read from the installed iOS app, so
+  rebuild and reinstall the app after changing this value.
+
   - When you use the `ASDiscoveryDescriptor` with `bluetoothNameSubstring`  
     ⚠️ **Does not work in the iOS 18 Developer beta 2.** ⚠️
 
@@ -57,7 +62,7 @@ flutter pub get flutter_blue_ultra_accessory_setup
 
   - There is an option with manufacturer ID that is not covered here.
 
-- Use the `FlutterAccessorySetup` class. See the full code example in the [Example app](./example/lib/main.dart)
+- Use the `FlutterAccessorySetup` class. The snippet below shows the minimum setup flow.
 
 ```dart
 final _accessorySetup = FlutterAccessorySetup();
@@ -70,7 +75,9 @@ void activate() {
   await _accessorySetup.activate();
   try {
     _accessorySetup.showPickerForDevice(
-      'My Ble', Assets.images.ble.path, '4013ABDE-11C0-49E7-9939-4B4567C26ADA'
+      'My Ble',
+      Assets.images.ble.path,
+      '149E9E42-33AD-41AD-8665-70D153533EC1',
     );
   } on PlatformException {
     debugPrint('Failed to show the picker');

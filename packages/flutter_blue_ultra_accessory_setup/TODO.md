@@ -22,4 +22,8 @@ Here is the adapted and fixed markdown text:
 
 - [ ] Check the migration sequence and implementation in Flutter (for example app).
 
+- [ ] Add a single-source setup for AccessorySetupKit service UUIDs so example
+  apps can generate or sync the Dart `showPickerForDevice` service ID with the
+  iOS `NSAccessorySetupBluetoothServices` allowlist instead of updating both
+  places manually.
 

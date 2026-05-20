@@ -15,6 +15,26 @@ flutter run -t packages/flutter_blue_ultra/example/lib/main.dart
    - If Bluetooth is off, you'll see a prompt screen. Turn Bluetooth on to proceed.
    - If Bluetooth is on, you'll land on the Scan screen.
 
+## Accessory Setup Testing
+
+The **Accessory Setup** screen is for testing iOS AccessorySetupKit with a
+real BLE accessory. Before running that flow, replace the example service UUID
+with the UUID advertised by your test accessory.
+
+Update the UUID in both places:
+
+- `example/lib/screens/accessory_setup_screen.dart`, in the
+  `showPickerForDevice` call.
+- `example/ios/Runner/Info.plist`, under
+  `NSAccessorySetupBluetoothServices`.
+
+Those values must match. The Dart value configures the runtime picker filter,
+while the `Info.plist` value is Apple's install-time allowlist for the app.
+After changing `Info.plist`, rebuild and reinstall the iOS app before testing.
+
+For a quick test, nRF Connect on Android can advertise a connectable BLE
+peripheral with your chosen service UUID.
+
 ## Using the App
 
 - SCAN: Starts a 15s scan for nearby BLE devices. A spinner shows scan progress.

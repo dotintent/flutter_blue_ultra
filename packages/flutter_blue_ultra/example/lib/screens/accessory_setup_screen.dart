@@ -95,7 +95,9 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
       await _accessorySetup.showPickerForDevice(
         'My BLE Device',
         Assets.images.ble.path,
-        '4013ABDE-11C0-49E7-9939-4B4567C26ADA',
+        // Replace this with the BLE service UUID advertised by your accessory.
+        // It must match NSAccessorySetupBluetoothServices in iOS Info.plist.
+        '58C39754-835C-4AAD-9496-5502A4250229',
       );
     } on NativeCodeError catch (e) {
       _log('picker error (native): $e');
