@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
@@ -6,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../cubits/scan_cubit.dart';
 import '../theme/app_theme.dart';
 import '../widgets/atoms.dart';
+import 'accessory_setup_screen.dart';
 
 class ScanScreen extends StatelessWidget {
   const ScanScreen({super.key, required this.onDeviceSelected});
@@ -211,6 +214,17 @@ class _ScanViewState extends State<_ScanView> {
                               style: IntentTextStyles.sans(12.5, it.textDim),
                             ),
                           ],
+                          if (Platform.isIOS) ...[
+                            const SizedBox(height: 12),
+                            _AccessorySetupCard(
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const AccessorySetupScreen(),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -248,6 +262,68 @@ class _ScanViewState extends State<_ScanView> {
           ),
         );
       },
+    );
+  }
+}
+
+class _AccessorySetupCard extends StatelessWidget {
+  const _AccessorySetupCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final it = IntentTheme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: it.surface,
+          border: Border.all(color: it.border),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: it.accentSoft,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Icon(Icons.settings_remote_rounded,
+                    size: 22, color: it.accent),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ACCESSORY.SETUP_KIT',
+                    style: IntentTextStyles.monoLabel(10, it.accent),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Pair a new accessory',
+                    style: IntentTextStyles.serifTitle(16, it.textPrimary),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    'iOS 18+ · AccessorySetupKit',
+                    style: IntentTextStyles.mono(10.5, it.textDim),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.chevron_right, size: 16, color: it.textFaint),
+          ],
+        ),
+      ),
     );
   }
 }
