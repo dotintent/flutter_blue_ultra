@@ -6,6 +6,10 @@ import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_
 import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 import 'package:flutter_blue_ultra_example/gen/assets.gen.dart';
 
+import '../theme/app_theme.dart';
+import '../utils/ble_manager.dart';
+import '../widgets/atoms.dart';
+
 class AccessorySetupScreen extends StatefulWidget {
   const AccessorySetupScreen({super.key});
 
@@ -14,15 +18,14 @@ class AccessorySetupScreen extends StatefulWidget {
 }
 
 class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
-  // Keep one session per screen instance so native delegate callbacks have a
-  // stable Dart owner until the route is popped.
-  final _accessorySetup = FlutterAccessorySetup();
+  FlutterAccessorySetup? _accessorySetup;
   StreamSubscription<ASAccessoryEvent>? _eventsSubscription;
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
 
   bool _isActivated = false;
   bool _isPickerLoading = false;
-  String _deviceStatus = 'Disconnected';
+  String? _connectedId;
+  String? _initError;
   ASAccessory? _pendingAccessory;
   List<ASAccessory> _accessories = [];
   final List<String> _eventLog = [];
@@ -30,25 +33,27 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
   @override
   void initState() {
     super.initState();
-    // Subscribe before activation so the initial Activated event is not missed.
-    _eventsSubscription = _accessorySetup.eventStream.listen(_onEvent);
-    _accessorySetup.activate();
+    try {
+      _accessorySetup = FlutterAccessorySetup();
+      _eventsSubscription = _accessorySetup!.eventStream.listen(_onEvent);
+      _accessorySetup!.activate();
+    } catch (e) {
+      _initError = '$e';
+    }
   }
 
   @override
   void dispose() {
     _eventsSubscription?.cancel();
     _adapterStateSubscription?.cancel();
-    _accessorySetup.dispose();
+    _accessorySetup?.dispose();
     super.dispose();
   }
 
   void _onEvent(ASAccessoryEvent event) {
     _log('event: ${event.dartDescription}');
     setState(() {
-      _accessories = _accessorySetup.accessories;
-      // AccessorySetupKit reports picker progress and accessory changes through
-      // the same delegate stream, so keep all session state transitions here.
+      _accessories = _accessorySetup?.accessories ?? [];
       switch (event.eventType) {
         case ASAccessoryEventType.ASAccessoryEventTypeActivated:
           _isActivated = true;
@@ -67,8 +72,6 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
   }
 
   void _onPickerDismissed() {
-    // The picked accessory usually arrives as AccessoryChanged/AccessoryAdded
-    // before PickerDidDismiss, then PickerDidDismiss is the cue to connect.
     final accessory = _pendingAccessory;
     _pendingAccessory = null;
 
@@ -84,19 +87,14 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
     _connectWithoutScanning(id);
   }
 
-  // AccessorySetupKit requires no active CBCentralManager scan when showing
-  // the picker. Stop scanning first, then present.
   Future<void> _showPicker() async {
     await FlutterBlueUltra.stopScan();
+    await tearDownBleManager();
     setState(() => _isPickerLoading = true);
     try {
-      // NSAccessorySetupBluetoothServices UUID in Info.plist must match the
-      // serviceID passed here for the picker to filter correctly.
-      await _accessorySetup.showPickerForDevice(
+      await _accessorySetup?.showPickerForDevice(
         'My BLE Device',
         Assets.images.ble.path,
-        // Replace this with the BLE service UUID advertised by your accessory.
-        // It must match NSAccessorySetupBluetoothServices in iOS Info.plist.
         '58C39754-835C-4AAD-9496-5502A4250229',
       );
     } on NativeCodeError catch (e) {
@@ -111,9 +109,8 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
   Future<void> _removeAccessory(ASAccessory accessory) async {
     _log('removing accessory ${accessory.dartBluetoothIdentifier}');
     try {
-      await _accessorySetup.removeAccessory(accessory);
-      // Refresh from the native session after the removal callback completes.
-      setState(() => _accessories = _accessorySetup.accessories);
+      await _accessorySetup?.removeAccessory(accessory);
+      setState(() => _accessories = _accessorySetup?.accessories ?? []);
     } catch (e) {
       _log('remove error: $e');
     }
@@ -129,8 +126,6 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
       await _connectDevice(id);
       return;
     }
-    // If Bluetooth is still turning on, wait once and connect as soon as the
-    // adapter becomes available.
     _adapterStateSubscription = FlutterBlueUltra.adapterState.listen((state) {
       if (state == BluetoothAdapterState.on) {
         _adapterStateSubscription?.cancel();
@@ -143,7 +138,7 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
     final device = BluetoothDevice.fromId(id);
     try {
       await device.connect();
-      if (mounted) setState(() => _deviceStatus = 'Connected ($id)');
+      if (mounted) setState(() => _connectedId = id);
       _log('connected to $id');
     } catch (e) {
       _log('connect error: $e');
@@ -161,198 +156,270 @@ class _AccessorySetupScreenState extends State<AccessorySetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final it = IntentTheme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Accessory Setup'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bug_report_outlined),
-            tooltip: 'Print native logs',
-            onPressed: _accessorySetup.printNativeSessionLogs,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      backgroundColor: it.bg,
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildStatusBanner(),
-          const Divider(height: 1),
+          const IntentAppBar(brand: true),
+          _buildStatusBanner(it),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.zero,
               children: [
-                _buildSection(
-                  title: 'Device',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      Icons.bluetooth_connected,
-                      color: _deviceStatus.startsWith('Connected')
-                          ? Colors.blue
-                          : Colors.grey,
-                    ),
-                    title: Text(_deviceStatus),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildSection(
-                  title: 'Paired Accessories (${_accessories.length})',
-                  child: _accessories.isEmpty
-                      ? _buildEmptyState('No accessories paired yet')
-                      : Column(
-                          children:
-                              _accessories.map(_buildAccessoryTile).toList(),
-                        ),
-                ),
-                const SizedBox(height: 16),
-                _buildSection(
-                  title: 'Event Log',
-                  trailing: _eventLog.isNotEmpty
-                      ? TextButton(
-                          onPressed: () => setState(() => _eventLog.clear()),
-                          child: const Text('Clear'),
+                _buildHeroSection(it),
+                SectionHeader(
+                  label: 'Paired Accessories',
+                  count: _accessories.length,
+                  trailing: _accessories.isNotEmpty
+                      ? IntentChip(
+                          label: '${_accessories.length}',
+                          kind: ChipKind.accent,
+                          small: true,
                         )
                       : null,
-                  child: _eventLog.isEmpty
-                      ? _buildEmptyState('No events yet')
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _eventLog
-                              .map(
-                                (e) => Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 2),
-                                  child: Text(
-                                    e,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: 'Courier',
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
+                ),
+                if (_accessories.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 14),
+                    child: Text(
+                      'No accessories paired yet',
+                      style: IntentTextStyles.sans(13, it.textDim),
+                    ),
+                  )
+                else
+                  ..._accessories.map((a) => _buildAccessoryTile(it, a)),
+                SectionHeader(
+                  label: 'Event Log',
+                  count: _eventLog.length,
+                  trailing: _eventLog.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () => setState(() => _eventLog.clear()),
+                          child: Text('CLEAR',
+                              style:
+                                  IntentTextStyles.monoLabel(10, it.accent)),
+                        )
+                      : null,
+                ),
+                if (_eventLog.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 14),
+                    child: Text(
+                      'No events yet',
+                      style: IntentTextStyles.sans(13, it.textDim),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: _eventLog
+                          .map(
+                            (e) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 3),
+                              child: Text(
+                                e,
+                                style:
+                                    IntentTextStyles.mono(11, it.textDim),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+          _buildActionBar(it),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBanner(IntentTheme it) {
+    final color = _initError != null
+        ? it.accent
+        : _isActivated
+            ? it.success
+            : it.warn;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: it.border)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                    color: color.withValues(alpha: 0.5), blurRadius: 6),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              _initError != null
+                  ? 'SETUP KIT UNAVAILABLE'
+                  : _isActivated
+                      ? 'SESSION ACTIVATED'
+                      : 'ACTIVATING SESSION',
+              style: IntentTextStyles.monoLabel(10.5, color),
+            ),
+          ),
+          if (_connectedId != null) ...[
+            const SizedBox(width: 10),
+            Text('·', style: IntentTextStyles.mono(10.5, it.textFaint)),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                _connectedId!,
+                style: IntentTextStyles.mono(10.5, it.textDim),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroSection(IntentTheme it) {
+    return SizedBox(
+      height: 180,
+      child: Stack(
+        children: [
+          Positioned(
+            top: -40,
+            right: -60,
+            child: Opacity(
+              opacity: 0.5,
+              child: ConcentricDecor(
+                size: 240,
+                strokeOpacity: it.isDark ? 0.18 : 0.22,
+                dot: false,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ConnectionDot(
+                  state: _connectedId != null
+                      ? ConnectionDotState.connected
+                      : ConnectionDotState.disconnected,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '· ACCESSORY SETUP KIT',
+                  style: IntentTextStyles.monoLabel(11, it.textFaint),
+                ),
+                const SizedBox(height: 14),
+                RichText(
+                  text: TextSpan(
+                    style: IntentTextStyles.serifDisplay(
+                        40, it.textPrimary,
+                        letterSpacing: -1.5),
+                    children: [
+                      const TextSpan(text: 'Accessory '),
+                      TextSpan(
+                        text: 'setup.',
+                        style: TextStyle(
+                            color: it.accent, fontStyle: FontStyle.italic),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Pair accessories via AccessorySetupKit',
+                  style: IntentTextStyles.sans(13, it.textDim),
                 ),
               ],
             ),
           ),
-          _buildActionBar(),
         ],
       ),
     );
   }
 
-  Widget _buildStatusBanner() {
-    return ColoredBox(
-      color: _isActivated ? Colors.green.shade50 : Colors.orange.shade50,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            Icon(
-              _isActivated ? Icons.check_circle_outline : Icons.hourglass_top,
-              size: 16,
-              color:
-                  _isActivated ? Colors.green.shade700 : Colors.orange.shade700,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              _isActivated ? 'Session activated' : 'Activating session…',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: _isActivated
-                    ? Colors.green.shade700
-                    : Colors.orange.shade700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSection({
-    required String title,
-    required Widget child,
-    Widget? trailing,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            if (trailing != null) trailing,
-          ],
-        ),
-        const SizedBox(height: 8),
-        child,
-      ],
-    );
-  }
-
-  Widget _buildEmptyState(String message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Text(
-        message,
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-      ),
-    );
-  }
-
-  Widget _buildAccessoryTile(ASAccessory accessory) {
+  Widget _buildAccessoryTile(IntentTheme it, ASAccessory accessory) {
     final id = accessory.dartBluetoothIdentifier ?? 'No Bluetooth ID';
     final authorized =
         accessory.state == ASAccessoryState.ASAccessoryStateAuthorized;
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        leading: Icon(Icons.bluetooth,
-            color: authorized ? Colors.green : Colors.orange),
-        title: Text(id,
-            style: const TextStyle(fontSize: 13, fontFamily: 'Courier')),
-        subtitle: Text(
-          authorized ? 'Authorized' : 'Awaiting authorization',
-          style: TextStyle(
-            fontSize: 12,
-            color: authorized ? Colors.green.shade700 : Colors.orange.shade700,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: it.border)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: authorized ? it.accentSoft : it.surfaceAlt,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: it.border),
+            ),
+            child: Icon(
+              Icons.bluetooth,
+              size: 20,
+              color: authorized ? it.accent : it.textDim,
+            ),
           ),
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.red),
-          tooltip: 'Remove',
-          onPressed: () => _removeAccessory(accessory),
-        ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(id, style: IntentTextStyles.mono(11, it.textPrimary)),
+                const SizedBox(height: 3),
+                Text(
+                  authorized ? 'Authorized' : 'Awaiting authorization',
+                  style: IntentTextStyles.sans(
+                    12.5,
+                    authorized ? it.success : it.warn,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IntentIconBtn(
+            onTap: () => _removeAccessory(accessory),
+            child: Icon(Icons.close, size: 16, color: it.textDim),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildActionBar() {
+  Widget _buildActionBar(IntentTheme it) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: ElevatedButton(
-          onPressed: (_isActivated && !_isPickerLoading) ? _showPicker : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Colors.white,
-            minimumSize: const Size.fromHeight(48),
-          ),
-          child: _isPickerLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white),
-                )
-              : const Text('SHOW PICKER'),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: it.border)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+        child: IntentButton(
+          label: _isPickerLoading ? 'Opening picker…' : 'Show picker',
+          icon: Icons.add_circle_outline,
+          onTap: (_isActivated && !_isPickerLoading && _initError == null)
+              ? _showPicker
+              : null,
         ),
       ),
     );

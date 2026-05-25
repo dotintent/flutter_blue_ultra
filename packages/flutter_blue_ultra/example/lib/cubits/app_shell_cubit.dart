@@ -1,13 +1,15 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'permission_cubit.dart'
     show blePermissionsForCurrentPlatform, isGrantedOrLimited;
 
 /// Which top-level shell the user is in. Sealed so the `switch` in
-/// `_AppShell.build` is exhaustive and any future shell (e.g. an
-/// adapter-off screen) shows up as a compile error until handled.
+/// `_AppShell.build` is exhaustive and any future shell shows up as a compile
+/// error until handled.
 sealed class AppShellState extends Equatable {
   const AppShellState();
 
@@ -19,12 +21,32 @@ final class PermissionShellState extends AppShellState {
   const PermissionShellState();
 }
 
+final class LoadingShellState extends AppShellState {
+  const LoadingShellState();
+}
+
 final class ScanShellState extends AppShellState {
   const ScanShellState();
 }
 
+final class AccessorySetupShellState extends AppShellState {
+  const AccessorySetupShellState();
+}
+
 class AppShellCubit extends Cubit<AppShellState> {
-  AppShellCubit() : super(const PermissionShellState());
+  AppShellCubit() : super(const LoadingShellState());
+
+  static const _configChannel =
+      MethodChannel('flutter_blue_ultra_example/config');
+
+  Future<void> initialize() async {
+    if (await _shouldUseAccessorySetupKit()) {
+      if (!isClosed) emit(const AccessorySetupShellState());
+      return;
+    }
+
+    await checkAlreadyGranted();
+  }
 
   Future<void> checkAlreadyGranted() async {
     final permissions = await blePermissionsForCurrentPlatform();
@@ -39,11 +61,30 @@ class AppShellCubit extends Cubit<AppShellState> {
     final allGranted = statuses.every(isGrantedOrLimited);
     if (allGranted && !isClosed) {
       emit(const ScanShellState());
+      return;
     }
+
+    if (!isClosed) emit(const PermissionShellState());
   }
 
   void goToScan() {
     if (isClosed) return;
     emit(const ScanShellState());
+  }
+
+  Future<bool> _shouldUseAccessorySetupKit() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
+      return false;
+    }
+    try {
+      return await _configChannel.invokeMethod<bool>(
+            'accessorySetupKitConfigured',
+          ) ??
+          false;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
   }
 }

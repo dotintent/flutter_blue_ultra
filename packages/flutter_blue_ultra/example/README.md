@@ -21,12 +21,15 @@ macOS uses the Bluetooth entitlement already present in
 
 ## App flow
 
-1. **Permission** — Android requests `bluetoothScan`, `bluetoothConnect`, and
+1. **Startup** — On iOS, if the installed app declares AccessorySetupKit
+   Bluetooth keys in `Info.plist`, the example opens the setup picker screen.
+   Otherwise it uses the regular permission → scan flow.
+2. **Permission** — Android requests `bluetoothScan`, `bluetoothConnect`, and
    `locationWhenInUse`; iOS requests `bluetooth`; macOS uses its entitlement.
-2. **Scan** — auto-starts on `BluetoothAdapterState.on`; runs for 12 s and
+3. **Scan** — auto-starts on `BluetoothAdapterState.on`; runs for 12 s and
    dedupes results by `remoteId`.
-3. **Device** — connect, discover services, request MTU, poll RSSI every 2 s.
-4. **Characteristic** — Read / Write / Notify tabs. Notify keeps a ring
+4. **Device** — connect, discover services, request MTU, poll RSSI every 2 s.
+5. **Characteristic** — Read / Write / Notify tabs. Notify keeps a ring
    buffer of the last 40 packets with multiple format renderers (hex, UTF-8,
    dec, bin).
 
@@ -35,6 +38,11 @@ macOS uses the Bluetooth entitlement already present in
 The **Accessory Setup** screen is for testing iOS AccessorySetupKit with a
 real BLE accessory. Before running that flow, replace the example service UUID
 with the UUID advertised by your test accessory.
+
+AccessorySetupKit changes iOS Bluetooth authorization behavior: when the
+installed app declares the AccessorySetupKit Bluetooth keys, iOS uses
+per-accessory authorization and does not show the broad Bluetooth permission
+dialog. Remove those keys to test the regular permission-handler scan flow.
 
 Update the UUID in both places:
 

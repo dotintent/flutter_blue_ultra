@@ -5,6 +5,7 @@ import 'theme/app_theme.dart';
 import 'screens/permission_screen.dart';
 import 'screens/scan_screen.dart';
 import 'screens/device_screen.dart';
+import 'screens/accessory_setup_screen.dart';
 
 class FBUApp extends StatelessWidget {
   const FBUApp({super.key});
@@ -18,7 +19,7 @@ class FBUApp extends StatelessWidget {
       darkTheme: buildDarkTheme(),
       themeMode: ThemeMode.dark,
       home: BlocProvider(
-        create: (_) => AppShellCubit()..checkAlreadyGranted(),
+        create: (_) => AppShellCubit()..initialize(),
         child: const _AppShell(),
       ),
     );
@@ -35,6 +36,7 @@ class _AppShell extends StatelessWidget {
         // Exhaustive switch on the sealed AppShellState — adding a new
         // shell forces a compile error here until it's handled.
         return switch (state) {
+          LoadingShellState() => const Scaffold(),
           PermissionShellState() => PermissionScreen(
               onGranted: () => context.read<AppShellCubit>().goToScan(),
             ),
@@ -50,6 +52,7 @@ class _AppShell extends StatelessWidget {
                 );
               },
             ),
+          AccessorySetupShellState() => const AccessorySetupScreen(),
         };
       },
     );
