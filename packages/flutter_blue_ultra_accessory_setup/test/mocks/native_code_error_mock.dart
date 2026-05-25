@@ -9,7 +9,4 @@ class NativeCodeErrorMock implements NativeCodeError {
 
   @override
   String domain = "Tests";
-
-  @override
-  StackTrace? get stackTrace => throw UnimplementedError();
 }

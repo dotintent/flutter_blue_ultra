@@ -101,7 +101,7 @@ class FlutterAccessorySetup {
     final image = await nativeUIImageWithDartAsset(asset);
     _throwIfDisposed();
     if (image == null) {
-      throw FlutterAccessorysetupError(
+      throw FlutterAccessorySetupError(
           code: 1, description: "Failed to load UIImage for the asset: $asset");
     }
     final descriptor = ASDiscoveryDescriptor.alloc().init();
@@ -239,28 +239,27 @@ class FlutterAccessorySetup {
 }
 
 /// The class for errors occurred in the Dart code of the library
-class FlutterAccessorysetupError extends Error {
-  late final int code;
-  late final String description;
+class FlutterAccessorySetupError implements Exception {
+  final int code;
+  final String description;
 
-  FlutterAccessorysetupError({required this.code, required this.description});
+  FlutterAccessorySetupError({required this.code, required this.description});
 
   @override
   String toString() =>
-      'FlutterAccessorysetupError(code: $code, description: $description)';
+      'FlutterAccessorySetupError(code: $code, description: $description)';
 }
 
 /// The class for errors occurred in the Native code of the library
-class NativeCodeError extends Error {
-  late final String domain;
-  late final int code;
-  late final String description;
+class NativeCodeError implements Exception {
+  final String domain;
+  final int code;
+  final String description;
 
-  NativeCodeError(NSError nsError) {
-    code = nsError.code;
-    domain = nsError.domain.toDartString();
-    description = nsError.localizedDescription.toDartString();
-  }
+  NativeCodeError(NSError nsError)
+      : code = nsError.code,
+        domain = nsError.domain.toDartString(),
+        description = nsError.localizedDescription.toDartString();
 
   @override
   String toString() =>

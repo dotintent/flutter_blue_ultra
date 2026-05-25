@@ -22,7 +22,7 @@ NSObject? _convertKnownType(Object? o) {
   };
 }
 
-NSObject _covertKnownTypeWithNSNull(Object? o) {
+NSObject _convertKnownTypeWithNSNull(Object? o) {
   return _convertKnownType(o) ?? NSNull.null1();
 }
 
@@ -30,7 +30,7 @@ extension ListExtension on List {
   NSArray toNSArray() {
     final NSMutableArray array = NSMutableArray.arrayWithCapacity_(length);
     for (final Object? o in this) {
-      array.addObject_(_covertKnownTypeWithNSNull(o));
+      array.addObject_(_convertKnownTypeWithNSNull(o));
     }
     return array;
   }
@@ -41,8 +41,8 @@ extension MapExtension on Map {
     final NSMutableDictionary dict =
         NSMutableDictionary.dictionaryWithCapacity_(length);
     for (final MapEntry<Object?, Object?> entry in entries) {
-      dict.setObject_forKey_(_covertKnownTypeWithNSNull(entry.value),
-          _covertKnownTypeWithNSNull(entry.key));
+      dict.setObject_forKey_(_convertKnownTypeWithNSNull(entry.value),
+          _convertKnownTypeWithNSNull(entry.key));
     }
     return dict;
   }
