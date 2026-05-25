@@ -2,7 +2,14 @@ PODS:
   - device_info_plus (0.0.1):
     - Flutter
   - Flutter (1.0.0)
+  - flutter_blue_ultra_accessory_setup (0.0.2):
+    - Flutter
   - flutter_blue_ultra_darwin (0.0.2):
+    - Flutter
+    - FlutterMacOS
+  - objective_c (0.0.1):
+    - Flutter
+  - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
   - permission_handler_apple (9.3.0):
@@ -11,7 +18,10 @@ PODS:
 DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
+  - flutter_blue_ultra_accessory_setup (from `.symlinks/plugins/flutter_blue_ultra_accessory_setup/ios`)
   - flutter_blue_ultra_darwin (from `.symlinks/plugins/flutter_blue_ultra_darwin/darwin`)
+  - objective_c (from `.symlinks/plugins/objective_c/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
 
 EXTERNAL SOURCES:
@@ -19,17 +29,26 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
     :path: Flutter
+  flutter_blue_ultra_accessory_setup:
+    :path: ".symlinks/plugins/flutter_blue_ultra_accessory_setup/ios"
   flutter_blue_ultra_darwin:
     :path: ".symlinks/plugins/flutter_blue_ultra_darwin/darwin"
+  objective_c:
+    :path: ".symlinks/plugins/objective_c/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
 
 SPEC CHECKSUMS:
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_blue_ultra_accessory_setup: e195dd5f49c13524a6489004d99b2608f4f1c5d1
   flutter_blue_ultra_darwin: 7c6c006ac4a642effb6d1fe8a11f1bea82261b8a
+  objective_c: 89e720c30d716b036faf9c9684022048eee1eee2
+  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
 
-PODFILE CHECKSUM: 76fbb038ba5ddb84fb0d47441fd16b1be5aa8d1f
+PODFILE CHECKSUM: 23294bbbe9736405ec8bd1493040e96b1f8858e8
 
 COCOAPODS: 1.16.2

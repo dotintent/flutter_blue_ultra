@@ -28,6 +28,16 @@
 	<string>This app scans for nearby Bluetooth devices and connects to them.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>This app reads and writes Bluetooth characteristics on connected devices.</string>
+	<key>NSAccessorySetupKitSupports</key>
+	<array>
+		<string>Bluetooth</string>
+	</array>
+	<!-- Replace this with the BLE service UUID advertised by your accessory.
+	     It must match the serviceID passed to showPickerForDevice. -->
+	<key>NSAccessorySetupBluetoothServices</key>
+	<array>
+		<string>58C39754-835C-4AAD-9496-5502A4250229</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

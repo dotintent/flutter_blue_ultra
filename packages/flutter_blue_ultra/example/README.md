@@ -30,7 +30,28 @@ macOS uses the Bluetooth entitlement already present in
    buffer of the last 40 packets with multiple format renderers (hex, UTF-8,
    dec, bin).
 
+## Accessory Setup Testing
+
+The **Accessory Setup** screen is for testing iOS AccessorySetupKit with a
+real BLE accessory. Before running that flow, replace the example service UUID
+with the UUID advertised by your test accessory.
+
+Update the UUID in both places:
+
+- `example/lib/screens/accessory_setup_screen.dart`, in the
+  `showPickerForDevice` call.
+- `example/ios/Runner/Info.plist`, under
+  `NSAccessorySetupBluetoothServices`.
+
+Those values must match. The Dart value configures the runtime picker filter,
+while the `Info.plist` value is Apple's install-time allowlist for the app.
+After changing `Info.plist`, rebuild and reinstall the iOS app before testing.
+
+For a quick test, nRF Connect on Android can advertise a connectable BLE
+peripheral with your chosen service UUID.
+
 ## Architecture
+
 
 State management is [`flutter_bloc`](https://pub.dev/packages/flutter_bloc)
 `9.1.1` — `Cubit` only, no events. Each screen is a thin view; everything
