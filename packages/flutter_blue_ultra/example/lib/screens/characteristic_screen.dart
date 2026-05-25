@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../cubits/characteristic_cubit.dart';
 import '../models/ble_models.dart';
 import '../models/gatt_names.dart';
@@ -56,7 +57,7 @@ class _CharacteristicView extends StatefulWidget {
 
 class _CharacteristicViewState extends State<_CharacteristicView>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+  TabController? _tabController;
   late final bool _canRead;
   late final bool _canWrite;
   late final bool _canNotify;
@@ -77,10 +78,12 @@ class _CharacteristicViewState extends State<_CharacteristicView>
       if (_canNotify) 'Notify',
     ];
 
-    final initialIndex =
-        _canRead ? 0 : (_canNotify ? _tabs.indexOf('Notify') : 0);
-    _tabController = TabController(
-        length: _tabs.length, vsync: this, initialIndex: initialIndex);
+    if (_tabs.isNotEmpty) {
+      final initialIndex =
+          _canRead ? 0 : (_canNotify ? _tabs.indexOf('Notify') : 0);
+      _tabController = TabController(
+          length: _tabs.length, vsync: this, initialIndex: initialIndex);
+    }
 
     _messageSub = context.read<CharacteristicCubit>().messages.listen((msg) {
       if (!mounted) return;
@@ -91,7 +94,7 @@ class _CharacteristicViewState extends State<_CharacteristicView>
   @override
   void dispose() {
     _messageSub?.cancel();
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -178,56 +181,66 @@ class _CharacteristicViewState extends State<_CharacteristicView>
                   ],
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.only(top: 20),
-                decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: it.border)),
+              if (_tabController != null) ...[
+                Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: it.border)),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    labelColor: it.textPrimary,
+                    unselectedLabelColor: it.textDim,
+                    indicatorColor: it.accent,
+                    indicatorWeight: 2,
+                    labelStyle: IntentTextStyles.sans(13, it.textPrimary,
+                        weight: FontWeight.w600),
+                    unselectedLabelStyle: IntentTextStyles.sans(13, it.textDim,
+                        weight: FontWeight.w500),
+                    tabs: _tabs.map((t) => Tab(text: t)).toList(),
+                  ),
                 ),
-                child: TabBar(
-                  controller: _tabController,
-                  labelColor: it.textPrimary,
-                  unselectedLabelColor: it.textDim,
-                  indicatorColor: it.accent,
-                  indicatorWeight: 2,
-                  labelStyle: IntentTextStyles.sans(13, it.textPrimary,
-                      weight: FontWeight.w600),
-                  unselectedLabelStyle: IntentTextStyles.sans(13, it.textDim,
-                      weight: FontWeight.w500),
-                  tabs: _tabs.map((t) => Tab(text: t)).toList(),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      if (_canRead)
+                        _ReadTab(
+                          value: state.lastValue,
+                          format: state.format,
+                          onRead: cubit.doRead,
+                          onFormatChange: cubit.setFormat,
+                        ),
+                      if (_canWrite)
+                        _WriteTab(
+                          input: state.writeInput,
+                          onInputChange: cubit.setWriteInput,
+                          onWrite: cubit.doWrite,
+                          negotiatedMtu: widget.negotiatedMtu,
+                          isWriteNoResponse:
+                              props.writeWithoutResponse && !props.write,
+                        ),
+                      if (_canNotify)
+                        _NotifyTab(
+                          notifying: state.notifying,
+                          stream: state.packets,
+                          onToggle: state.notifying
+                              ? cubit.stopNotify
+                              : cubit.startNotify,
+                          format: state.format,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    if (_canRead)
-                      _ReadTab(
-                        value: state.lastValue,
-                        format: state.format,
-                        onRead: cubit.doRead,
-                        onFormatChange: cubit.setFormat,
-                      ),
-                    if (_canWrite)
-                      _WriteTab(
-                        input: state.writeInput,
-                        onInputChange: cubit.setWriteInput,
-                        onWrite: cubit.doWrite,
-                        negotiatedMtu: widget.negotiatedMtu,
-                        isWriteNoResponse:
-                            props.writeWithoutResponse && !props.write,
-                      ),
-                    if (_canNotify)
-                      _NotifyTab(
-                        notifying: state.notifying,
-                        stream: state.packets,
-                        onToggle: state.notifying
-                            ? cubit.stopNotify
-                            : cubit.startNotify,
-                        format: state.format,
-                      ),
-                  ],
+              ] else
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'No supported operations',
+                      style: IntentTextStyles.sans(14, it.textDim),
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         );
@@ -390,8 +403,10 @@ class _WriteTabState extends State<_WriteTab> {
             ),
             child: TextField(
               controller: _controller,
-              onChanged: (v) => widget
-                  .onInputChange(v.replaceAll(RegExp(r'[^0-9a-fA-F]'), '')),
+              onChanged: widget.onInputChange,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+              ],
               style: IntentTextStyles.mono(16, it.textPrimary),
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
@@ -553,8 +568,7 @@ class _NotifyTab extends StatelessWidget {
                     notifying
                         ? 'Waiting for first packet…'
                         : 'Toggle to subscribe.',
-                    style: TextStyle(
-                      fontFamily: 'Bradford',
+                    style: GoogleFonts.crimsonPro(
                       fontSize: 13,
                       fontStyle: FontStyle.italic,
                       color: it.textDim,
@@ -586,8 +600,7 @@ class _NotifyTab extends StatelessWidget {
                                   const SizedBox(height: 2),
                                   Text(
                                     parsed,
-                                    style: TextStyle(
-                                      fontFamily: 'Bradford',
+                                    style: GoogleFonts.crimsonPro(
                                       fontSize: 13,
                                       fontStyle: FontStyle.italic,
                                       color: it.accent,

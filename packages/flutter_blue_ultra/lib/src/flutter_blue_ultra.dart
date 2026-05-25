@@ -4,6 +4,34 @@
 
 part of '../flutter_blue_ultra.dart';
 
+/// The main entry point for the Flutter Blue Ultra plugin.
+///
+/// `FlutterBlueUltra` is a static-only class exposing Bluetooth Low Energy
+/// scanning, connection, and adapter-state APIs across Android, iOS, macOS,
+/// Linux, and Web. Most consumers will only ever touch [startScan],
+/// [stopScan], [scanResults], and [adapterState]; per-device operations
+/// (connect, discover services, read/write characteristics) live on
+/// [BluetoothDevice] instances returned from a scan.
+///
+/// ```dart
+/// // Wait for the adapter to be on.
+/// await FlutterBlueUltra.adapterState
+///     .firstWhere((s) => s == BluetoothAdapterState.on);
+///
+/// // Start a 15-second scan and listen to results.
+/// final sub = FlutterBlueUltra.onScanResults.listen((results) {
+///   for (final r in results) {
+///     debugPrint('${r.device.remoteId}: ${r.advertisementData.advName}');
+///   }
+/// });
+/// await FlutterBlueUltra.startScan(timeout: const Duration(seconds: 15));
+/// await FlutterBlueUltra.isScanning.where((s) => s == false).first;
+/// await sub.cancel();
+/// ```
+///
+/// For projects migrating from `flutter_blue_plus`, the legacy
+/// [FlutterBluePlus] typedef is still available (deprecated) — see
+/// `flutter_blue_ultra_compat.dart`.
 class FlutterBlueUltra {
   ///////////////////
   //  Internal
@@ -602,8 +630,10 @@ class FlutterBlueUltra {
   @Deprecated('Use isSupported instead')
   static Future<bool> get isAvailable async => await isSupported;
 
-  @Deprecated('removed. read MIGRATION.md for simple alternatives')
-  static Stream<ScanResult> scan() => throw Exception;
+  @Deprecated('Removed. Use `startScan()` + `onScanResults` instead.')
+  static Stream<ScanResult> scan() => throw UnsupportedError(
+      'FlutterBlueUltra.scan() was removed. Use startScan() and listen to '
+      'onScanResults.');
 }
 
 class AndroidScanMode {

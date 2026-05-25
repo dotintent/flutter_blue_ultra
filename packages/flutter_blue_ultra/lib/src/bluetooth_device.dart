@@ -697,7 +697,8 @@ class BluetoothDevice {
         '}';
   }
 
-  @Deprecated("removed. no replacement")
+  @Deprecated("Removed in 2.x. Track discovery state in your own code by "
+      "awaiting `discoverServices()`; this stream now always yields `false`.")
   Stream<bool> get isDiscoveringServices async* {
     yield false;
   }
@@ -717,12 +718,15 @@ class BluetoothDevice {
   @Deprecated('Use connectionState instead')
   Stream<BluetoothConnectionState> get state => connectionState;
 
-  @Deprecated("removed. no replacement")
+  @Deprecated("Removed in 2.x. Use the value returned from `discoverServices()` "
+      "directly; this stream now always yields an empty list.")
   Stream<List<BluetoothService>> get servicesStream async* {
     yield [];
   }
 
-  @Deprecated("removed. no replacement")
+  @Deprecated("Removed in 2.x. Use `servicesList` (the synchronous snapshot of "
+      "the last discovery) or `discoverServices()`; this stream now always yields "
+      "an empty list.")
   Stream<List<BluetoothService>> get services async* {
     yield [];
   }

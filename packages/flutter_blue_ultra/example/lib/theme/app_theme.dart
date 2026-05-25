@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class IntentColors {
   IntentColors._();
@@ -175,42 +176,39 @@ class IntentTextStyles {
 
   static TextStyle serifDisplay(double size, Color color,
           {double letterSpacing = -1.5}) =>
-      TextStyle(
-          fontFamily: 'Bradford',
+      GoogleFonts.crimsonPro(
           fontSize: size,
           fontWeight: FontWeight.w500,
           color: color,
           letterSpacing: letterSpacing,
           height: 1.0);
 
-  static TextStyle serifTitle(double size, Color color) => TextStyle(
-      fontFamily: 'Bradford',
-      fontSize: size,
-      fontWeight: FontWeight.w500,
-      color: color,
-      letterSpacing: -0.3,
-      height: 1.15);
+  static TextStyle serifTitle(double size, Color color) =>
+      GoogleFonts.crimsonPro(
+          fontSize: size,
+          fontWeight: FontWeight.w500,
+          color: color,
+          letterSpacing: -0.3,
+          height: 1.15);
 
   static TextStyle mono(double size, Color color,
           {double letterSpacing = 0.3}) =>
-      TextStyle(
-          fontFamily: 'AcuminProWide',
+      GoogleFonts.jetBrainsMono(
           fontSize: size,
           fontWeight: FontWeight.w400,
           color: color,
           letterSpacing: letterSpacing);
 
-  static TextStyle monoLabel(double size, Color color) => TextStyle(
-      fontFamily: 'AcuminProWide',
-      fontSize: size,
-      fontWeight: FontWeight.w600,
-      color: color,
-      letterSpacing: 1.4);
+  static TextStyle monoLabel(double size, Color color) =>
+      GoogleFonts.jetBrainsMono(
+          fontSize: size,
+          fontWeight: FontWeight.w600,
+          color: color,
+          letterSpacing: 1.4);
 
   static TextStyle sans(double size, Color color,
           {FontWeight weight = FontWeight.w400}) =>
-      TextStyle(
-          fontFamily: 'AcuminProWide',
+      GoogleFonts.inter(
           fontSize: size,
           fontWeight: weight,
           color: color,
@@ -235,7 +233,11 @@ ThemeData _buildTheme(IntentTheme it, Brightness brightness) {
       surface: it.surface,
       onSurface: it.textPrimary,
     ),
-    fontFamily: 'AcuminProWide',
+    textTheme: GoogleFonts.interTextTheme(
+      brightness == Brightness.dark
+          ? ThemeData.dark().textTheme
+          : ThemeData.light().textTheme,
+    ),
     extensions: [it],
     appBarTheme: AppBarTheme(
       backgroundColor: it.bg,

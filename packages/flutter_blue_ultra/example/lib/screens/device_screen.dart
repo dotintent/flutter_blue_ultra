@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../cubits/device_cubit.dart';
 import '../models/gatt_names.dart';
 import '../theme/app_theme.dart';
@@ -130,8 +131,7 @@ class _DeviceBodyState extends State<_DeviceBody> {
                                   style: name.isNotEmpty
                                       ? IntentTextStyles.serifTitle(
                                           32, it.textPrimary)
-                                      : TextStyle(
-                                          fontFamily: 'Bradford',
+                                      : GoogleFonts.crimsonPro(
                                           fontSize: 32,
                                           color: it.textDim,
                                           fontStyle: FontStyle.italic,

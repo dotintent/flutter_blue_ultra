@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 
 class IntentMark extends StatelessWidget {
@@ -26,8 +27,7 @@ class IntentMark extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             'intent',
-            style: TextStyle(
-              fontFamily: 'Bradford',
+            style: GoogleFonts.crimsonPro(
               fontSize: height,
               fontWeight: FontWeight.w400,
               color: it.textPrimary,
@@ -219,6 +219,7 @@ class UUIDText extends StatelessWidget {
     final std = RegExp(r'^0000([0-9a-fA-F]{4})-0000-1000-8000-00805f9b34fb$');
     final m = std.firstMatch(uuid);
     if (m != null) return '0x${m.group(1)!.toUpperCase()}';
+    if (uuid.length <= 8) return uuid;
     return '${uuid.substring(0, 8)}…${uuid.substring(uuid.length - 4)}';
   }
 

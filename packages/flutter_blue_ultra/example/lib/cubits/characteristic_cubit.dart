@@ -85,10 +85,10 @@ class CharacteristicCubit extends Cubit<CharacteristicState> {
     }
     try {
       final bytes = _hexStringToBytes(clean);
-      if (characteristic.properties.writeWithoutResponse) {
-        await characteristic.write(bytes, withoutResponse: true);
-      } else {
+      if (characteristic.properties.write) {
         await characteristic.write(bytes);
+      } else {
+        await characteristic.write(bytes, withoutResponse: true);
       }
       _messages.add('Written successfully');
     } catch (e) {
@@ -119,6 +119,8 @@ class CharacteristicCubit extends Cubit<CharacteristicState> {
       if (isClosed) return;
       emit(state.copyWith(notifying: true));
     } catch (e) {
+      await _notifySub?.cancel();
+      _notifySub = null;
       _messages.add('Subscribe failed: $e');
     }
   }

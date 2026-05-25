@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
@@ -95,10 +96,12 @@ class DeviceCubit extends Cubit<DeviceState> {
     try {
       final services = await device.discoverServices();
       int mtu = state.mtu;
-      try {
-        mtu = await device.requestMtu(_kRequestedMtu);
-      } catch (e) {
-        _messages.add('MTU request failed: $e');
+      if (Platform.isAndroid) {
+        try {
+          mtu = await device.requestMtu(_kRequestedMtu);
+        } catch (e) {
+          _messages.add('MTU request failed: $e');
+        }
       }
       if (isClosed) return;
       final newExpanded = Set<String>.from(state.expanded);
@@ -151,6 +154,8 @@ class DeviceCubit extends Cubit<DeviceState> {
   }
 
   Future<void> disconnect() async {
+    await _connSub?.cancel();
+    _connSub = null;
     await _rssiSub?.cancel();
     _rssiSub = null;
     await device.disconnect();

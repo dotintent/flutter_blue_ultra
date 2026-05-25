@@ -73,5 +73,6 @@ UI — every state mutation routes through `context.read<…Cubit>()`.
 - BlocSelector is used for RSSI (DeviceScreen) and elapsed-timer (ScanScreen)
   so the high-frequency tick doesn't rebuild the whole tree — see the
   `buildWhen` comments in those screens.
-- Brand fonts (`Bradford`, `AcuminProWide`) are bundled under `assets/fonts/`.
+- Typography is provided by the [`google_fonts`](https://pub.dev/packages/google_fonts) package
+  (`Crimson Pro` for serif, `Inter` for sans, `JetBrains Mono` for mono).
   Theme tokens live in [`lib/theme/app_theme.dart`](lib/theme/app_theme.dart).

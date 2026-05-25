@@ -35,6 +35,9 @@ extension ValueFormatExt on ValueFormat {
         }
       case ValueFormat.dec:
         if (bytes.length == 1) return bytes.first.toString();
+        if (bytes.length > 8) {
+          return bytes.map((b) => b.toString()).join(', ');
+        }
         int v = 0;
         for (int i = bytes.length - 1; i >= 0; i--) {
           v = (v << 8) | bytes[i];

@@ -92,35 +92,35 @@ packages:
       path: "../flutter_blue_ultra_android"
       relative: true
     source: path
-    version: "8.0.0"
+    version: "2.1.0"
   flutter_blue_ultra_darwin:
     dependency: "direct main"
     description:
       path: "../flutter_blue_ultra_darwin"
       relative: true
     source: path
-    version: "8.0.0"
+    version: "2.1.0"
   flutter_blue_ultra_linux:
     dependency: "direct main"
     description:
       path: "../flutter_blue_ultra_linux"
       relative: true
     source: path
-    version: "8.0.0"
+    version: "2.1.0"
   flutter_blue_ultra_platform_interface:
     dependency: "direct main"
     description:
       path: "../flutter_blue_ultra_platform_interface"
       relative: true
     source: path
-    version: "8.0.0"
+    version: "2.1.0"
   flutter_blue_ultra_web:
     dependency: "direct main"
     description:
       path: "../flutter_blue_ultra_web"
       relative: true
     source: path
-    version: "8.0.0"
+    version: "2.1.0"
   flutter_lints:
     dependency: "direct dev"
     description:

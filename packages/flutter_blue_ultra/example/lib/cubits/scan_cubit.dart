@@ -88,7 +88,7 @@ class ScanCubit extends Cubit<ScanState> {
       ..reset()
       ..start();
     emit(state.copyWith(results: const [], elapsed: 0));
-    _scanResultsSub = FlutterBlueUltra.scanResults.listen((incoming) {
+    _scanResultsSub = FlutterBlueUltra.onScanResults.listen((incoming) {
       if (isClosed) return;
       final merged = List<ScanResult>.from(state.results);
       for (final r in incoming) {

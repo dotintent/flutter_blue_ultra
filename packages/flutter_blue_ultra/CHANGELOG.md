@@ -6,7 +6,7 @@
 * **[Fix]** Replaced deprecated `Theme.primaryColor` with `colorScheme.primary` in example app
 * **[Fix]** Replaced deprecated `primaryTextTheme` with `textTheme` in example app
 * **[Improve]** Added `repository`, `issue_tracker`, and `topics` to all platform package pubspecs
-* **[Fix]** Corrected `flutter_blue_ultra_platform_interface` version constraint from `7.0.0` to `^8.0.0` in all platform packages
+* **[Improve]** Aligned all federated platform packages (`flutter_blue_ultra_platform_interface`, `_android`, `_darwin`, `_linux`, `_web`) to version 2.1.0 to match the facade — previously inherited 8.x from upstream `flutter_blue_plus_*`
 
 ## 2.0.0
 * Introduce Flutter Blue Ultra

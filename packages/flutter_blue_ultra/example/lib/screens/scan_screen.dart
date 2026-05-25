@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../cubits/scan_cubit.dart';
 import '../theme/app_theme.dart';
 import '../widgets/atoms.dart';
@@ -226,8 +227,7 @@ class _ScanViewState extends State<_ScanView> {
                         child: Center(
                           child: Text(
                             'Listening…',
-                            style: TextStyle(
-                              fontFamily: 'Bradford',
+                            style: GoogleFonts.crimsonPro(
                               fontSize: 13,
                               fontStyle: FontStyle.italic,
                               color: it.textDim,
@@ -266,8 +266,9 @@ class _DeviceRow extends StatelessWidget {
     final mac = result.device.remoteId.str;
     final adCount = result.advertisementData.serviceUuids.length;
 
+    final connectable = result.advertisementData.connectable;
     return InkWell(
-      onTap: onTap,
+      onTap: connectable ? onTap : null,
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
         decoration: BoxDecoration(
@@ -295,8 +296,7 @@ class _DeviceRow extends StatelessWidget {
                     hasName ? name : '(unnamed)',
                     style: hasName
                         ? IntentTextStyles.serifTitle(16, it.textPrimary)
-                        : TextStyle(
-                            fontFamily: 'Bradford',
+                        : GoogleFonts.crimsonPro(
                             fontSize: 16,
                             color: it.textDim,
                             fontStyle: FontStyle.italic,
