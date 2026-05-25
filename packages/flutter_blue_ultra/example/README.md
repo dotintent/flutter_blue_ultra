@@ -1,43 +1,78 @@
-# flutter_blue_ultra_example
+# flutter_blue_ultra example
 
-This example showcases how to use `flutter_blue_ultra` to scan, connect, and interact with BLE devices.
+A reference app for [`flutter_blue_ultra`](../). Walks the full BLE flow —
+permission → scan → connect → discover services → read / write / subscribe to
+characteristics — in roughly 1500 lines of code.
 
-## Quick Start
+## Running
 
-1. Ensure Bluetooth is enabled on your device. On Android, you may be prompted to turn it on.
-2. Run the example:
+From this directory:
 
 ```bash
-flutter run -t packages/flutter_blue_ultra/example/lib/main.dart
+flutter pub get
+flutter run
 ```
 
-3. On launch:
-   - If Bluetooth is off, you'll see a prompt screen. Turn Bluetooth on to proceed.
-   - If Bluetooth is on, you'll land on the Scan screen.
+Android needs a physical device or an emulator with a Bluetooth radio.
+iOS needs the Bluetooth usage strings in `ios/Runner/Info.plist` and the
+`PERMISSION_BLUETOOTH=1` permission_handler macro in `ios/Podfile`.
+macOS uses the Bluetooth entitlement already present in
+`macos/Runner/DebugProfile.entitlements`.
 
-## Using the App
+## App flow
 
-- SCAN: Starts a 15s scan for nearby BLE devices. A spinner shows scan progress.
-- STOP: Stops the current scan.
-- Connect/Open: Opens the selected device details screen.
-- Pull to Refresh: Triggers a new scan if not already scanning.
+1. **Permission** — Android requests `bluetoothScan`, `bluetoothConnect`, and
+   `locationWhenInUse`; iOS requests `bluetooth`; macOS uses its entitlement.
+2. **Scan** — auto-starts on `BluetoothAdapterState.on`; runs for 12 s and
+   dedupes results by `remoteId`.
+3. **Device** — connect, discover services, request MTU, poll RSSI every 2 s.
+4. **Characteristic** — Read / Write / Notify tabs. Notify keeps a ring
+   buffer of the last 40 packets with multiple format renderers (hex, UTF-8,
+   dec, bin).
 
-### Device Screen
+## Architecture
 
-- Shows connection state, RSSI, and MTU.
-- Get Services: Discovers GATT services and characteristics.
-- Interact with Characteristics/Descriptors: Read/Write/Notify using the tiles.
+State management is [`flutter_bloc`](https://pub.dev/packages/flutter_bloc)
+`9.1.1` — `Cubit` only, no events. Each screen is a thin view; everything
+stateful lives in `lib/cubits/`:
 
-### Notes
+| Cubit | Owns |
+|---|---|
+| `AppShellCubit` | Which shell to show — permission or scan. |
+| `PermissionCubit` | The "request now" call and the requesting flag. |
+| `ScanCubit` | Scan lifecycle, dedupe, elapsed timer, adapter-on auto-start. |
+| `DeviceCubit` | Connection state, service discovery, MTU, RSSI poll. |
+| `CharacteristicCubit` | Read/write/notify, notify ring buffer, format. |
 
-- On iOS/Web, optional service IDs improve discovery (Battery, Device Info, Generic Access, Nordic UART).
-- Log level is set to verbose in `main.dart` for easier debugging.
+Plumbing patterns the cubits all share:
+- One-shot UI messages (snackbars) go through a `Stream<String>` exposed by
+  the cubit, **not** through state. State equality would swallow back-to-back
+  identical messages.
+- All `StreamSubscription`s are cancelled in `Cubit.close()`. No `dispose()`
+  bookkeeping in the widget.
+- BLE awaits guard against post-close emit with `if (isClosed) return;`.
 
-## Where to Look in Code
+## Where to read first
 
-- `example/lib/main.dart`: App entry-point, theming, and adapter state handling.
-- `example/lib/screens/scan_screen.dart`: Scanning flow and results list.
-- `example/lib/screens/device_screen.dart`: Connected device details and services.
-- `example/lib/screens/bluetooth_off_screen.dart`: Turn-on-Bluetooth prompt.
+If you're trying to understand the package, read in this order:
 
-For detailed concepts and API reference, see the package `README.md` and `/docs`.
+1. **[`lib/cubits/scan_cubit.dart`](lib/cubits/scan_cubit.dart)** — shortest
+   cubit; shows the stream-lifecycle pattern.
+2. **[`lib/cubits/device_cubit.dart`](lib/cubits/device_cubit.dart)** —
+   connect → discover → MTU → RSSI sequence.
+3. **[`lib/cubits/characteristic_cubit.dart`](lib/cubits/characteristic_cubit.dart)** —
+   read / write / notify, plus the ring-buffer pattern for the live stream.
+
+The corresponding screens in `lib/screens/` then read top-to-bottom as plain
+UI — every state mutation routes through `context.read<…Cubit>()`.
+
+## Notes
+
+- Log level is `LogLevel.info` in [`lib/main.dart`](lib/main.dart). Bump to
+  `LogLevel.debug` or `LogLevel.verbose` to see plugin internals.
+- BlocSelector is used for RSSI (DeviceScreen) and elapsed-timer (ScanScreen)
+  so the high-frequency tick doesn't rebuild the whole tree — see the
+  `buildWhen` comments in those screens.
+- Typography is provided by the [`google_fonts`](https://pub.dev/packages/google_fonts) package
+  (`Crimson Pro` for serif, `Inter` for sans, `JetBrains Mono` for mono).
+  Theme tokens live in [`lib/theme/app_theme.dart`](lib/theme/app_theme.dart).

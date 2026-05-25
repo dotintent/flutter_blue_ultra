@@ -136,7 +136,7 @@ class FlutterBluePlus {
   @Deprecated('Use isSupported instead')
   static Future<bool> get isAvailable async => FlutterBlueUltra.isAvailable;
 
-  @Deprecated('removed. read MIGRATION.md for simple alternatives')
+  @Deprecated('Removed. Use `startScan()` + `onScanResults` instead.')
   static Stream<ScanResult> scan() => FlutterBlueUltra.scan();
 }
 
