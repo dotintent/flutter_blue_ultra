@@ -9,7 +9,7 @@ At this stage the library supports:
 - [x] WiFi
 - [x] Migration
 
-‼️ One important remark: by Apple's design, the library works only with **iOS 18 or above**. ‼️
+‼️ **iOS only.** This library wraps Apple's AccessorySetupKit, which is an iOS-exclusive framework with no Android equivalent. It requires **iOS 18 or above**. ‼️
 
 ## 🚇 How to use
 
