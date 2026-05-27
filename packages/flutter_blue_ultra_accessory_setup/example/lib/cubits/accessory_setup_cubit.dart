@@ -27,8 +27,7 @@ class AccessorySetupState extends Equatable {
   final List<ASAccessory> accessories;
   final List<String> eventLog;
 
-  bool get canOpenPicker =>
-      isActivated && !isPickerLoading && initError == null;
+  bool get canOpenPicker => isActivated && !isPickerLoading && initError == null;
 
   AccessorySetupState copyWith({
     bool? isActivated,
@@ -42,12 +41,8 @@ class AccessorySetupState extends Equatable {
     return AccessorySetupState(
       isActivated: isActivated ?? this.isActivated,
       isPickerLoading: isPickerLoading ?? this.isPickerLoading,
-      connectedId: identical(connectedId, _sentinel)
-          ? this.connectedId
-          : connectedId as String?,
-      initError: identical(initError, _sentinel)
-          ? this.initError
-          : initError as String?,
+      connectedId: identical(connectedId, _sentinel) ? this.connectedId : connectedId as String?,
+      initError: identical(initError, _sentinel) ? this.initError : initError as String?,
       pendingAccessory: identical(pendingAccessory, _sentinel)
           ? this.pendingAccessory
           : pendingAccessory as ASAccessory?,
@@ -82,8 +77,7 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
 
   StreamSubscription<ASAccessoryEvent>? _eventsSubscription;
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
-  final StreamController<String> _messages =
-      StreamController<String>.broadcast();
+  final StreamController<String> _messages = StreamController<String>.broadcast();
 
   Stream<String> get messages => _messages.stream;
 
@@ -194,17 +188,18 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
     }
 
     await _adapterStateSubscription?.cancel();
-    _adapterStateSubscription = FlutterBlueUltra.adapterState.listen((state) {
+    _adapterStateSubscription = FlutterBlueUltra.adapterState.listen((state) async {
       if (state == BluetoothAdapterState.on) {
-        _adapterStateSubscription?.cancel();
-        _connectDevice(id);
+        await _adapterStateSubscription?.cancel();
+        _adapterStateSubscription = null;
+        await _connectDevice(id);
       }
     });
   }
 
   Future<void> _connectDevice(String id) async {
-    final device = BluetoothDevice.fromId(id);
     try {
+      final device = BluetoothDevice.fromId(id);
       await device.connect();
       if (!isClosed) {
         emit(state.copyWith(connectedId: id));
