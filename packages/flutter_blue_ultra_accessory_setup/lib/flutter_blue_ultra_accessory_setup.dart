@@ -19,6 +19,7 @@ class FlutterAccessorySetup {
   DelegateAdapter? _delegateAdapter;
 
   // TODO: bind completers to accessories to enable multiple calls
+  bool _isShowPickerInProgress = false;
   Completer<void>? _showPickerCompleter;
   Completer<void>? _renameAccessoryCompleter;
   Completer<void>? _removeAccessoryCompleter;
@@ -73,19 +74,31 @@ class FlutterAccessorySetup {
   /// Shows device picker
   Future<void> showPicker() async {
     _throwIfDisposed();
+    _startShowPickerOperation();
     final completer = Completer<void>();
     _showPickerCompleter = completer;
-    _sessionAdapter.showPicker();
-    return completer.future;
+    try {
+      _sessionAdapter.showPicker();
+      return completer.future;
+    } catch (_) {
+      _clearShowPickerOperation();
+      rethrow;
+    }
   }
 
   /// Shows device picker configured with list of `ASPickerDisplayItem`
   Future<void> showPickerForItems(List<ASPickerDisplayItem> items) async {
     _throwIfDisposed();
+    _startShowPickerOperation();
     final completer = Completer<void>();
     _showPickerCompleter = completer;
-    _sessionAdapter.showPickerForItems_(_convertToNSArray(items));
-    return completer.future;
+    try {
+      _sessionAdapter.showPickerForItems_(_convertToNSArray(items));
+      return completer.future;
+    } catch (_) {
+      _clearShowPickerOperation();
+      rethrow;
+    }
   }
 
   /// Shows device picker configured for a single device
@@ -99,21 +112,26 @@ class FlutterAccessorySetup {
     String serviceID,
   ) async {
     _throwIfDisposed();
-    final completer = Completer<void>();
-    _showPickerCompleter = completer;
-
-    final image = await nativeUIImageWithDartAsset(asset);
-    _throwIfDisposed();
-    if (image == null) {
-      throw FlutterAccessorySetupError(
-          code: 1, description: "Failed to load UIImage for the asset: $asset");
+    _startShowPickerOperation();
+    try {
+      final image = await nativeUIImageWithDartAsset(asset);
+      _throwIfDisposed();
+      if (image == null) {
+        throw FlutterAccessorySetupError(
+            code: 1, description: "Failed to load UIImage for the asset: $asset");
+      }
+      final descriptor = ASDiscoveryDescriptor.alloc().init();
+      descriptor.bluetoothServiceUUID = CBUUID.UUIDWithString_(serviceID.toNSString());
+      final item = ASPickerDisplayItem.alloc()
+          .initWithName_productImage_descriptor_(name.toNSString(), image, descriptor);
+      final completer = Completer<void>();
+      _showPickerCompleter = completer;
+      _sessionAdapter.showPickerForItems_(_convertToNSArray([item]));
+      return completer.future;
+    } catch (_) {
+      _clearShowPickerOperation();
+      rethrow;
     }
-    final descriptor = ASDiscoveryDescriptor.alloc().init();
-    descriptor.bluetoothServiceUUID = CBUUID.UUIDWithString_(serviceID.toNSString());
-    final item = ASPickerDisplayItem.alloc()
-        .initWithName_productImage_descriptor_(name.toNSString(), image, descriptor);
-    _sessionAdapter.showPickerForItems_(_convertToNSArray([item]));
-    return completer.future;
   }
 
   /// Renames provided accessory using the `ASAccessoryRenameOptions`
@@ -165,11 +183,16 @@ class FlutterAccessorySetup {
   }
 
   void _didShowPicker(NSError? nsError) {
-    if (nsError != null) {
-      _showPickerCompleter?.completeError(_convertToNativeCodeError(nsError));
+    final completer = _showPickerCompleter;
+    _clearShowPickerOperation();
+    if (completer == null || completer.isCompleted) {
       return;
     }
-    _showPickerCompleter?.complete();
+    if (nsError != null) {
+      completer.completeError(_convertToNativeCodeError(nsError));
+      return;
+    }
+    completer.complete();
   }
 
   void _didRenameAccessory(ASAccessory accessory, NSError? nsError) {
@@ -217,7 +240,7 @@ class FlutterAccessorySetup {
   void _completePendingOperationCompletersWithDisposeError() {
     final disposeError = StateError('FlutterAccessorySetup has been disposed.');
     _completePendingCompleterWithError(_showPickerCompleter, disposeError);
-    _showPickerCompleter = null;
+    _clearShowPickerOperation();
     _completePendingCompleterWithError(_renameAccessoryCompleter, disposeError);
     _renameAccessoryCompleter = null;
     _completePendingCompleterWithError(_removeAccessoryCompleter, disposeError);
@@ -233,6 +256,18 @@ class FlutterAccessorySetup {
       return;
     }
     completer.completeError(error);
+  }
+
+  void _startShowPickerOperation() {
+    if (_isShowPickerInProgress) {
+      throw StateError('A picker operation is already in progress.');
+    }
+    _isShowPickerInProgress = true;
+  }
+
+  void _clearShowPickerOperation() {
+    _isShowPickerInProgress = false;
+    _showPickerCompleter = null;
   }
 
   /// Prints logs from the native code

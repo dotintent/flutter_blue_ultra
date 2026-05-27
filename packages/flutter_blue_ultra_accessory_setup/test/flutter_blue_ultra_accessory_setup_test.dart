@@ -177,6 +177,50 @@ void main() {
     expect(sessionMock.showPickerForItemsValue, equals(convertedList));
   });
 
+  test('rejects second picker call while first showPicker is pending', () async {
+    // Given
+    final firstFuture = sut.showPicker();
+
+    // When / Then
+    await expectLater(
+        sut.showPickerForItems(const <ASPickerDisplayItem>[]), throwsA(isA<StateError>()));
+
+    // When
+    delegateAdapter.didShowPickerWithError(null);
+
+    // Then
+    await firstFuture.timeout(const Duration(seconds: 1));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
+  });
+
+  test('rejects showPickerForDevice while another picker operation is pending', () async {
+    // Given
+    final firstFuture = sut.showPicker();
+
+    // When / Then
+    await expectLater(
+        sut.showPickerForDevice('Device', 'missing_asset.png', '1234'), throwsA(isA<StateError>()));
+
+    // When
+    delegateAdapter.didShowPickerWithError(null);
+
+    // Then
+    await firstFuture.timeout(const Duration(seconds: 1));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
+  });
+
+  test('showPickerForDevice pre-picker failure clears in-progress state', () async {
+    // Given / When
+    await expectLater(
+        sut.showPickerForDevice('Device', 'missing_asset.png', '1234'), throwsA(anything));
+
+    // Then: a subsequent picker call is allowed and completes.
+    final secondFuture = sut.showPicker();
+    delegateAdapter.didShowPickerWithError(null);
+    await secondFuture.timeout(const Duration(seconds: 1));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
+  });
+
   test('session renames accessory', () async {
     // Given
     final accessory = FFIASAccessoryMock();
