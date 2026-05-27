@@ -2,8 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'permission_cubit.dart'
-    show blePermissionsForCurrentPlatform, isGrantedOrLimited;
+import 'permission_cubit.dart' show blePermissionsForCurrentPlatform, isGrantedOrLimited;
 
 /// Which top-level shell the user is in. Sealed so the `switch` in
 /// `_AppShell.build` is exhaustive and any future shell shows up as a compile
@@ -31,7 +30,11 @@ class AppShellCubit extends Cubit<AppShellState> {
   AppShellCubit() : super(const LoadingShellState());
 
   Future<void> initialize() async {
-    await checkAlreadyGranted();
+    try {
+      await checkAlreadyGranted();
+    } catch (_) {
+      if (!isClosed) emit(const PermissionShellState());
+    }
   }
 
   Future<void> checkAlreadyGranted() async {
