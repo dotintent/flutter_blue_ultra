@@ -14,6 +14,8 @@ dependencies:
     path: ../../flutter_blue_ultra
   flutter_blue_ultra_accessory_setup:
     path: ../
+  equatable: ^2.0.8
+  flutter_bloc: ^9.1.1
   flutter_gen: ^5.14.1
 
 dev_dependencies:
