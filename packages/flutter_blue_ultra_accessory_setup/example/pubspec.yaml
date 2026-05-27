@@ -1,24 +1,28 @@
-name: flutter_blue_ultra_example
-description: Demonstrates how to use the flutter_blue_ultra plugin.
-
+name: flutter_blue_ultra_accessory_setup_example
+description: Demonstrates how to use flutter_blue_ultra_accessory_setup.
 publish_to: 'none'
 
+version: 1.0.0+1
+
 environment:
-  sdk: ^3.4.0
+  sdk: '>=3.4.1 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
   flutter_blue_ultra:
+    path: ../../flutter_blue_ultra
+  flutter_blue_ultra_accessory_setup:
     path: ../
-  permission_handler: 12.0.1
-  device_info_plus: 12.3.0
-  flutter_bloc: 9.1.1
-  equatable: 2.0.8
-  google_fonts: 8.1.0
+  flutter_gen: ^5.14.1
 
 dev_dependencies:
-  flutter_lints: 6.0.0
+  flutter_lints: ^6.0.0
+  build_runner: ^2.15.0
+  flutter_gen_runner: ^5.14.1
+  objective_c: ^4.0.0
+  flutter_test:
+    sdk: flutter
 
 dependency_overrides:
   flutter_blue_ultra_android:
@@ -34,4 +38,5 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
-  generate: true
+  assets:
+    - assets/images/

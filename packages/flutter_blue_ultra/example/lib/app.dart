@@ -5,7 +5,6 @@ import 'theme/app_theme.dart';
 import 'screens/permission_screen.dart';
 import 'screens/scan_screen.dart';
 import 'screens/device_screen.dart';
-import 'screens/accessory_setup_screen.dart';
 
 class FBUApp extends StatelessWidget {
   const FBUApp({super.key});
@@ -52,7 +51,6 @@ class _AppShell extends StatelessWidget {
                 );
               },
             ),
-          AccessorySetupShellState() => const AccessorySetupScreen(),
         };
       },
     );

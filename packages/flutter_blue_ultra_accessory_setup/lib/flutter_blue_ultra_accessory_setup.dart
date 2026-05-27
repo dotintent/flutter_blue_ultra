@@ -93,7 +93,10 @@ class FlutterAccessorySetup {
   /// - asset: the asset of the device image to display in picker
   /// - serviceID: the service UUID advertised by device (to search for a particular device)
   Future<void> showPickerForDevice(
-      String name, String asset, String serviceID) async {
+    String name,
+    String asset,
+    String serviceID,
+  ) async {
     _throwIfDisposed();
     final completer = Completer<void>();
     _showPickerCompleter = completer;
@@ -271,6 +274,10 @@ extension ASAccessoryDartExtension on ASAccessory {
   String? get dartBluetoothIdentifier {
     return bluetoothIdentifier?.toDartUUIDString();
   }
+
+  String get dartDisplayName {
+    return displayName.toDartString();
+  }
 }
 
 /// Exposing native properties as Dart types
@@ -283,5 +290,14 @@ extension ASAccessoryEventDartExtension on ASAccessoryEvent {
     return null;
   }
 
-  String get dartDescription => 'AccessoryEvent($eventType, e: $dartError)';
+  String get dartDescription {
+    final pickedAccessory = accessory;
+    final accessoryDescription = pickedAccessory == null
+        ? null
+        : 'Accessory(name: ${pickedAccessory.dartDisplayName}, '
+            'id: ${pickedAccessory.dartBluetoothIdentifier}, '
+            'state: ${pickedAccessory.state})';
+    return 'AccessoryEvent($eventType, accessory: $accessoryDescription, '
+        'error: $dartError)';
+  }
 }
