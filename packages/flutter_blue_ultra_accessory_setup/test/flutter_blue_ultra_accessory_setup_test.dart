@@ -90,6 +90,44 @@ void main() {
     expect(sessionMock.calls, equals([SessionMockMethodCall.invalidate]));
   });
 
+  test('dispose completes pending showPicker future with StateError', () async {
+    // Given
+    // No native callback: the future stays pending until dispose completes it.
+    final pendingFuture = sut.showPicker();
+
+    // When
+    sut.dispose();
+
+    // Then
+    await expectLater(pendingFuture, throwsA(isA<StateError>()));
+    expect(
+        sessionMock.calls,
+        equals([
+          SessionMockMethodCall.showPicker,
+          SessionMockMethodCall.invalidate
+        ]));
+  });
+
+  test('dispose completes pending removeAccessory future with StateError',
+      () async {
+    // Given
+    final accessory = FFIASAccessoryMock();
+    // No native callback: the future stays pending until dispose completes it.
+    final pendingFuture = sut.removeAccessory(accessory);
+
+    // When
+    sut.dispose();
+
+    // Then
+    await expectLater(pendingFuture, throwsA(isA<StateError>()));
+    expect(
+        sessionMock.calls,
+        equals([
+          SessionMockMethodCall.removeAccessory,
+          SessionMockMethodCall.invalidate
+        ]));
+  });
+
   test('session sends events', () async {
     // Given
     final expectedEvents = [

@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:objective_c/objective_c.dart';
 import 'package:flutter/services.dart';
-
 import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 import 'package:flutter_blue_ultra_accessory_setup/src/helpers.dart';
 import 'package:flutter_blue_ultra_accessory_setup/src/testing.dart';
+import 'package:objective_c/objective_c.dart';
 
 /// The main class of the library that provides service functionality
 /// Use it to activate the session and find and configure devices
@@ -36,10 +35,9 @@ class FlutterAccessorySetup {
     NativeCodeError Function(NSError)? nsErrorConverter,
   }) {
     _convertToNSArray = listConverter ?? (list) => list.toNSArray();
-    _convertToNativeCodeError =
-        nsErrorConverter ?? (nsError) => NativeCodeError(nsError);
-    _sessionAdapter = sessionAdapter ??
-        FFIAccessorySessionAdapter(FFIAccessorySession.alloc().init());
+    _convertToNativeCodeError = nsErrorConverter ?? (nsError) => NativeCodeError(nsError);
+    _sessionAdapter =
+        sessionAdapter ?? FFIAccessorySessionAdapter(FFIAccessorySession.alloc().init());
     _delegateAdapter = delegateAdapterFactory(
         handleEvent: _handleEvent,
         didShowPickerWithError: _didShowPicker,
@@ -54,6 +52,9 @@ class FlutterAccessorySetup {
       return;
     }
     _isDisposed = true;
+    // Invalidate can prevent native callbacks from arriving, so fail pending
+    // public futures before tearing down the session.
+    _completePendingOperationCompletersWithDisposeError();
     _sessionAdapter.invalidate();
     _eventsController.close();
     _delegateAdapter = null;
@@ -108,18 +109,15 @@ class FlutterAccessorySetup {
           code: 1, description: "Failed to load UIImage for the asset: $asset");
     }
     final descriptor = ASDiscoveryDescriptor.alloc().init();
-    descriptor.bluetoothServiceUUID =
-        CBUUID.UUIDWithString_(serviceID.toNSString());
+    descriptor.bluetoothServiceUUID = CBUUID.UUIDWithString_(serviceID.toNSString());
     final item = ASPickerDisplayItem.alloc()
-        .initWithName_productImage_descriptor_(
-            name.toNSString(), image, descriptor);
+        .initWithName_productImage_descriptor_(name.toNSString(), image, descriptor);
     _sessionAdapter.showPickerForItems_(_convertToNSArray([item]));
     return completer.future;
   }
 
   /// Renames provided accessory using the `ASAccessoryRenameOptions`
-  Future<void> renameAccessory(
-      ASAccessory accessory, ASAccessoryRenameOptions options) async {
+  Future<void> renameAccessory(ASAccessory accessory, ASAccessoryRenameOptions options) async {
     _throwIfDisposed();
     final completer = Completer<void>();
     _renameAccessoryCompleter = completer;
@@ -142,8 +140,7 @@ class FlutterAccessorySetup {
     _throwIfDisposed();
     final completer = Completer<void>();
     _finishAuthorizationForAccessoryCompleter = completer;
-    _sessionAdapter.finishAuthorizationForAccessory_settings_(
-        accessory, settings);
+    _sessionAdapter.finishAuthorizationForAccessory_settings_(accessory, settings);
     return completer.future;
   }
 
@@ -177,8 +174,7 @@ class FlutterAccessorySetup {
 
   void _didRenameAccessory(ASAccessory accessory, NSError? nsError) {
     if (nsError != null) {
-      _renameAccessoryCompleter
-          ?.completeError(_convertToNativeCodeError(nsError));
+      _renameAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
     _renameAccessoryCompleter?.complete();
@@ -186,8 +182,7 @@ class FlutterAccessorySetup {
 
   void _didRemoveAccessory(ASAccessory accessory, NSError? nsError) {
     if (nsError != null) {
-      _removeAccessoryCompleter
-          ?.completeError(_convertToNativeCodeError(nsError));
+      _removeAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
     _removeAccessoryCompleter?.complete();
@@ -195,8 +190,7 @@ class FlutterAccessorySetup {
 
   void _didFinishAuthorization(ASAccessory accessory, NSError? nsError) {
     if (nsError != null) {
-      _finishAuthorizationForAccessoryCompleter
-          ?.completeError(_convertToNativeCodeError(nsError));
+      _finishAuthorizationForAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
     _finishAuthorizationForAccessoryCompleter?.complete();
@@ -204,8 +198,7 @@ class FlutterAccessorySetup {
 
   void _didFailAuthorization(ASAccessory accessory, NSError? nsError) {
     if (nsError != null) {
-      _failAuthorizationForAccessoryCompleter
-          ?.completeError(_convertToNativeCodeError(nsError));
+      _failAuthorizationForAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
     _failAuthorizationForAccessoryCompleter?.complete();
@@ -219,6 +212,27 @@ class FlutterAccessorySetup {
     if (_isDisposed) {
       throw StateError('FlutterAccessorySetup has been disposed.');
     }
+  }
+
+  void _completePendingOperationCompletersWithDisposeError() {
+    final disposeError = StateError('FlutterAccessorySetup has been disposed.');
+    _completePendingCompleterWithError(_showPickerCompleter, disposeError);
+    _showPickerCompleter = null;
+    _completePendingCompleterWithError(_renameAccessoryCompleter, disposeError);
+    _renameAccessoryCompleter = null;
+    _completePendingCompleterWithError(_removeAccessoryCompleter, disposeError);
+    _removeAccessoryCompleter = null;
+    _completePendingCompleterWithError(_finishAuthorizationForAccessoryCompleter, disposeError);
+    _finishAuthorizationForAccessoryCompleter = null;
+    _completePendingCompleterWithError(_failAuthorizationForAccessoryCompleter, disposeError);
+    _failAuthorizationForAccessoryCompleter = null;
+  }
+
+  static void _completePendingCompleterWithError(Completer<void>? completer, Object error) {
+    if (completer == null || completer.isCompleted) {
+      return;
+    }
+    completer.completeError(error);
   }
 
   /// Prints logs from the native code
@@ -249,8 +263,7 @@ class FlutterAccessorySetupError implements Exception {
   FlutterAccessorySetupError({required this.code, required this.description});
 
   @override
-  String toString() =>
-      'FlutterAccessorySetupError(code: $code, description: $description)';
+  String toString() => 'FlutterAccessorySetupError(code: $code, description: $description)';
 }
 
 /// The class for errors occurred in the Native code of the library
@@ -265,8 +278,7 @@ class NativeCodeError implements Exception {
         description = nsError.localizedDescription.toDartString();
 
   @override
-  String toString() =>
-      'NativeCodeError(domain: $domain, code: $code, description: $description)';
+  String toString() => 'NativeCodeError(domain: $domain, code: $code, description: $description)';
 }
 
 /// Exposing native properties as Dart types
