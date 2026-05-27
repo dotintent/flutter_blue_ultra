@@ -116,19 +116,32 @@ class _AccessorySetupViewState extends State<_AccessorySetupView> {
                     ),
                     SectionHeader(
                       label: 'Paired accessories',
-                      count: state.accessories.length,
+                      count: state.authorizedAccessories.length,
                     ),
-                    if (state.accessories.isEmpty)
+                    if (state.authorizedAccessories.isEmpty)
                       const EmptyState(
                         icon: Icons.bluetooth_searching,
                         title: 'No accessories paired yet.',
                       )
                     else
-                      for (final accessory in state.accessories)
+                      for (final accessory in state.authorizedAccessories)
                         AccessoryTile(
                           accessory: accessory,
+                          paired: true,
                           onRemove: () => cubit.removeAccessory(accessory),
                         ),
+                    if (state.unpairedAccessories.isNotEmpty) ...[
+                      SectionHeader(
+                        label: 'Connected, not paired',
+                        count: state.unpairedAccessories.length,
+                      ),
+                      for (final accessory in state.unpairedAccessories)
+                        AccessoryTile(
+                          accessory: accessory,
+                          paired: false,
+                          onRemove: () => cubit.removeAccessory(accessory),
+                        ),
+                    ],
                     SectionHeader(
                       label: 'Event log',
                       trailing: state.eventLog.isEmpty

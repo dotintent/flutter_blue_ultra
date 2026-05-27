@@ -29,7 +29,7 @@ The example currently filters for:
 
 If your accessory advertises a different service UUID, update both:
 
-- `lib/main.dart`, in `_serviceUuid`
+- `lib/models/accessory_setup_config.dart`, in `serviceUuid`
 - `ios/Runner/Info.plist`, under `NSAccessorySetupBluetoothServices`
 
 Those values must match. The Dart value configures the picker filter, while the
@@ -39,6 +39,14 @@ In nRF Connect, check the UUID in the advertising packet, not only the service
 list after connecting. AccessorySetupKit filters the picker using the advertised
 identifiers declared in `ASDiscoveryDescriptor`; a GATT service that appears
 only after connection is not enough for the picker to match the device.
+
+For BLE pairing flows, the example keeps a newly selected accessory out of the
+paired list until the post-picker connection succeeds. If your accessory pairs
+only when an encrypted GATT characteristic is accessed, set
+`pairingValidationServiceUuid` and `pairingValidationCharacteristicUuid` in
+`lib/models/accessory_setup_config.dart` to that characteristic. A failed
+connection or validation removes the temporary accessory entry so it can be
+picked again.
 
 The example declares both `NSAccessorySetupSupports` and the older
 `NSAccessorySetupKitSupports` compatibility key. `NSAccessorySetupSupports` is

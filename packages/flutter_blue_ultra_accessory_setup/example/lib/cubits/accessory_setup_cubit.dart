@@ -13,30 +13,69 @@ class AccessorySetupState extends Equatable {
     this.isActivated = false,
     this.isPickerLoading = false,
     this.connectedId,
+    this.authorizingId,
     this.initError,
     this.pendingAccessory,
     this.accessories = const [],
+    this.verifiedPairedIds = const <String>{},
     this.eventLog = const [],
   });
 
   final bool isActivated;
   final bool isPickerLoading;
   final String? connectedId;
+  final String? authorizingId;
   final String? initError;
   final ASAccessory? pendingAccessory;
   final List<ASAccessory> accessories;
+  final Set<String> verifiedPairedIds;
   final List<String> eventLog;
 
   bool get canOpenPicker =>
-      isActivated && !isPickerLoading && initError == null;
+      isActivated &&
+      !isPickerLoading &&
+      authorizingId == null &&
+      initError == null;
+
+  List<ASAccessory> get authorizedAccessories {
+    final pendingId = pendingAccessory?.dartBluetoothIdentifier;
+    return accessories
+        .where((a) => a.state == ASAccessoryState.ASAccessoryStateAuthorized)
+        .where((a) => verifiedPairedIds.contains(a.dartBluetoothIdentifier))
+        .where((a) => a.dartBluetoothIdentifier != authorizingId)
+        .where((a) => a.dartBluetoothIdentifier != pendingId)
+        .toList(growable: false);
+  }
+
+  List<ASAccessory> get unverifiedAccessories {
+    final pendingId = pendingAccessory?.dartBluetoothIdentifier;
+    return accessories
+        .where((a) => a.state == ASAccessoryState.ASAccessoryStateAuthorized)
+        .where((a) => !verifiedPairedIds.contains(a.dartBluetoothIdentifier))
+        .where((a) => a.dartBluetoothIdentifier != authorizingId)
+        .where((a) => a.dartBluetoothIdentifier != pendingId)
+        .toList(growable: false);
+  }
+
+  List<ASAccessory> get awaitingAuthorizationAccessories => accessories
+      .where((a) =>
+          a.state == ASAccessoryState.ASAccessoryStateAwaitingAuthorization)
+      .toList(growable: false);
+
+  List<ASAccessory> get unpairedAccessories => [
+        ...unverifiedAccessories,
+        ...awaitingAuthorizationAccessories,
+      ];
 
   AccessorySetupState copyWith({
     bool? isActivated,
     bool? isPickerLoading,
     Object? connectedId = _sentinel,
+    Object? authorizingId = _sentinel,
     Object? initError = _sentinel,
     Object? pendingAccessory = _sentinel,
     List<ASAccessory>? accessories,
+    Set<String>? verifiedPairedIds,
     List<String>? eventLog,
   }) {
     return AccessorySetupState(
@@ -45,6 +84,9 @@ class AccessorySetupState extends Equatable {
       connectedId: identical(connectedId, _sentinel)
           ? this.connectedId
           : connectedId as String?,
+      authorizingId: identical(authorizingId, _sentinel)
+          ? this.authorizingId
+          : authorizingId as String?,
       initError: identical(initError, _sentinel)
           ? this.initError
           : initError as String?,
@@ -52,6 +94,7 @@ class AccessorySetupState extends Equatable {
           ? this.pendingAccessory
           : pendingAccessory as ASAccessory?,
       accessories: accessories ?? this.accessories,
+      verifiedPairedIds: verifiedPairedIds ?? this.verifiedPairedIds,
       eventLog: eventLog ?? this.eventLog,
     );
   }
@@ -61,9 +104,11 @@ class AccessorySetupState extends Equatable {
         isActivated,
         isPickerLoading,
         connectedId,
+        authorizingId,
         initError,
         pendingAccessory,
         accessories,
+        verifiedPairedIds,
         eventLog,
       ];
 }
@@ -133,24 +178,33 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
 
   void _onPickerDismissed() {
     final accessory = state.pendingAccessory;
-    emit(state.copyWith(pendingAccessory: null));
 
     final id = accessory?.dartBluetoothIdentifier;
     if (accessory == null || id == null) {
+      emit(state.copyWith(pendingAccessory: null));
       _log('picker dismissed without a picked accessory');
       return;
     }
+    if (accessory.state ==
+        ASAccessoryState.ASAccessoryStateAwaitingAuthorization) {
+      emit(state.copyWith(pendingAccessory: null, authorizingId: id));
+      _removeTemporaryAccessory(accessory, id);
+      return;
+    }
     if (accessory.state != ASAccessoryState.ASAccessoryStateAuthorized) {
+      emit(state.copyWith(pendingAccessory: null));
       _log('accessory not authorized, state: ${accessory.state}');
       return;
     }
-    connectWithoutScanning(id);
+    emit(state.copyWith(pendingAccessory: null, authorizingId: id));
+    connectWithoutScanning(id, pickedAccessory: accessory);
   }
 
   Future<void> showPicker() async {
     if (!state.canOpenPicker) return;
     emit(state.copyWith(isPickerLoading: true));
     try {
+      await _removeUnverifiedAccessories();
       await FlutterBlueUltra.stopScan();
       await _accessorySetup.showPickerForDevice(
         config.deviceName,
@@ -173,7 +227,12 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
     try {
       await _accessorySetup.removeAccessory(accessory);
       if (!isClosed) {
-        emit(state.copyWith(accessories: _accessorySetup.accessories));
+        final id = accessory.dartBluetoothIdentifier;
+        emit(state.copyWith(
+          connectedId: id == state.connectedId ? null : _sentinel,
+          accessories: _accessorySetup.accessories,
+          verifiedPairedIds: _verifiedIdsWithout(id),
+        ));
       }
     } catch (e) {
       _log('remove error: $e');
@@ -181,15 +240,22 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
     }
   }
 
-  Future<void> connectWithoutScanning(String id) async {
+  Future<void> connectWithoutScanning(
+    String id, {
+    ASAccessory? pickedAccessory,
+  }) async {
     _log('connecting to $id');
     if (await FlutterBlueUltra.isSupported == false) {
       _log('Bluetooth not supported');
-      _messages.add('Bluetooth not supported');
+      if (pickedAccessory != null) {
+        await _removeTemporaryAccessory(pickedAccessory, id);
+      } else {
+        _messages.add('Bluetooth not supported');
+      }
       return;
     }
     if (FlutterBlueUltra.adapterStateNow == BluetoothAdapterState.on) {
-      await _connectDevice(id);
+      await _connectDevice(id, pickedAccessory: pickedAccessory);
       return;
     }
 
@@ -197,23 +263,124 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
     _adapterStateSubscription = FlutterBlueUltra.adapterState.listen((state) {
       if (state == BluetoothAdapterState.on) {
         _adapterStateSubscription?.cancel();
-        _connectDevice(id);
+        _connectDevice(id, pickedAccessory: pickedAccessory);
       }
     });
   }
 
-  Future<void> _connectDevice(String id) async {
+  Future<void> _connectDevice(
+    String id, {
+    ASAccessory? pickedAccessory,
+  }) async {
     final device = BluetoothDevice.fromId(id);
+    if (pickedAccessory != null && !isClosed) {
+      emit(state.copyWith(authorizingId: id));
+    }
     try {
       await device.connect();
+      final pairingVerified = await _validatePairing(device);
       if (!isClosed) {
-        emit(state.copyWith(connectedId: id));
+        final verifiedPairedIds = pairingVerified
+            ? <String>{...state.verifiedPairedIds, id}
+            : state.verifiedPairedIds;
+        emit(state.copyWith(
+          authorizingId: pickedAccessory != null ? null : _sentinel,
+          connectedId: id,
+          accessories: _accessorySetup.accessories,
+          verifiedPairedIds: verifiedPairedIds,
+        ));
       }
-      _log('connected to $id');
+      if (pairingVerified) {
+        _log('connected and pairing verified for $id');
+      } else {
+        _log('connected to $id, pairing not verified');
+        if (pickedAccessory != null) {
+          _messages.add(
+            'Connected, but pairing was not verified. Tap Show picker to retry.',
+          );
+        }
+      }
     } catch (e) {
       _log('connect error: $e');
-      _messages.add('Connection failed: $e');
+      if (pickedAccessory != null) {
+        await _removeTemporaryAccessory(pickedAccessory, id);
+      } else {
+        _messages.add('Connection failed: $e');
+      }
     }
+  }
+
+  Future<bool> _validatePairing(BluetoothDevice device) async {
+    if (!config.hasPairingValidationCharacteristic) {
+      return false;
+    }
+
+    final services = await device.discoverServices();
+    final serviceUuid = Guid(config.pairingValidationServiceUuid!);
+    final characteristicUuid =
+        Guid(config.pairingValidationCharacteristicUuid!);
+    BluetoothCharacteristic? validationCharacteristic;
+    for (final service in services) {
+      if (service.uuid != serviceUuid) continue;
+      for (final characteristic in service.characteristics) {
+        if (characteristic.uuid == characteristicUuid) {
+          validationCharacteristic = characteristic;
+          break;
+        }
+      }
+      if (validationCharacteristic != null) break;
+    }
+
+    if (validationCharacteristic == null) {
+      throw StateError('Pairing validation characteristic not found');
+    }
+    await validationCharacteristic.read();
+    _log('pairing validation characteristic read');
+    return true;
+  }
+
+  Future<void> _removeUnverifiedAccessories() async {
+    final accessories = state.unverifiedAccessories.toList(growable: false);
+    for (final accessory in accessories) {
+      final id = accessory.dartBluetoothIdentifier;
+      if (id == null) continue;
+      await _removeTemporaryAccessory(accessory, id, notify: false);
+    }
+  }
+
+  Future<void> _removeTemporaryAccessory(
+    ASAccessory accessory,
+    String id, {
+    bool notify = true,
+  }) async {
+    try {
+      await BluetoothDevice.fromId(id).disconnect();
+    } catch (e) {
+      _log('disconnect after pairing failure error: $e');
+    }
+    try {
+      await _accessorySetup.removeAccessory(accessory);
+    } catch (e) {
+      _log('remove after pairing failure error: $e');
+    }
+    if (!isClosed) {
+      emit(state.copyWith(
+        authorizingId: null,
+        connectedId: state.connectedId == id ? null : _sentinel,
+        accessories: _accessorySetup.accessories,
+        verifiedPairedIds: _verifiedIdsWithout(id),
+      ));
+    }
+    if (notify) {
+      _messages.add('Pairing was canceled. The accessory was removed.');
+    }
+  }
+
+  Set<String> _verifiedIdsWithout(String? id) {
+    if (id == null || !state.verifiedPairedIds.contains(id)) {
+      return state.verifiedPairedIds;
+    }
+    return state.verifiedPairedIds.where((value) => value != id).toSet();
   }
 
   void printNativeSessionLogs() {

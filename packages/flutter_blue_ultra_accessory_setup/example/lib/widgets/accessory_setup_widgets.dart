@@ -16,14 +16,18 @@ class AccessoryStatusPanel extends StatelessWidget {
     final it = IntentTheme.of(context);
     final color = state.initError != null
         ? it.accent
-        : state.isActivated
-            ? it.success
-            : it.warn;
+        : state.authorizingId != null
+            ? it.warn
+            : state.isActivated
+                ? it.success
+                : it.warn;
     final status = state.initError != null
         ? 'SetupKit unavailable'
-        : state.isActivated
-            ? 'Session activated'
-            : 'Activating session';
+        : state.authorizingId != null
+            ? 'Checking pairing'
+            : state.isActivated
+                ? 'Session activated'
+                : 'Activating session';
 
     return Container(
       decoration: BoxDecoration(
@@ -52,9 +56,11 @@ class AccessoryStatusPanel extends StatelessWidget {
                 Text(
                   state.initError != null
                       ? 'SETUP.ERROR'
-                      : state.isActivated
-                          ? 'SESSION.READY'
-                          : 'SESSION.STARTING',
+                      : state.authorizingId != null
+                          ? 'PAIRING.CHECK'
+                          : state.isActivated
+                              ? 'SESSION.READY'
+                              : 'SESSION.STARTING',
                   style: IntentTextStyles.monoLabel(10, it.accent),
                 ),
                 const SizedBox(height: 4),
@@ -63,10 +69,11 @@ class AccessoryStatusPanel extends StatelessWidget {
                   style: IntentTextStyles.serifTitle(20, it.textPrimary),
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (state.connectedId != null) ...[
+                if (state.authorizingId != null ||
+                    state.connectedId != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    state.connectedId!,
+                    state.authorizingId ?? state.connectedId!,
                     style: IntentTextStyles.mono(10.5, it.textDim),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -75,8 +82,9 @@ class AccessoryStatusPanel extends StatelessWidget {
             ),
           ),
           IntentChip(
-            label: state.accessories.length.toString().padLeft(2, '0'),
-            kind: state.accessories.isEmpty
+            label:
+                state.authorizedAccessories.length.toString().padLeft(2, '0'),
+            kind: state.authorizedAccessories.isEmpty
                 ? ChipKind.muted
                 : ChipKind.defaultKind,
             small: false,
@@ -124,10 +132,12 @@ class AccessoryTile extends StatelessWidget {
   const AccessoryTile({
     super.key,
     required this.accessory,
+    required this.paired,
     required this.onRemove,
   });
 
   final ASAccessory accessory;
+  final bool paired;
   final VoidCallback onRemove;
 
   @override
@@ -135,6 +145,16 @@ class AccessoryTile extends StatelessWidget {
     final it = IntentTheme.of(context);
     final authorized =
         accessory.state == ASAccessoryState.ASAccessoryStateAuthorized;
+    final label = paired
+        ? 'PAIRED'
+        : authorized
+            ? 'CONNECTED'
+            : 'AWAITING';
+    final kind = paired
+        ? ChipKind.defaultKind
+        : authorized
+            ? ChipKind.notify
+            : ChipKind.muted;
     final id = accessory.dartBluetoothIdentifier;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
@@ -154,7 +174,7 @@ class AccessoryTile extends StatelessWidget {
               child: Icon(
                 Icons.bluetooth,
                 size: 20,
-                color: authorized ? it.success : it.warn,
+                color: paired ? it.success : it.warn,
               ),
             ),
           ),
@@ -170,8 +190,8 @@ class AccessoryTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 IntentChip(
-                  label: authorized ? 'AUTHORIZED' : 'AWAITING',
-                  kind: authorized ? ChipKind.defaultKind : ChipKind.notify,
+                  label: label,
+                  kind: kind,
                 ),
               ],
             ),
