@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubits/accessory_setup_cubit.dart';
+import '../theme/app_theme.dart';
+import '../widgets/atoms.dart';
 import '../widgets/accessory_setup_widgets.dart';
 
 class AccessorySetupScreen extends StatelessWidget {
@@ -48,80 +50,106 @@ class _AccessorySetupViewState extends State<_AccessorySetupView> {
     return BlocBuilder<AccessorySetupCubit, AccessorySetupState>(
       builder: (context, state) {
         final cubit = context.read<AccessorySetupCubit>();
+        final it = IntentTheme.of(context);
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Accessory SetupKit'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.bug_report_outlined),
-                tooltip: 'Print native logs',
-                onPressed: cubit.printNativeSessionLogs,
-              ),
-            ],
-          ),
+          backgroundColor: it.bg,
           body: Column(
             children: [
-              AccessoryStatusBanner(state: state),
+              IntentAppBar(
+                title: 'Accessory SetupKit',
+                subtitle: 'iOS pairing picker',
+                trailing: IntentIconBtn(
+                  onTap: cubit.printNativeSessionLogs,
+                  child: Icon(
+                    Icons.bug_report_outlined,
+                    color: it.textPrimary,
+                    size: 18,
+                  ),
+                ),
+              ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.zero,
                   children: [
-                    Text(
-                      'Pair an accessory',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'This app exercises the AccessorySetupKit path. '
-                      'The picker filters for ${cubit.config.serviceUuid}, '
-                      'which must also be listed in ios/Runner/Info.plist.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 20),
-                    AccessorySection(
-                      title: 'Paired accessories',
-                      child: state.accessories.isEmpty
-                          ? const Text('No accessories paired yet.')
-                          : Column(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '· ACCESSORY SETUPKIT',
+                            style: IntentTextStyles.monoLabel(
+                              11,
+                              it.textFaint,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          RichText(
+                            text: TextSpan(
+                              style: IntentTextStyles.serifDisplay(
+                                40,
+                                it.textPrimary,
+                                letterSpacing: -1.5,
+                              ),
                               children: [
-                                for (final accessory in state.accessories)
-                                  AccessoryTile(
-                                    accessory: accessory,
-                                    onRemove: () =>
-                                        cubit.removeAccessory(accessory),
+                                const TextSpan(text: 'Pairing,\n'),
+                                TextSpan(
+                                  text: 'by service.',
+                                  style: TextStyle(
+                                    color: it.accent,
+                                    fontStyle: FontStyle.italic,
                                   ),
+                                ),
                               ],
                             ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'The picker filters for ${cubit.config.serviceUuid}.',
+                            style: IntentTextStyles.sans(13.5, it.textDim),
+                          ),
+                          const SizedBox(height: 22),
+                          AccessoryStatusPanel(state: state),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    AccessorySection(
-                      title: 'Event log',
+                    SectionHeader(
+                      label: 'Paired accessories',
+                      count: state.accessories.length,
+                    ),
+                    if (state.accessories.isEmpty)
+                      const EmptyState(
+                        icon: Icons.bluetooth_searching,
+                        title: 'No accessories paired yet.',
+                      )
+                    else
+                      for (final accessory in state.accessories)
+                        AccessoryTile(
+                          accessory: accessory,
+                          onRemove: () => cubit.removeAccessory(accessory),
+                        ),
+                    SectionHeader(
+                      label: 'Event log',
                       trailing: state.eventLog.isEmpty
                           ? null
                           : TextButton(
                               onPressed: cubit.clearLog,
                               child: const Text('Clear'),
                             ),
-                      child: EventLogList(entries: state.eventLog),
                     ),
+                    EventLogList(entries: state.eventLog),
+                    const SizedBox(height: 88),
                   ],
                 ),
               ),
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: FilledButton.icon(
-                    onPressed: state.canOpenPicker ? cubit.showPicker : null,
-                    icon: state.isPickerLoading
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.add_circle_outline),
-                    label: Text(
-                      state.isPickerLoading ? 'Opening picker' : 'Show picker',
-                    ),
+                  child: AccessoryPickerButton(
+                    enabled: state.canOpenPicker,
+                    loading: state.isPickerLoading,
+                    onPressed: cubit.showPicker,
                   ),
                 ),
               ),

@@ -7,12 +7,16 @@ PODS:
     - FlutterMacOS
   - objective_c (0.0.1):
     - Flutter
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_blue_ultra_accessory_setup (from `.symlinks/plugins/flutter_blue_ultra_accessory_setup/ios`)
   - flutter_blue_ultra_darwin (from `.symlinks/plugins/flutter_blue_ultra_darwin/darwin`)
   - objective_c (from `.symlinks/plugins/objective_c/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
 
 EXTERNAL SOURCES:
   Flutter:
@@ -23,12 +27,15 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_blue_ultra_darwin/darwin"
   objective_c:
     :path: ".symlinks/plugins/objective_c/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_blue_ultra_accessory_setup: e195dd5f49c13524a6489004d99b2608f4f1c5d1
   flutter_blue_ultra_darwin: 7c6c006ac4a642effb6d1fe8a11f1bea82261b8a
   objective_c: 89e720c30d716b036faf9c9684022048eee1eee2
+  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
 
 PODFILE CHECKSUM: 88001a6f63fedf7dfbfdf4ee0c335d29da93cbc0
 

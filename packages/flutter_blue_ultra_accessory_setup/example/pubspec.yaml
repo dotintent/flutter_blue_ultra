@@ -17,6 +17,7 @@ dependencies:
   equatable: ^2.0.8
   flutter_bloc: ^9.1.1
   flutter_gen: ^5.14.1
+  google_fonts: ^8.1.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0

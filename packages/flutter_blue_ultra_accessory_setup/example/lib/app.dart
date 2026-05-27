@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'screens/accessory_setup_screen.dart';
+import 'theme/app_theme.dart';
 
 class AccessorySetupExampleApp extends StatelessWidget {
   const AccessorySetupExampleApp({super.key});
@@ -10,13 +11,9 @@ class AccessorySetupExampleApp extends StatelessWidget {
     return MaterialApp(
       title: 'Accessory Setup Example',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF3B5C),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: buildLightTheme(),
+      darkTheme: buildDarkTheme(),
+      themeMode: ThemeMode.dark,
       home: const AccessorySetupScreen(),
     );
   }
