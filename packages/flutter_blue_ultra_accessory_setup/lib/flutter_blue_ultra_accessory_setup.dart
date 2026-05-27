@@ -13,7 +13,7 @@ class FlutterAccessorySetup {
   Stream<ASAccessoryEvent> get eventStream => _eventsController.stream;
   List<ASAccessory> get accessories => _sessionAdapter.accessories.toList();
   late final FFIAccessorySessionAdapter _sessionAdapter;
-  final _eventsController = StreamController<ASAccessoryEvent>();
+  final _eventsController = StreamController<ASAccessoryEvent>.broadcast();
   bool _isDisposed = false;
 
   DelegateAdapter? _delegateAdapter;

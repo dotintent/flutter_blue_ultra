@@ -1,11 +1,10 @@
-import 'package:objective_c/objective_c.dart' as objc;
-
 import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
 import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:flutter_blue_ultra_accessory_setup/src/testing.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:objective_c/objective_c.dart' as objc;
 
+import 'mocks/delegate_adapter_mock.dart';
 import 'mocks/ffi_accessory_event_mock.dart';
 import 'mocks/ffi_accessory_mock.dart';
 import 'mocks/ffi_accessory_session_mock.dart';
@@ -13,7 +12,6 @@ import 'mocks/ffi_accessory_settings_mock.dart';
 import 'mocks/ffi_nserror_mock.dart';
 import 'mocks/native_code_error_mock.dart';
 import 'mocks/objc_ns_array_mock.dart';
-import 'mocks/delegate_adapter_mock.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -56,20 +54,15 @@ void main() {
 
   // Tests
 
-  test(
-      'session calls activate and sets up delegate adapter when the `activate` method called',
+  test('session calls activate and sets up delegate adapter when the `activate` method called',
       () async {
     // Given
     // When
     sut.activate();
     // Then
     expect(sessionAdapter.delegateAdapter, isNotNull);
-    expect(
-        sessionMock.calls,
-        equals([
-          SessionMockMethodCall.setDelegate,
-          SessionMockMethodCall.activate
-        ]));
+    expect(sessionMock.calls,
+        equals([SessionMockMethodCall.setDelegate, SessionMockMethodCall.activate]));
   });
 
   test('session calls invalidate when the `dispose` method called', () async {
@@ -82,8 +75,7 @@ void main() {
 
   test('session ignores events received after dispose', () async {
     // Given
-    final event = FFIASAccessoryEventMock(
-        ASAccessoryEventType.ASAccessoryEventTypeInvalidated);
+    final event = FFIASAccessoryEventMock(ASAccessoryEventType.ASAccessoryEventTypeInvalidated);
     sut.dispose();
     // When / Then
     expect(() => delegateAdapter.handleEvent(event), returnsNormally);
@@ -100,16 +92,11 @@ void main() {
 
     // Then
     await expectLater(pendingFuture, throwsA(isA<StateError>()));
-    expect(
-        sessionMock.calls,
-        equals([
-          SessionMockMethodCall.showPicker,
-          SessionMockMethodCall.invalidate
-        ]));
+    expect(sessionMock.calls,
+        equals([SessionMockMethodCall.showPicker, SessionMockMethodCall.invalidate]));
   });
 
-  test('dispose completes pending removeAccessory future with StateError',
-      () async {
+  test('dispose completes pending removeAccessory future with StateError', () async {
     // Given
     final accessory = FFIASAccessoryMock();
     // No native callback: the future stays pending until dispose completes it.
@@ -120,12 +107,8 @@ void main() {
 
     // Then
     await expectLater(pendingFuture, throwsA(isA<StateError>()));
-    expect(
-        sessionMock.calls,
-        equals([
-          SessionMockMethodCall.removeAccessory,
-          SessionMockMethodCall.invalidate
-        ]));
+    expect(sessionMock.calls,
+        equals([SessionMockMethodCall.removeAccessory, SessionMockMethodCall.invalidate]));
   });
 
   test('session sends events', () async {
@@ -150,12 +133,32 @@ void main() {
     expectedEvents.forEach(delegateAdapter.handleEvent);
   });
 
+  test('event stream supports multiple listeners', () async {
+    // Given
+    final event = FFIASAccessoryEventMock(ASAccessoryEventType.ASAccessoryEventTypeActivated);
+
+    // Then
+    final firstListener = expectLater(
+      sut.eventStream,
+      emits(event),
+    ).timeout(const Duration(seconds: 1));
+    final secondListener = expectLater(
+      sut.eventStream,
+      emits(event),
+    ).timeout(const Duration(seconds: 1));
+
+    // When
+    delegateAdapter.handleEvent(event);
+
+    // Then
+    await Future.wait([firstListener, secondListener]);
+  });
+
   // Success
 
   test('session shows picker', () async {
     // Given
-    sessionMock.showPickerCallback =
-        () => delegateAdapter.didShowPickerWithError(null);
+    sessionMock.showPickerCallback = () => delegateAdapter.didShowPickerWithError(null);
     // When
     await sut.showPicker().timeout(const Duration(seconds: 1));
     // Then
@@ -164,15 +167,13 @@ void main() {
 
   test('session shows picker for items', () async {
     // Given
-    sessionMock.showPickerForItemsCallback =
-        () => delegateAdapter.didShowPickerWithError(null);
+    sessionMock.showPickerForItemsCallback = () => delegateAdapter.didShowPickerWithError(null);
     final List<ASPickerDisplayItem> items = [];
     // When
     await sut.showPickerForItems(items).timeout(const Duration(seconds: 1));
     // Then
     expect(listToConvert, equals(items));
-    expect(
-        sessionMock.calls, equals([SessionMockMethodCall.showPickerForItems]));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.showPickerForItems]));
     expect(sessionMock.showPickerForItemsValue, equals(convertedList));
   });
 
@@ -183,12 +184,9 @@ void main() {
     sessionMock.renameAccessoryOptionsCallback =
         () => delegateAdapter.didRenameAccessoryWithError(accessory, null);
     // When
-    await sut
-        .renameAccessory(accessory, options)
-        .timeout(const Duration(seconds: 1));
+    await sut.renameAccessory(accessory, options).timeout(const Duration(seconds: 1));
     // Then
-    expect(sessionMock.calls,
-        equals([SessionMockMethodCall.renameAccessoryOptions]));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.renameAccessoryOptions]));
     expect(sessionMock.renameAccessoryOptionsAccessoryValue, equals(accessory));
     expect(sessionMock.renameAccessoryOptionsOptionsValue, equals(options));
   });
@@ -209,36 +207,28 @@ void main() {
     // Given
     final accessory = FFIASAccessoryMock();
     final settings = FFIASAccessorySettingsMock();
-    sessionMock.finishAuthorizationForAccessorySettingsCallback = () =>
-        delegateAdapter.didFinishAuthorizationForAccessoryWithError(
-            accessory, null);
+    sessionMock.finishAuthorizationForAccessorySettingsCallback =
+        () => delegateAdapter.didFinishAuthorizationForAccessoryWithError(accessory, null);
     // When
     await sut
         .finishAuthorizationForAccessory(accessory, settings)
         .timeout(const Duration(seconds: 1));
     // Then
     expect(
-        sessionMock.calls,
-        equals(
-            [SessionMockMethodCall.finishAuthorizationForAccessorySettings]));
-    expect(sessionMock.finishAuthorizationForAccessorySettingsAccessoryValue,
-        equals(accessory));
-    expect(sessionMock.finishAuthorizationForAccessorySettingsSettingsValue,
-        equals(settings));
+        sessionMock.calls, equals([SessionMockMethodCall.finishAuthorizationForAccessorySettings]));
+    expect(sessionMock.finishAuthorizationForAccessorySettingsAccessoryValue, equals(accessory));
+    expect(sessionMock.finishAuthorizationForAccessorySettingsSettingsValue, equals(settings));
   });
 
   test('session fails authorization of the accessory', () async {
     // Given
     final accessory = FFIASAccessoryMock();
-    sessionMock.failAuthorizationForAccessoryCallback = () => delegateAdapter
-        .didFailAuthorizationForAccessoryWithError(accessory, null);
+    sessionMock.failAuthorizationForAccessoryCallback =
+        () => delegateAdapter.didFailAuthorizationForAccessoryWithError(accessory, null);
     // When
-    await sut
-        .failAuthorizationForAccessory(accessory)
-        .timeout(const Duration(seconds: 1));
+    await sut.failAuthorizationForAccessory(accessory).timeout(const Duration(seconds: 1));
     // Then
-    expect(sessionMock.calls,
-        equals([SessionMockMethodCall.failAuthorizationForAccessory]));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.failAuthorizationForAccessory]));
     expect(sessionMock.failAuthorizationForAccessoryValue, equals(accessory));
   });
 
@@ -247,11 +237,10 @@ void main() {
   test('session throws errors when shows picker', () async {
     // Given
     final error = FFINSErrorMock();
-    sessionMock.showPickerCallback =
-        () => delegateAdapter.didShowPickerWithError(error);
+    sessionMock.showPickerCallback = () => delegateAdapter.didShowPickerWithError(error);
     // When
-    expect(() async => sut.showPicker().timeout(const Duration(seconds: 1)),
-        throwsA(convertedError));
+    expect(
+        () async => sut.showPicker().timeout(const Duration(seconds: 1)), throwsA(convertedError));
     // Then
     expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
     expect(error, equals(nsErrorToConvert));
@@ -260,18 +249,14 @@ void main() {
   test('session throws errors when shows picker for items', () async {
     // Given
     final error = FFINSErrorMock();
-    sessionMock.showPickerForItemsCallback =
-        () => delegateAdapter.didShowPickerWithError(error);
+    sessionMock.showPickerForItemsCallback = () => delegateAdapter.didShowPickerWithError(error);
     final List<ASPickerDisplayItem> items = [];
     // When
-    expect(
-        () async =>
-            sut.showPickerForItems(items).timeout(const Duration(seconds: 1)),
+    expect(() async => sut.showPickerForItems(items).timeout(const Duration(seconds: 1)),
         throwsA(convertedError));
     // Then
     expect(listToConvert, equals(items));
-    expect(
-        sessionMock.calls, equals([SessionMockMethodCall.showPickerForItems]));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.showPickerForItems]));
     expect(sessionMock.showPickerForItemsValue, equals(convertedList));
     expect(error, equals(nsErrorToConvert));
   });
@@ -284,14 +269,10 @@ void main() {
     sessionMock.renameAccessoryOptionsCallback =
         () => delegateAdapter.didRenameAccessoryWithError(accessory, error);
     // When
-    expect(
-        () async => sut
-            .renameAccessory(accessory, options)
-            .timeout(const Duration(seconds: 1)),
+    expect(() async => sut.renameAccessory(accessory, options).timeout(const Duration(seconds: 1)),
         throwsA(convertedError));
     // Then
-    expect(sessionMock.calls,
-        equals([SessionMockMethodCall.renameAccessoryOptions]));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.renameAccessoryOptions]));
     expect(sessionMock.renameAccessoryOptionsAccessoryValue, equals(accessory));
     expect(sessionMock.renameAccessoryOptionsOptionsValue, equals(options));
     expect(error, equals(nsErrorToConvert));
@@ -304,9 +285,7 @@ void main() {
     sessionMock.removeAccessoryCallback =
         () => delegateAdapter.didRemoveAccessoryWithError(accessory, error);
     // When
-    expect(
-        () async =>
-            sut.removeAccessory(accessory).timeout(const Duration(seconds: 1)),
+    expect(() async => sut.removeAccessory(accessory).timeout(const Duration(seconds: 1)),
         throwsA(convertedError));
     // Then
     expect(sessionMock.calls, equals([SessionMockMethodCall.removeAccessory]));
@@ -319,9 +298,8 @@ void main() {
     final error = FFINSErrorMock();
     final accessory = FFIASAccessoryMock();
     final settings = FFIASAccessorySettingsMock();
-    sessionMock.finishAuthorizationForAccessorySettingsCallback = () =>
-        delegateAdapter.didFinishAuthorizationForAccessoryWithError(
-            accessory, error);
+    sessionMock.finishAuthorizationForAccessorySettingsCallback =
+        () => delegateAdapter.didFinishAuthorizationForAccessoryWithError(accessory, error);
     // When
     expect(
         () async => sut
@@ -330,32 +308,25 @@ void main() {
         throwsA(convertedError));
     // Then
     expect(
-        sessionMock.calls,
-        equals(
-            [SessionMockMethodCall.finishAuthorizationForAccessorySettings]));
-    expect(sessionMock.finishAuthorizationForAccessorySettingsAccessoryValue,
-        equals(accessory));
-    expect(sessionMock.finishAuthorizationForAccessorySettingsSettingsValue,
-        equals(settings));
+        sessionMock.calls, equals([SessionMockMethodCall.finishAuthorizationForAccessorySettings]));
+    expect(sessionMock.finishAuthorizationForAccessorySettingsAccessoryValue, equals(accessory));
+    expect(sessionMock.finishAuthorizationForAccessorySettingsSettingsValue, equals(settings));
     expect(error, equals(nsErrorToConvert));
   });
 
-  test('session throws errors when fails authorization of the accessory',
-      () async {
+  test('session throws errors when fails authorization of the accessory', () async {
     // Given
     final error = FFINSErrorMock();
     final accessory = FFIASAccessoryMock();
-    sessionMock.failAuthorizationForAccessoryCallback = () => delegateAdapter
-        .didFailAuthorizationForAccessoryWithError(accessory, error);
+    sessionMock.failAuthorizationForAccessoryCallback =
+        () => delegateAdapter.didFailAuthorizationForAccessoryWithError(accessory, error);
     // When
     expect(
-        () async => sut
-            .failAuthorizationForAccessory(accessory)
-            .timeout(const Duration(seconds: 1)),
+        () async =>
+            sut.failAuthorizationForAccessory(accessory).timeout(const Duration(seconds: 1)),
         throwsA(convertedError));
     // Then
-    expect(sessionMock.calls,
-        equals([SessionMockMethodCall.failAuthorizationForAccessory]));
+    expect(sessionMock.calls, equals([SessionMockMethodCall.failAuthorizationForAccessory]));
     expect(sessionMock.failAuthorizationForAccessoryValue, equals(accessory));
     expect(error, equals(nsErrorToConvert));
   });
