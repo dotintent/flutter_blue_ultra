@@ -137,6 +137,9 @@ class FlutterAccessorySetup {
   /// Renames provided accessory using the `ASAccessoryRenameOptions`
   Future<void> renameAccessory(ASAccessory accessory, ASAccessoryRenameOptions options) async {
     _throwIfDisposed();
+    if (_renameAccessoryCompleter != null && !_renameAccessoryCompleter!.isCompleted) {
+      throw StateError('A renameAccessory operation is already in progress.');
+    }
     final completer = Completer<void>();
     _renameAccessoryCompleter = completer;
     _sessionAdapter.renameAccessory_options_(accessory, options);
@@ -146,6 +149,9 @@ class FlutterAccessorySetup {
   /// Removes provided accessory (disconnects from the app)
   Future<void> removeAccessory(ASAccessory accessory) async {
     _throwIfDisposed();
+    if (_removeAccessoryCompleter != null && !_removeAccessoryCompleter!.isCompleted) {
+      throw StateError('A removeAccessory operation is already in progress.');
+    }
     final completer = Completer<void>();
     _removeAccessoryCompleter = completer;
     _sessionAdapter.removeAccessory_(accessory);
@@ -156,6 +162,10 @@ class FlutterAccessorySetup {
   Future<void> finishAuthorizationForAccessory(
       ASAccessory accessory, ASAccessorySettings settings) async {
     _throwIfDisposed();
+    if (_finishAuthorizationForAccessoryCompleter != null &&
+        !_finishAuthorizationForAccessoryCompleter!.isCompleted) {
+      throw StateError('A finishAuthorizationForAccessory operation is already in progress.');
+    }
     final completer = Completer<void>();
     _finishAuthorizationForAccessoryCompleter = completer;
     _sessionAdapter.finishAuthorizationForAccessory_settings_(accessory, settings);
@@ -165,6 +175,10 @@ class FlutterAccessorySetup {
   /// Fails the Authorization for the accessory
   Future<void> failAuthorizationForAccessory(ASAccessory accessory) async {
     _throwIfDisposed();
+    if (_failAuthorizationForAccessoryCompleter != null &&
+        !_failAuthorizationForAccessoryCompleter!.isCompleted) {
+      throw StateError('A failAuthorizationForAccessory operation is already in progress.');
+    }
     final completer = Completer<void>();
     _failAuthorizationForAccessoryCompleter = completer;
     _sessionAdapter.failAuthorizationForAccessory_(accessory);
@@ -196,35 +210,43 @@ class FlutterAccessorySetup {
   }
 
   void _didRenameAccessory(ASAccessory accessory, NSError? nsError) {
+    final completer = _renameAccessoryCompleter;
+    _renameAccessoryCompleter = null;
     if (nsError != null) {
-      _renameAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
+      completer?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
-    _renameAccessoryCompleter?.complete();
+    completer?.complete();
   }
 
   void _didRemoveAccessory(ASAccessory accessory, NSError? nsError) {
+    final completer = _removeAccessoryCompleter;
+    _removeAccessoryCompleter = null;
     if (nsError != null) {
-      _removeAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
+      completer?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
-    _removeAccessoryCompleter?.complete();
+    completer?.complete();
   }
 
   void _didFinishAuthorization(ASAccessory accessory, NSError? nsError) {
+    final completer = _finishAuthorizationForAccessoryCompleter;
+    _finishAuthorizationForAccessoryCompleter = null;
     if (nsError != null) {
-      _finishAuthorizationForAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
+      completer?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
-    _finishAuthorizationForAccessoryCompleter?.complete();
+    completer?.complete();
   }
 
   void _didFailAuthorization(ASAccessory accessory, NSError? nsError) {
+    final completer = _failAuthorizationForAccessoryCompleter;
+    _failAuthorizationForAccessoryCompleter = null;
     if (nsError != null) {
-      _failAuthorizationForAccessoryCompleter?.completeError(_convertToNativeCodeError(nsError));
+      completer?.completeError(_convertToNativeCodeError(nsError));
       return;
     }
-    _failAuthorizationForAccessoryCompleter?.complete();
+    completer?.complete();
   }
 
   // endregion
