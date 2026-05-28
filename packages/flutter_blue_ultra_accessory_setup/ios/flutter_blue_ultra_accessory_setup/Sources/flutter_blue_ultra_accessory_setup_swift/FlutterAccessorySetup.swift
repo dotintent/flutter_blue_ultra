@@ -7,7 +7,12 @@ public final class FFIAccessorySession: NSObject {
 
     private let session = ASAccessorySession()
     private var delegate: FFIAccessorySessionDelegate?
+    private let logQueue = DispatchQueue(label: "com.withintent.fbu.accessory-setup.logs")
     private var myLogs: [String] = []
+
+    private func appendLog(_ message: String) {
+        logQueue.async { [weak self] in self?.myLogs.append(message) }
+    }
 
     override public init() {
         super.init()
@@ -15,25 +20,25 @@ public final class FFIAccessorySession: NSObject {
 
     @objc(logs)
     public var logs: [String] {
-        return myLogs
+        return logQueue.sync { myLogs }
     }
 
     @objc(accessories)
     public var accessories: [ASAccessory] {
-        myLogs.append("get accessories")
+        appendLog("get accessories")
         return session.accessories
     }
 
     @objc(setDelegate:)
     public func set(delegate: FFIAccessorySessionDelegate) {
-        myLogs.append("set delegate")
+        appendLog("set delegate")
         self.delegate = delegate
     }
 
     @objc(activate)
     public func activate() {
         session.activate(on: .main) { [weak self] event in
-            self?.myLogs.append("received event \(event), error: \(String(describing: event.error))")
+            self?.appendLog("received event \(event), error: \(String(describing: event.error))")
             self?.delegate?.handle(event: event)
         }
     }
