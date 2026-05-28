@@ -128,6 +128,6 @@ extension NSEnumeratorExtension on NSEnumerator {
 
 extension ByteDataToNativeExtension on ByteData {
   NSData toNSData() {
-    return buffer.asInt8List().toNSData();
+    return buffer.asInt8List(offsetInBytes, lengthInBytes).toNSData();
   }
 }
