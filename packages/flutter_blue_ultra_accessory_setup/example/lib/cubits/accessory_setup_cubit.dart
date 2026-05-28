@@ -152,12 +152,14 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
         config.serviceUuid,
       );
     } on NativeCodeError catch (e) {
-      emit(state.copyWith(isPickerLoading: false));
       _log('picker error (native): $e');
+      if (isClosed) return;
+      emit(state.copyWith(isPickerLoading: false));
       _messages.add('Picker error: ${e.description}');
     } catch (e) {
-      emit(state.copyWith(isPickerLoading: false));
       _log('picker error: $e');
+      if (isClosed) return;
+      emit(state.copyWith(isPickerLoading: false));
       _messages.add('Picker error: $e');
     }
   }
@@ -171,6 +173,7 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
       }
     } catch (e) {
       _log('remove error: $e');
+      if (isClosed) return;
       _messages.add('Remove failed: $e');
     }
   }
@@ -207,6 +210,7 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
       _log('connected to $id');
     } catch (e) {
       _log('connect error: $e');
+      if (isClosed) return;
       _messages.add('Connection failed: $e');
     }
   }
