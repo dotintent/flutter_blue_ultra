@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Flutter Blue Ultra Example</string>
+	<string>Flutter Blue Ultra Accessory Setup Example</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>flutter_blue_ultra_example</string>
+	<string>flutter_blue_ultra_accessory_setup_example</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -26,10 +26,22 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAccessorySetupBluetoothServices</key>
+	<array>
+		<string>58C39754-835C-4AAD-9496-5502A4250229</string>
+	</array>
+	<key>NSAccessorySetupSupports</key>
+	<array>
+		<string>Bluetooth</string>
+	</array>
+	<key>NSAccessorySetupKitSupports</key>
+	<array>
+		<string>Bluetooth</string>
+	</array>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>This app scans for nearby Bluetooth devices and connects to them.</string>
+	<string>This app pairs and connects to Bluetooth accessories through AccessorySetupKit.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>This app reads and writes Bluetooth characteristics on connected devices.</string>
+	<string>This app connects to Bluetooth accessories after AccessorySetupKit authorization.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -44,7 +56,7 @@
 					<key>UISceneConfigurationName</key>
 					<string>flutter</string>
 					<key>UISceneDelegateClassName</key>
-					<string>FlutterSceneDelegate</string>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
 				</dict>

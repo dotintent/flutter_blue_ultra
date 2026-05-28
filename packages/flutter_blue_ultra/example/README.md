@@ -21,9 +21,7 @@ macOS uses the Bluetooth entitlement already present in
 
 ## App flow
 
-1. **Startup** — On iOS, if the installed app declares AccessorySetupKit
-   Bluetooth keys in `Info.plist`, the example opens the setup picker screen.
-   Otherwise it uses the regular permission → scan flow.
+1. **Startup** — Checks whether BLE permissions are already granted.
 2. **Permission** — Android requests `bluetoothScan`, `bluetoothConnect`, and
    `locationWhenInUse`; iOS requests `bluetooth`; macOS uses its entitlement.
 3. **Scan** — auto-starts on `BluetoothAdapterState.on`; runs for 12 s and
@@ -35,28 +33,11 @@ macOS uses the Bluetooth entitlement already present in
 
 ## Accessory Setup Testing
 
-The **Accessory Setup** screen is for testing iOS AccessorySetupKit with a
-real BLE accessory. Before running that flow, replace the example service UUID
-with the UUID advertised by your test accessory.
+AccessorySetupKit lives in its own app at
+[`../../flutter_blue_ultra_accessory_setup/example`](../../flutter_blue_ultra_accessory_setup/example).
 
-AccessorySetupKit changes iOS Bluetooth authorization behavior: when the
-installed app declares the AccessorySetupKit Bluetooth keys, iOS uses
-per-accessory authorization and does not show the broad Bluetooth permission
-dialog. Remove those keys to test the regular permission-handler scan flow.
-
-Update the UUID in both places:
-
-- `example/lib/screens/accessory_setup_screen.dart`, in the
-  `showPickerForDevice` call.
-- `example/ios/Runner/Info.plist`, under
-  `NSAccessorySetupBluetoothServices`.
-
-Those values must match. The Dart value configures the runtime picker filter,
-while the `Info.plist` value is Apple's install-time allowlist for the app.
-After changing `Info.plist`, rebuild and reinstall the iOS app before testing.
-
-For a quick test, nRF Connect on Android can advertise a connectable BLE
-peripheral with your chosen service UUID.
+Keeping it separate avoids mixing iOS per-accessory authorization with this
+example's normal permission-handler scan flow.
 
 ## Architecture
 

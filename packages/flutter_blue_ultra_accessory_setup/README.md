@@ -9,7 +9,7 @@ At this stage the library supports:
 - [x] WiFi
 - [x] Migration
 
-‼️ One important remark: by Apple's design, the library works only with **iOS 18 or above**. ‼️
+‼️ **iOS only.** This library wraps Apple's AccessorySetupKit, which is an iOS-exclusive framework with no Android equivalent. It requires **iOS 18 or above**. ‼️
 
 ## 🚇 How to use
 
@@ -18,6 +18,10 @@ Install the library using the command line:
 ```sh
 flutter pub add flutter_blue_ultra_accessory_setup
 ```
+
+There is a standalone app in [`example`](example) that keeps
+AccessorySetupKit isolated from the regular `flutter_blue_ultra` scanner
+example. Use that app when testing the iOS picker flow.
 
 ### ⚙️ Setup
 
@@ -28,7 +32,7 @@ flutter pub add flutter_blue_ultra_accessory_setup
   - ALWAYS: (Bluetooth or WiFi, or both)
 
   ```xml
-  <key>NSAccessorySetupKitSupports</key>
+  <key>NSAccessorySetupSupports</key>
   <array>
     <string>Bluetooth</string>
     <string>WiFi</string>
@@ -46,19 +50,14 @@ flutter pub add flutter_blue_ultra_accessory_setup
   ```
 
   For testing, replace the UUID above with the BLE service UUID advertised by
-  your accessory. The same UUID must also be passed to `showPickerForDevice`
-  as the `serviceID`. `Info.plist` is read from the installed iOS app, so
-  rebuild and reinstall the app after changing this value.
+  your accessory. The same UUID must also be passed to `showPickerForDevice` as
+  the `serviceID`. `Info.plist` is read from the installed iOS app, so rebuild
+  and reinstall the app after changing this value.
 
-  - When you use the `ASDiscoveryDescriptor` with `bluetoothNameSubstring`  
-    ⚠️ **Does not work in the iOS 18 Developer beta 2.** ⚠️
-
-  ```xml
-  <key>NSAccessorySetupBluetoothNames</key>
-  <array>
-    <string>DeviceName</string>
-  </array>
-  ```
+  When checking with nRF Connect, inspect the advertising data. Seeing the
+  service in the post-connection GATT service list does not necessarily mean the
+  service UUID is advertised, and the AccessorySetupKit picker can only match
+  the identifiers in the discovery descriptor and app allowlist.
 
   - There is an option with manufacturer ID that is not covered here.
 

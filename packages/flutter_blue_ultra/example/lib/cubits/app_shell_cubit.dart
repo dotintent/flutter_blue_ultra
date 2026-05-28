@@ -1,11 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'permission_cubit.dart'
-    show blePermissionsForCurrentPlatform, isGrantedOrLimited;
+import 'permission_cubit.dart' show blePermissionsForCurrentPlatform, isGrantedOrLimited;
 
 /// Which top-level shell the user is in. Sealed so the `switch` in
 /// `_AppShell.build` is exhaustive and any future shell shows up as a compile
@@ -29,23 +26,15 @@ final class ScanShellState extends AppShellState {
   const ScanShellState();
 }
 
-final class AccessorySetupShellState extends AppShellState {
-  const AccessorySetupShellState();
-}
-
 class AppShellCubit extends Cubit<AppShellState> {
   AppShellCubit() : super(const LoadingShellState());
 
-  static const _configChannel =
-      MethodChannel('flutter_blue_ultra_example/config');
-
   Future<void> initialize() async {
-    if (await _shouldUseAccessorySetupKit()) {
-      if (!isClosed) emit(const AccessorySetupShellState());
-      return;
+    try {
+      await checkAlreadyGranted();
+    } catch (_) {
+      if (!isClosed) emit(const PermissionShellState());
     }
-
-    await checkAlreadyGranted();
   }
 
   Future<void> checkAlreadyGranted() async {
@@ -70,21 +59,5 @@ class AppShellCubit extends Cubit<AppShellState> {
   void goToScan() {
     if (isClosed) return;
     emit(const ScanShellState());
-  }
-
-  Future<bool> _shouldUseAccessorySetupKit() async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
-      return false;
-    }
-    try {
-      return await _configChannel.invokeMethod<bool>(
-            'accessorySetupKitConfigured',
-          ) ??
-          false;
-    } on PlatformException {
-      return false;
-    } on MissingPluginException {
-      return false;
-    }
   }
 }
