@@ -78,6 +78,7 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
   StreamSubscription<ASAccessoryEvent>? _eventsSubscription;
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
   final StreamController<String> _messages = StreamController<String>.broadcast();
+  String? _connectingId;
 
   Stream<String> get messages => _messages.stream;
 
@@ -201,6 +202,8 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
   }
 
   Future<void> _connectDevice(String id) async {
+    if (_connectingId != null) return;
+    _connectingId = id;
     try {
       final device = BluetoothDevice.fromId(id);
       await device.connect();
@@ -212,6 +215,8 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
       _log('connect error: $e');
       if (isClosed) return;
       _messages.add('Connection failed: $e');
+    } finally {
+      _connectingId = null;
     }
   }
 
