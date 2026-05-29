@@ -9,10 +9,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   flutter_blue_ultra:
     path: ../
+
   permission_handler: 12.0.1
-  device_info_plus: 12.3.0
+  device_info_plus: 13.1.0
   flutter_bloc: 9.1.1
   equatable: 2.0.8
   google_fonts: 8.1.0
@@ -34,4 +36,3 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
-  generate: true

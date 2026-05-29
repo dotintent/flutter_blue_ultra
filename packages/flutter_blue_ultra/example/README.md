@@ -21,26 +21,16 @@ macOS uses the Bluetooth entitlement already present in
 
 ## App flow
 
-1. **Startup** — Checks whether BLE permissions are already granted.
-2. **Permission** — Android requests `bluetoothScan`, `bluetoothConnect`, and
+1. **Permission** — Android requests `bluetoothScan`, `bluetoothConnect`, and
    `locationWhenInUse`; iOS requests `bluetooth`; macOS uses its entitlement.
-3. **Scan** — auto-starts on `BluetoothAdapterState.on`; runs for 12 s and
+2. **Scan** — auto-starts on `BluetoothAdapterState.on`; runs for 12 s and
    dedupes results by `remoteId`.
-4. **Device** — connect, discover services, request MTU, poll RSSI every 2 s.
-5. **Characteristic** — Read / Write / Notify tabs. Notify keeps a ring
+3. **Device** — connect, discover services, request MTU, poll RSSI every 2 s.
+4. **Characteristic** — Read / Write / Notify tabs. Notify keeps a ring
    buffer of the last 40 packets with multiple format renderers (hex, UTF-8,
    dec, bin).
 
-## Accessory Setup Testing
-
-AccessorySetupKit lives in its own app at
-[`../../flutter_blue_ultra_accessory_setup/example`](../../flutter_blue_ultra_accessory_setup/example).
-
-Keeping it separate avoids mixing iOS per-accessory authorization with this
-example's normal permission-handler scan flow.
-
 ## Architecture
-
 
 State management is [`flutter_bloc`](https://pub.dev/packages/flutter_bloc)
 `9.1.1` — `Cubit` only, no events. Each screen is a thin view; everything

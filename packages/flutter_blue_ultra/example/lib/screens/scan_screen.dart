@@ -252,7 +252,6 @@ class _ScanViewState extends State<_ScanView> {
   }
 }
 
-
 class _DeviceRow extends StatelessWidget {
   const _DeviceRow({required this.result, required this.onTap});
 

@@ -18,7 +18,7 @@ class FBUApp extends StatelessWidget {
       darkTheme: buildDarkTheme(),
       themeMode: ThemeMode.dark,
       home: BlocProvider(
-        create: (_) => AppShellCubit()..initialize(),
+        create: (_) => AppShellCubit()..checkAlreadyGranted(),
         child: const _AppShell(),
       ),
     );
@@ -35,7 +35,6 @@ class _AppShell extends StatelessWidget {
         // Exhaustive switch on the sealed AppShellState — adding a new
         // shell forces a compile error here until it's handled.
         return switch (state) {
-          LoadingShellState() => const Scaffold(),
           PermissionShellState() => PermissionScreen(
               onGranted: () => context.read<AppShellCubit>().goToScan(),
             ),
