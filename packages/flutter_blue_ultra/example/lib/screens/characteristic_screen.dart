@@ -101,7 +101,8 @@ class _CharacteristicViewState extends State<_CharacteristicView>
   String get _shortUuid {
     final uuid = widget.characteristic.characteristicUuid.str;
     final short = shortUuid(uuid);
-    return short != null ? '0x$short' : uuid.substring(0, 8);
+    if (short != null) return '0x$short';
+    return uuid.length > 8 ? uuid.substring(0, 8) : uuid;
   }
 
   String get _charName =>

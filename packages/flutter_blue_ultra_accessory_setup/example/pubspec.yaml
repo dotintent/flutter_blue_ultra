@@ -1,0 +1,45 @@
+name: flutter_blue_ultra_accessory_setup_example
+description: Demonstrates how to use flutter_blue_ultra_accessory_setup.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.1 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_blue_ultra:
+    path: ../../flutter_blue_ultra
+  flutter_blue_ultra_accessory_setup:
+    path: ../
+  equatable: ^2.0.8
+  flutter_bloc: ^9.1.1
+  flutter_gen: ^5.14.1
+  google_fonts: ^8.1.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  build_runner: ^2.15.0
+  flutter_gen_runner: ^5.14.1
+  objective_c: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+dependency_overrides:
+  flutter_blue_ultra_android:
+    path: ../../flutter_blue_ultra_android
+  flutter_blue_ultra_darwin:
+    path: ../../flutter_blue_ultra_darwin
+  flutter_blue_ultra_linux:
+    path: ../../flutter_blue_ultra_linux
+  flutter_blue_ultra_platform_interface:
+    path: ../../flutter_blue_ultra_platform_interface
+  flutter_blue_ultra_web:
+    path: ../../flutter_blue_ultra_web
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
