@@ -20,6 +20,10 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
   ffi: ^2.1.3
+  # Upper bound is tied to ffigen output: objective_c 4.1.0 introduced the
+  # `DOBJC_` symbol prefix, which the bindings in lib/gen do not use.
+  # Widening this range requires regenerating bindings against the newer
+  # objective_c API.
   objective_c: '>=4.0.0 <4.1.0'
 
 dev_dependencies:
