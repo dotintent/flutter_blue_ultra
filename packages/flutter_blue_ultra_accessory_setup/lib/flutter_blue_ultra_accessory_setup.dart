@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 import 'package:flutter_blue_ultra_accessory_setup/src/helpers.dart';
-import 'package:flutter_blue_ultra_accessory_setup/src/testing.dart';
+import 'package:flutter_blue_ultra_accessory_setup/src/session_adapter.dart';
 import 'package:objective_c/objective_c.dart';
 
 /// The main class of the library that provides service functionality
@@ -30,10 +30,11 @@ class FlutterAccessorySetup {
   late NativeCodeError Function(NSError) _convertToNativeCodeError;
 
   FlutterAccessorySetup({
-    FFIAccessorySessionAdapter? sessionAdapter,
+    @visibleForTesting FFIAccessorySessionAdapter? sessionAdapter,
+    @visibleForTesting
     DelegateAdapterFactory delegateAdapterFactory = DelegateAdapter.new,
-    NSArray Function(List<Object>)? listConverter,
-    NativeCodeError Function(NSError)? nsErrorConverter,
+    @visibleForTesting NSArray Function(List<Object>)? listConverter,
+    @visibleForTesting NativeCodeError Function(NSError)? nsErrorConverter,
   }) {
     _convertToNSArray = listConverter ?? (list) => list.toNSArray();
     _convertToNativeCodeError = nsErrorConverter ?? (nsError) => NativeCodeError(nsError);

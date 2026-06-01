@@ -61,31 +61,43 @@ example. Use that app when testing the iOS picker flow.
 
   - There is an option with manufacturer ID that is not covered here.
 
-- Use the `FlutterAccessorySetup` class. The snippet below shows the minimum setup flow.
+- Use the `FlutterAccessorySetup` class. The snippet below shows the minimum
+  setup flow inside a `StatefulWidget`.
 
 ```dart
-final _accessorySetup = FlutterAccessorySetup();
+class _MyScreenState extends State<MyScreen> {
+  final _accessorySetup = FlutterAccessorySetup();
+  StreamSubscription<ASAccessoryEvent>? _eventSubscription;
 
-void activate() {
-  _accessorySetup.eventStream.listen((event) {
-        debugPrint('Got event: ${event.eventType}');
-        // handle session events here
-  }));
-  await _accessorySetup.activate();
-  try {
-    _accessorySetup.showPickerForDevice(
-      'My Ble',
-      Assets.images.ble.path,
-      '149E9E42-33AD-41AD-8665-70D153533EC1',
-    );
-  } on PlatformException {
-    debugPrint('Failed to show the picker');
+  @override
+  void initState() {
+    super.initState();
+    _eventSubscription = _accessorySetup.eventStream.listen((event) {
+      debugPrint('Got event: ${event.eventType}');
+      // handle session events here
+    });
+    _accessorySetup.activate();
+    _showPicker();
   }
-}
 
-void deactivate() {
-  accessorySetup.dispose();
-  super.deactivate();
+  Future<void> _showPicker() async {
+    try {
+      await _accessorySetup.showPickerForDevice(
+        'My BLE',
+        Assets.images.ble.path,
+        '149E9E42-33AD-41AD-8665-70D153533EC1',
+      );
+    } on PlatformException {
+      debugPrint('Failed to show the picker');
+    }
+  }
+
+  @override
+  void dispose() {
+    _eventSubscription?.cancel();
+    _accessorySetup.dispose();
+    super.dispose();
+  }
 }
 ```
 

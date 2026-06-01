@@ -1,6 +1,6 @@
 import 'package:objective_c/objective_c.dart' as objc;
 
-import 'package:flutter_blue_ultra_accessory_setup/src/testing.dart';
+import 'package:flutter_blue_ultra_accessory_setup/src/session_adapter.dart';
 
 import 'objc_ns_array_mock.dart';
 

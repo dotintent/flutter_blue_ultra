@@ -1,6 +1,6 @@
 import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
 import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
-import 'package:flutter_blue_ultra_accessory_setup/src/testing.dart';
+import 'package:flutter_blue_ultra_accessory_setup/src/session_adapter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:objective_c/objective_c.dart' as objc;
 
