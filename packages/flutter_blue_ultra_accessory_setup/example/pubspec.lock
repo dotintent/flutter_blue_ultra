@@ -522,7 +522,7 @@ packages:
     source: hosted
     version: "1.0.0"
   objective_c:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: objective_c
       sha256: a1fcb5df4501bb40651880199b868465e24d8b9677b3636f03a867edf9a8f420

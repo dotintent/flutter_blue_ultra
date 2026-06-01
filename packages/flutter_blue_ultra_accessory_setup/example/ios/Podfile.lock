@@ -1,6 +1,6 @@
 PODS:
   - Flutter (1.0.0)
-  - flutter_blue_ultra_accessory_setup (0.0.2):
+  - flutter_blue_ultra_accessory_setup (0.0.4):
     - Flutter
   - flutter_blue_ultra_darwin (0.0.2):
     - Flutter
@@ -32,7 +32,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_blue_ultra_accessory_setup: e195dd5f49c13524a6489004d99b2608f4f1c5d1
+  flutter_blue_ultra_accessory_setup: 9ae00206b72a196f154cf3ad1fdb7f80d9986715
   flutter_blue_ultra_darwin: 7c6c006ac4a642effb6d1fe8a11f1bea82261b8a
   objective_c: 89e720c30d716b036faf9c9684022048eee1eee2
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
