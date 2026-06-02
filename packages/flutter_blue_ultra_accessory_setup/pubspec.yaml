@@ -7,6 +7,7 @@ homepage: https://github.com/dotintent/flutter_blue_ultra/tree/main/packages/flu
 repository: https://github.com/dotintent/flutter_blue_ultra
 issue_tracker: https://github.com/dotintent/flutter_blue_ultra/issues
 topics:
+  - ios
   - bluetooth
   - ble
   - accessorysetupkit

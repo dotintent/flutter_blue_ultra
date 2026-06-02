@@ -21,7 +21,7 @@ void main() {
   late FlutterAccessorySetup sut;
   late DelegateAdapterMock delegateAdapter;
 
-  List<Object>? listToConvert;
+  List<Object?>? listToConvert;
   late objc.NSArray convertedList;
 
   objc.NSError? nsErrorToConvert;

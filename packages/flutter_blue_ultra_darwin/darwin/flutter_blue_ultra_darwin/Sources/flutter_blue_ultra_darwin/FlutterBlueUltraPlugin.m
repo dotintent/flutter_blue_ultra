@@ -187,32 +187,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
             return;
         }
 
-        if ([@"tearDown" isEqualToString:call.method])
-        {
-            if (self.centralManager == nil) {
-                result(@YES);
-                return;
-            }
-
-            if ([self isAdapterOn]) {
-                [self.centralManager stopScan];
-            }
-
-            [self disconnectAllDevices:@"tearDown"];
-
-            [self.checkForMtuChangesTimer invalidate];
-            self.checkForMtuChangesTimer = nil;
-
-            self.centralManager.delegate = nil;
-            self.centralManager = nil;
-
-            [self.knownPeripherals removeAllObjects];
-
-            Log(LDEBUG, @"tearDown: CBCentralManager released");
-            result(@YES);
-            return;
-        }
-        else if ([@"connectedCount" isEqualToString:call.method])
+        if ([@"connectedCount" isEqualToString:call.method])
         {
             Log(LDEBUG, @"connectedPeripherals: %lu", self.connectedPeripherals.count);
             if (self.connectedPeripherals.count == 0) {

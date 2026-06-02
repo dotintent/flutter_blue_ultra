@@ -2,10 +2,9 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:objective_c/objective_c.dart';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
+import 'package:objective_c/objective_c.dart';
 
 NSObject? _convertKnownType(Object? o) {
   return switch (o) {
@@ -26,7 +25,7 @@ NSObject _convertKnownTypeWithNSNull(Object? o) {
   return _convertKnownType(o) ?? NSNull.null1();
 }
 
-extension ListExtension on List {
+extension ListExtension on List<Object?> {
   NSArray toNSArray() {
     final NSMutableArray array = NSMutableArray.arrayWithCapacity_(length);
     for (final Object? o in this) {
@@ -36,13 +35,12 @@ extension ListExtension on List {
   }
 }
 
-extension MapExtension on Map {
+extension MapExtension on Map<Object?, Object?> {
   NSDictionary toNSDictionary() {
-    final NSMutableDictionary dict =
-        NSMutableDictionary.dictionaryWithCapacity_(length);
+    final NSMutableDictionary dict = NSMutableDictionary.dictionaryWithCapacity_(length);
     for (final MapEntry<Object?, Object?> entry in entries) {
-      dict.setObject_forKey_(_convertKnownTypeWithNSNull(entry.value),
-          _convertKnownTypeWithNSNull(entry.key));
+      dict.setObject_forKey_(
+          _convertKnownTypeWithNSNull(entry.value), _convertKnownTypeWithNSNull(entry.key));
     }
     return dict;
   }
@@ -50,7 +48,7 @@ extension MapExtension on Map {
 
 extension NSArrayExtension on NSArray {
   List<T> toList<T>() {
-    final List<dynamic> results = List.filled(count, null);
+    final List<Object?> results = List<Object?>.filled(count, null);
     for (int i = 0; i < count; i++) {
       final ObjCObjectBase object = objectAtIndex_(i);
       results[i] = object.downcast();
@@ -59,9 +57,7 @@ extension NSArrayExtension on NSArray {
   }
 
   List<String> toDartStringList() {
-    return toList<NSString>()
-        .map((nsString) => nsString.toDartString())
-        .toList();
+    return toList<NSString>().map((nsString) => nsString.toDartString()).toList();
   }
 }
 
@@ -79,7 +75,7 @@ extension DartStringUUIDExtension on NSUUID {
 }
 
 extension ObjCObjectBaseExtension on ObjCObjectBase {
-  dynamic downcast() {
+  Object downcast() {
     if (ASAccessory.isInstance(this)) {
       return ASAccessory.castFrom(this);
     } else if (NSString.isInstance(this)) {

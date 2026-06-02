@@ -26,14 +26,13 @@ class FlutterAccessorySetup {
   Completer<void>? _finishAuthorizationForAccessoryCompleter;
   Completer<void>? _failAuthorizationForAccessoryCompleter;
 
-  late NSArray Function(List<Object>) _convertToNSArray;
+  late NSArray Function(List<Object?>) _convertToNSArray;
   late NativeCodeError Function(NSError) _convertToNativeCodeError;
 
   FlutterAccessorySetup({
     @visibleForTesting FFIAccessorySessionAdapter? sessionAdapter,
-    @visibleForTesting
-    DelegateAdapterFactory delegateAdapterFactory = DelegateAdapter.new,
-    @visibleForTesting NSArray Function(List<Object>)? listConverter,
+    @visibleForTesting DelegateAdapterFactory delegateAdapterFactory = DelegateAdapter.new,
+    @visibleForTesting NSArray Function(List<Object?>)? listConverter,
     @visibleForTesting NativeCodeError Function(NSError)? nsErrorConverter,
   }) {
     _convertToNSArray = listConverter ?? (list) => list.toNSArray();
@@ -136,6 +135,9 @@ class FlutterAccessorySetup {
   }
 
   /// Renames provided accessory using the `ASAccessoryRenameOptions`
+  ///
+  /// Only one rename operation can be pending at a time. A concurrent call
+  /// throws a [StateError].
   Future<void> renameAccessory(ASAccessory accessory, ASAccessoryRenameOptions options) async {
     _throwIfDisposed();
     if (_renameAccessoryCompleter != null && !_renameAccessoryCompleter!.isCompleted) {
@@ -148,6 +150,9 @@ class FlutterAccessorySetup {
   }
 
   /// Removes provided accessory (disconnects from the app)
+  ///
+  /// Only one remove operation can be pending at a time. A concurrent call
+  /// throws a [StateError].
   Future<void> removeAccessory(ASAccessory accessory) async {
     _throwIfDisposed();
     if (_removeAccessoryCompleter != null && !_removeAccessoryCompleter!.isCompleted) {
@@ -160,6 +165,9 @@ class FlutterAccessorySetup {
   }
 
   /// Finishes the Authorization for accessory using `ASAccessorySettings`
+  ///
+  /// Only one finish-authorization operation can be pending at a time. A
+  /// concurrent call throws a [StateError].
   Future<void> finishAuthorizationForAccessory(
       ASAccessory accessory, ASAccessorySettings settings) async {
     _throwIfDisposed();
@@ -174,6 +182,9 @@ class FlutterAccessorySetup {
   }
 
   /// Fails the Authorization for the accessory
+  ///
+  /// Only one fail-authorization operation can be pending at a time. A
+  /// concurrent call throws a [StateError].
   Future<void> failAuthorizationForAccessory(ASAccessory accessory) async {
     _throwIfDisposed();
     if (_failAuthorizationForAccessoryCompleter != null &&
