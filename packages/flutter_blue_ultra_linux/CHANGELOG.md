@@ -1,3 +1,7 @@
+## 2.1.0
+* First release as `flutter_blue_ultra_linux` (forked from `flutter_blue_plus_linux` 3.0.2).
+* Aligned version with the `flutter_blue_ultra` facade (2.1.0). Prior history below reflects the upstream package.
+
 ## 3.0.2
 * Return unknown state if adaptors list empty (#1190)
 * Return empty name if adaptors list empty (#1191)
