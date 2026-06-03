@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,6 +15,23 @@ class AccessorySetupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // AccessorySetupKit is iOS-only. The plugin uses Objective-C FFI bindings
+    // and will crash on any other platform when constructed.
+    final isIOS = !kIsWeb && Platform.isIOS;
+    if (!isIOS) {
+      return const Scaffold(
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'AccessorySetupKit is only available on iOS.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
     return BlocProvider(
       create: (_) => AccessorySetupCubit()..initialize(),
       child: const _AccessorySetupView(),
