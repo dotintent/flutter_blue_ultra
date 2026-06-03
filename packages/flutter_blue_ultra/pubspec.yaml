@@ -19,7 +19,7 @@ dependencies:
     sdk: flutter
   # Use caret constraints to allow compatible versions
   # This allows users to use the package with other packages that depend on these
-  flutter_blue_ultra_platform_interface: 2.1.0
+  flutter_blue_ultra_platform_interface: ^2.1.0
   flutter_blue_ultra_android: ^2.1.0
   flutter_blue_ultra_darwin: ^2.1.0
   flutter_blue_ultra_linux: ^2.1.0
