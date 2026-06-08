@@ -14,15 +14,25 @@ Flutter Blue Ultra continues support and maintenance for the legacy 1.x API of `
 - **Tracks native evolution**: maintained to follow Android/iOS/macOS/Linux/Web Bluetooth API changes.
 
 ### ⚡ Quick start
-1) Add the package in your app (temporary path or git until pub release):
-```yaml
-dependencies:
-  flutter_blue_ultra:
-    git:
-      url: https://github.com/dotintent/flutter_blue_ultra.git
+
+1) Add the package to your app:
+
+```sh
+flutter pub add flutter_blue_ultra
 ```
 
-2) Minimal usage example:
+or add it manually to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  flutter_blue_ultra: ^2.1.0
+```
+
+then run `flutter pub get`.
+
+2) Configure platform permissions. The required Android manifest entries, iOS `Info.plist` keys, macOS entitlements, and Android `minSdkVersion` are documented in [docs/getting_started.md](../../docs/getting_started.md). Apps will not be able to scan or connect without these.
+
+3) Minimal usage example:
 ```dart
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
 
