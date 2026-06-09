@@ -1,6 +1,6 @@
 # Contributing to flutter_blue_ultra
 
-Thanks for your interest in contributing. This document covers the practical "how" — repo layout, local development, testing, and release flow. For "what to work on," see [BACKLOG.md](BACKLOG.md) and the open [issues](https://github.com/dotintent/flutter_blue_ultra/issues).
+Thanks for your interest in contributing. This document covers the practical "how" — repo layout, local development, testing, and release flow. For "what to work on," see the open [issues](https://github.com/dotintent/flutter_blue_ultra/issues).
 
 ---
 
