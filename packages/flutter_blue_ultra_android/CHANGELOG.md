@@ -1,3 +1,7 @@
+## 2.1.0
+* First release as `flutter_blue_ultra_android` (forked from `flutter_blue_plus_android` 4.0.5).
+* Aligned version with the `flutter_blue_ultra` facade (2.1.0). Prior history below reflects the upstream package.
+
 ## 4.0.5
 * Fixes to check for location services when plugin is called from a service
 

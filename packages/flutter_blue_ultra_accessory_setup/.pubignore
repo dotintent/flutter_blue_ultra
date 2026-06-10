@@ -1,0 +1,12 @@
+# Local build and tool state.
+.dart_tool/
+build/
+
+# Development-only material.
+.github/
+DEV_README.md
+TODO.md
+ffigen.yaml
+
+# Local dependency resolution.
+pubspec.lock

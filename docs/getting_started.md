@@ -2,16 +2,24 @@
 
 ### Add the package
 
-Until a pub.dev release, add via Git:
+Install from pub.dev:
+
+```sh
+flutter pub add flutter_blue_ultra
+```
+
+or add it manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_blue_ultra:
-    git:
-      url: https://github.com/intent-dev/flutter_blue_ultra.git
+  flutter_blue_ultra: ^2.1.0
 ```
 
-The API is designed to be familiar to users of `flutter_blue_plus` 1.x, with a compatibility layer for legacy code.
+then run `flutter pub get`.
+
+`flutter_blue_ultra` is a federated plugin; `flutter pub add` will automatically pull in the platform implementations (`flutter_blue_ultra_android`, `flutter_blue_ultra_darwin`, `flutter_blue_ultra_linux`, `flutter_blue_ultra_web`) and the shared platform interface. You do not need to depend on those packages directly.
+
+The API is designed to be familiar to users of `flutter_blue_plus` 1.x, with a compatibility layer for legacy code — see the [Migration](../packages/flutter_blue_ultra/README.md#-compatibility-and-migration) section in the README.
 
 ### Android minSdkVersion
 

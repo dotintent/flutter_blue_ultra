@@ -17,6 +17,9 @@
      <!-- legacy for Android 9 or lower -->
      <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28" />
 
+     <!-- Needed by google_fonts to fetch fonts at runtime -->
+     <uses-permission android:name="android.permission.INTERNET" />
+
 
      <application
          android:label="flutter_blue_ultra_example"

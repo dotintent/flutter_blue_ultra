@@ -1,0 +1,29 @@
+# CODEOWNERS for flutter_blue_ultra
+#
+# Lines listed later take precedence. GitHub uses this file to auto-request
+# reviews when PRs touch matching paths. Owners must have write access to
+# the repository.
+#
+# Syntax: <path-pattern>  <owner1> <owner2> ...
+# Docs:   https://docs.github.com/en/repositories/managing-your-repositories-settings-and-security/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo.
+*                                                       @dotintent/flutter-devs
+
+# Federated plugin packages — each platform has dedicated owners where it makes sense.
+/packages/flutter_blue_ultra/                           @dotintent/flutter-devs
+/packages/flutter_blue_ultra_platform_interface/        @dotintent/flutter-devs
+/packages/flutter_blue_ultra_android/                   @dotintent/flutter-devs
+/packages/flutter_blue_ultra_darwin/                    @dotintent/flutter-devs
+/packages/flutter_blue_ultra_linux/                     @dotintent/flutter-devs
+/packages/flutter_blue_ultra_web/                       @dotintent/flutter-devs
+/packages/flutter_blue_ultra_accessory_setup/           @dotintent/flutter-devs
+
+# Release-critical files — any change here should be reviewed by a release lead.
+/packages/**/pubspec.yaml                               @dotintent/flutter-devs
+/packages/**/CHANGELOG.md                               @dotintent/flutter-devs
+/LICENSE                                                @dotintent/flutter-devs
+/packages/**/LICENSE                                    @dotintent/flutter-devs
+
+# CI and repository tooling.
+/.github/                                               @dotintent/flutter-devs

@@ -182,11 +182,12 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
             if (self.connectedPeripherals.count == 0) {
                 [self.knownPeripherals removeAllObjects];
             }
-            
+
             result(@(self.connectedPeripherals.count));
             return;
         }
-        else if ([@"connectedCount" isEqualToString:call.method])
+
+        if ([@"connectedCount" isEqualToString:call.method])
         {
             Log(LDEBUG, @"connectedPeripherals: %lu", self.connectedPeripherals.count);
             if (self.connectedPeripherals.count == 0) {
