@@ -1,6 +1,6 @@
 name: flutter_blue_ultra
 description: Flutter plugin for connecting and communicating with Bluetooth Low Energy devices.
-version: 2.1.0
+version: 2.2.0
 homepage: https://github.com/dotintent/flutter_blue_ultra
 repository: https://github.com/dotintent/flutter_blue_ultra
 issue_tracker: https://github.com/dotintent/flutter_blue_ultra/issues
