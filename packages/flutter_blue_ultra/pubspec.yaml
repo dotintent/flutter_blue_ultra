@@ -9,6 +9,10 @@ topics:
   - bluetooth
   - ble
   - bluetooth-low-energy
+  - gatt
+  - iot
+funding:
+  - https://withintent.com
 
 environment:
   sdk: ^3.0.0

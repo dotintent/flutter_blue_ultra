@@ -1,6 +1,8 @@
 ## 2.2.0
 * **[Feature]** Bundled `flutter_blue_ultra_accessory_setup` as a transitive dependency — users no longer need to add it separately
 * **[Feature]** Exposed AccessorySetupKit API via `import 'package:flutter_blue_ultra/flutter_blue_ultra_accessory_setup.dart';`
+* **[Improve]** Added `gatt` and `iot` topics and a `funding` URL to pubspec
+* **[Docs]** Rewrote README to follow pub.dev guidance: lead capability description, demo GIFs, platform support table, pub.dev/CI badges, absolute URLs for images and docs, "Maintained by Intent" section
 
 ## 2.1.0
 * **[Improve]** Bumped Flutter SDK to 3.41.7 (FVM)

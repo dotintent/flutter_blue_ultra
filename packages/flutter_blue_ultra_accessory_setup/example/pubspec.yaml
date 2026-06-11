@@ -27,6 +27,8 @@ dev_dependencies:
     sdk: flutter
 
 dependency_overrides:
+  flutter_blue_ultra_accessory_setup:
+    path: ../
   flutter_blue_ultra_android:
     path: ../../flutter_blue_ultra_android
   flutter_blue_ultra_darwin:
