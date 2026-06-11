@@ -1,93 +1,121 @@
- <p align="center">
-  <img alt="flutter_blue_ultra" src=".github/flutter_blue_ultra.png" width="360" />
+<p align="center">
+  <img alt="Flutter Blue Ultra logo" src="https://raw.githubusercontent.com/dotintent/flutter_blue_ultra/master/.github/flutter_blue_ultra.png" width="360" />
 </p>
 
-### 🩵 Flutter Blue Ultra
+# 🩵 Flutter Blue Ultra
 
-An open-source, free to use Bluetooth Low Energy (BLE) plugin for Flutter.
-Flutter Blue Ultra continues support and maintenance for the legacy 1.x API of `flutter_blue_plus`, while adding new capabilities and keeping pace with the evolution of the underlying native Bluetooth stacks.
+[![pub package](https://img.shields.io/pub/v/flutter_blue_ultra.svg)](https://pub.dev/packages/flutter_blue_ultra)
+[![pub points](https://img.shields.io/pub/points/flutter_blue_ultra)](https://pub.dev/packages/flutter_blue_ultra/score)
 
-### 🙂 Why Flutter Blue Ultra?
-- **Legacy 1.x compatibility**: keep using the well-known `flutter_blue_plus` 1.x API surface.
-- **Cross‑platform**: iOS, Android, macOS, Linux, and Web (central role).
-- **New functionalities**: actively expands features while preserving the familiar API.
-- **Tracks native evolution**: maintained to follow Android/iOS/macOS/Linux/Web Bluetooth API changes.
+[//]: # (TODO add once any likes exist) 
+[//]: # ([![likes]&#40;https://img.shields.io/pub/likes/flutter_blue_ultra&#41;]&#40;https://pub.dev/packages/flutter_blue_ultra/score&#41;)
+[![CI](https://github.com/dotintent/flutter_blue_ultra/actions/workflows/flutter_blue_ultra.yml/badge.svg)](https://github.com/dotintent/flutter_blue_ultra/actions/workflows/flutter_blue_ultra.yml)
+[![license](https://img.shields.io/github/license/dotintent/flutter_blue_ultra)](https://github.com/dotintent/flutter_blue_ultra/blob/master/LICENSE)
 
-### ⚡ Quick start
+An open-source Bluetooth Low Energy (BLE) plugin for Flutter. Scan for nearby devices, connect, discover GATT services and characteristics, read and write, subscribe to notifications, negotiate MTU, and manage bonding — all from a single cross-platform API on iOS, Android, macOS, Linux, and Web (central role).
 
-1) Add the package to your app:
+A community continuation of [`flutter_blue_plus`](https://github.com/chipweinberger/flutter_blue_plus) 1.x — same familiar API, with new capabilities and ongoing platform maintenance.
+
+<p align="center">
+  <img alt="Scanning nearby BLE devices" src="https://raw.githubusercontent.com/dotintent/flutter_blue_ultra/master/.github/scan-demo.gif" width="280" />
+  &nbsp;&nbsp;
+  <img alt="Connecting to a device and reading characteristics" src="https://raw.githubusercontent.com/dotintent/flutter_blue_ultra/master/.github/connect-demo.gif" width="280" />
+</p>
+
+## ✨ Features
+
+- **Legacy 1.x compatibility** — keep using the familiar `flutter_blue_plus` 1.x API surface.
+- **Cross-platform** — iOS, Android, macOS, Linux, and Web (central role).
+- **Actively maintained** — tracks Android/iOS/macOS/Linux/Web Bluetooth API changes.
+- **New functionality** — expanded features on top of the legacy API.
+- **Accessory Setup Kit** — optional [accessory pairing flow](https://github.com/dotintent/flutter_blue_ultra/tree/master/packages/flutter_blue_ultra_accessory_setup) integration on iOS.
+
+## ⚡ Quick start
+
+Add the package:
 
 ```sh
 flutter pub add flutter_blue_ultra
 ```
 
-or add it manually to your `pubspec.yaml`:
+Or add it manually to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_blue_ultra: ^2.1.0
+  flutter_blue_ultra: ^2.2.0
 ```
 
-then run `flutter pub get`.
+Configure platform permissions (Android manifest, iOS `Info.plist`, macOS entitlements, Android `minSdkVersion`) — see [Getting started](https://github.com/dotintent/flutter_blue_ultra/blob/master/docs/getting_started.md). Apps cannot scan or connect without these.
 
-2) Configure platform permissions. The required Android manifest entries, iOS `Info.plist` keys, macOS entitlements, and Android `minSdkVersion` are documented in [docs/getting_started.md](../../docs/getting_started.md). Apps will not be able to scan or connect without these.
+Minimal scan example:
 
-3) Minimal usage example:
 ```dart
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
 
 void main() async {
-  // Ensure bluetooth supported and on before scanning
+  // Ensure Bluetooth is supported and powered on before scanning.
   if (await FlutterBlueUltra.isSupported == false) return;
   await FlutterBlueUltra.adapterState
       .where((s) => s == BluetoothAdapterState.on)
       .first;
 
-  // Scan briefly
   await FlutterBlueUltra.startScan(timeout: const Duration(seconds: 5));
-  await FlutterBlueUltra.isScanning
-      .where((v) => v == false)
-      .first;
+  await FlutterBlueUltra.isScanning.where((v) => v == false).first;
 }
 ```
 
-### 📘 Documentation
-- Getting started: `docs/getting_started.md`
-- Usage & code samples: `docs/usage.md`
-- Background behavior: `docs/background.md`
-- API reference: `docs/api_reference.md`
-- Common problems: `docs/common_problems.md`
-- Versioning: `docs/versioning.md`
+A full runnable app lives in [`example/`](https://github.com/dotintent/flutter_blue_ultra/tree/master/packages/flutter_blue_ultra/example).
 
-### 🚇 Compatibility and Migration
+## 📘 Documentation
 
-#### Compatibility with flutter_blue_plus
-- **Important**: You cannot have both `flutter_blue_plus` and `flutter_blue_ultra` installed in your project as they are mutually exclusive.
-- We provide a compatibility layer that allows legacy code using `FlutterBluePlus` to continue working with `flutter_blue_ultra`.
-- However, new features and improvements will only be available through the `FlutterBlueUltra` API.
+- [Getting started](https://github.com/dotintent/flutter_blue_ultra/blob/master/docs/getting_started.md)
+- [Usage & code samples](https://github.com/dotintent/flutter_blue_ultra/blob/master/docs/usage.md)
+- [Background behavior](https://github.com/dotintent/flutter_blue_ultra/blob/master/docs/background.md)
+- [API reference](https://pub.dev/documentation/flutter_blue_ultra/latest/)
+- [Common problems](https://github.com/dotintent/flutter_blue_ultra/blob/master/docs/common_problems.md)
+- [Versioning](https://github.com/dotintent/flutter_blue_ultra/blob/master/docs/versioning.md)
 
-#### Migration Strategy
-1. **Immediate Migration (Recommended)**:
-   - Use find-and-replace to update all occurrences:
-     - `flutter_blue_plus` → `flutter_blue_ultra` (imports)
-     - `FlutterBluePlus` → `FlutterBlueUltra` (code)
-   - This ensures you get all new features and improvements.
+## 🚇 Compatibility and migration
 
-2. **Gradual Migration**:
-   - Keep using `FlutterBluePlus` references through our compatibility layer.
-   - Gradually migrate to `FlutterBlueUltra` as you work on each file.
-   - Note: New features will only be available through `FlutterBlueUltra`.
+### Compatibility with `flutter_blue_plus`
 
-3. **Legacy Support**:
-   - If you're on `flutter_blue_plus` 1.x, you can use this project as a drop-in replacement.
-   - For original migration notes from FlutterBlue to Flutter Blue Plus, see:
-     - `packages/flutter_blue_plus/MIGRATION.md`
+- **You cannot install both `flutter_blue_plus` and `flutter_blue_ultra`** in the same project — they are mutually exclusive.
+- A compatibility layer keeps legacy code that uses `FlutterBluePlus` working with `flutter_blue_ultra`.
+- New features land only on the `FlutterBlueUltra` API.
 
-### 🤖 Credits and origins
-- This project is a community continuation of `flutter_blue_plus` 1.x.
-- Original work: `flutter_blue_plus` (`https://github.com/chipweinberger/flutter_blue_plus`) and `flutter_blue` (`https://github.com/pauldemarco/flutter_blue`).
+### Migration strategy
 
-### 📜 License
-Licensed under the BSD 3‑Clause license. See `LICENSE`.
+1. **Immediate migration (recommended)** — find-and-replace:
+   - `flutter_blue_plus` → `flutter_blue_ultra` (imports)
+   - `FlutterBluePlus` → `FlutterBlueUltra` (code)
+2. **Gradual migration** — keep using `FlutterBluePlus` via the compatibility layer and migrate file by file.
+3. **Legacy support** — on `flutter_blue_plus` 1.x, use this project as a drop-in replacement. Original migration notes are in [`MIGRATION.md`](https://github.com/dotintent/flutter_blue_ultra/blob/master/packages/flutter_blue_ultra/MIGRATION.md).
 
+## 🙋 Where to go next
 
+- **Report a bug or request a feature**: [GitHub issues](https://github.com/dotintent/flutter_blue_ultra/issues)
+- **Contribute**: see [CONTRIBUTING.md](https://github.com/dotintent/flutter_blue_ultra/blob/master/CONTRIBUTING.md)
+- **Changelog**: [CHANGELOG.md](https://github.com/dotintent/flutter_blue_ultra/blob/master/packages/flutter_blue_ultra/CHANGELOG.md)
+- **Testing & mocking**: [MOCKING.md](https://github.com/dotintent/flutter_blue_ultra/blob/master/packages/flutter_blue_ultra/MOCKING.md)
+
+## 🤖 Credits and origins
+
+A community continuation of `flutter_blue_plus` 1.x. Original work:
+- [`flutter_blue_plus`](https://github.com/chipweinberger/flutter_blue_plus) by Chip Weinberger
+- [`flutter_blue`](https://github.com/pauldemarco/flutter_blue) by Paul DeMarco
+
+## 📜 License
+
+Licensed under the BSD 3-Clause license. See [LICENSE](https://github.com/dotintent/flutter_blue_ultra/blob/master/LICENSE).
+
+---
+
+## 🛠️ Maintained by Intent
+
+<p align="center">
+  <a href="https://withintent.com">
+    <img alt="Maintained by Intent" src="https://raw.githubusercontent.com/dotintent/flutter_blue_ultra/master/.github/maintained-by-intent.png" width="720" />
+  </a>
+</p>
+
+Flutter Blue Ultra is built and maintained by [Intent](https://withintent.com) — we design and engineer connected products, including Bluetooth and IoT experiences. Get in touch if you need help with your BLE project.
