@@ -86,6 +86,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_blue_ultra_accessory_setup:
+    dependency: "direct main"
+    description:
+      path: "../flutter_blue_ultra_accessory_setup"
+      relative: true
+    source: path
+    version: "0.0.4"
   flutter_blue_ultra_android:
     dependency: "direct main"
     description:
@@ -195,6 +202,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.17.0"
+  objective_c:
+    dependency: transitive
+    description:
+      name: objective_c
+      sha256: a1fcb5df4501bb40651880199b868465e24d8b9677b3636f03a867edf9a8f420
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   path:
     dependency: transitive
     description:
@@ -211,6 +226,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.2"
+  plugin_platform_interface:
+    dependency: transitive
+    description:
+      name: plugin_platform_interface
+      sha256: "4820fbfdb9478b1ebae27888254d445073732dae3d6ea81f0b7e06d5dedc3f02"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.8"
   rxdart:
     dependency: transitive
     description:
@@ -306,4 +329,4 @@ packages:
     version: "6.5.0"
 sdks:
   dart: ">=3.9.0-0 <4.0.0"
-  flutter: ">=3.18.0-18.0.pre.54"
+  flutter: ">=3.22.0"

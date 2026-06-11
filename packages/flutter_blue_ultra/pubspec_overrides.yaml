@@ -18,3 +18,5 @@ dependency_overrides:
     path: ../flutter_blue_ultra_linux
   flutter_blue_ultra_web:
     path: ../flutter_blue_ultra_web
+  flutter_blue_ultra_accessory_setup:
+    path: ../flutter_blue_ultra_accessory_setup

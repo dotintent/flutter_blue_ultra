@@ -133,6 +133,13 @@ packages:
       relative: true
     source: path
     version: "2.1.0"
+  flutter_blue_ultra_accessory_setup:
+    dependency: "direct overridden"
+    description:
+      path: "../../flutter_blue_ultra_accessory_setup"
+      relative: true
+    source: path
+    version: "0.0.4"
   flutter_blue_ultra_android:
     dependency: "direct overridden"
     description:
@@ -253,6 +260,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  objective_c:
+    dependency: transitive
+    description:
+      name: objective_c
+      sha256: a1fcb5df4501bb40651880199b868465e24d8b9677b3636f03a867edf9a8f420
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   package_config:
     dependency: transitive
     description:
