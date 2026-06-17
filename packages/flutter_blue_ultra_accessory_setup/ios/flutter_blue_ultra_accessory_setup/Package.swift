@@ -15,10 +15,15 @@ let package = Package(
             targets: ["flutter_blue_ultra_accessory_setup", "flutter_blue_ultra_accessory_setup_swift"]
         )
     ],
-    dependencies: [],
+    dependencies: [
+        .package(name: "FlutterFramework", path: "../FlutterFramework")
+    ],
     targets: [
         .target(
             name: "flutter_blue_ultra_accessory_setup",
+            dependencies: [
+                .product(name: "FlutterFramework", package: "FlutterFramework")
+            ],
             publicHeadersPath: "public_headers",
             linkerSettings: [
                 .linkedFramework("AccessorySetupKit"),
@@ -28,7 +33,9 @@ let package = Package(
         ),
         .target(
             name: "flutter_blue_ultra_accessory_setup_swift",
-            dependencies: [],
+            dependencies: [
+                .product(name: "FlutterFramework", package: "FlutterFramework")
+            ],
             resources: [],
             linkerSettings: [
                 .linkedFramework("AccessorySetupKit"),
