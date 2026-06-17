@@ -4,6 +4,8 @@
   directory so newer SwiftPM accepts the target layout.
 * Declare `FlutterFramework` as a SwiftPM dependency on both targets so the
   package builds with newer Flutter toolchains and directly from Xcode.
+* Require Flutter `>=3.44.0`, the release that introduced the
+  `FlutterFramework` SwiftPM package.
 
 ## 0.0.4
 
