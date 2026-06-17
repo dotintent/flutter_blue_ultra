@@ -1,6 +1,6 @@
 name: flutter_blue_ultra_darwin
 description: iOS and macOS implementation of the flutter_blue_ultra plugin.
-version: 2.1.0
+version: 2.1.1
 homepage: https://github.com/dotintent/flutter_blue_ultra
 repository: https://github.com/dotintent/flutter_blue_ultra
 issue_tracker: https://github.com/dotintent/flutter_blue_ultra/issues

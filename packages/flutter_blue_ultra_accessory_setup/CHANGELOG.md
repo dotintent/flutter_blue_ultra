@@ -1,3 +1,10 @@
+## 0.0.5
+
+* Move `AccessorySetupBindings.h` into the declared `public_headers/`
+  directory so newer SwiftPM accepts the target layout.
+* Declare `FlutterFramework` as a SwiftPM dependency on both targets so the
+  package builds with newer Flutter toolchains and directly from Xcode.
+
 ## 0.0.4
 
 * Prepare package metadata for pub.dev release.

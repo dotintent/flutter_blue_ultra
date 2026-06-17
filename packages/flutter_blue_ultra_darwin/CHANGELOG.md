@@ -1,3 +1,7 @@
+## 2.1.1
+* Declare `FlutterFramework` as a SwiftPM dependency so the package builds
+  with newer Flutter toolchains and directly from Xcode.
+
 ## 2.1.0
 * First release as `flutter_blue_ultra_darwin` (forked from `flutter_blue_plus_darwin` 8.0.0).
 * Aligned version with the `flutter_blue_ultra` facade (2.1.0). Prior history below reflects the upstream package.
