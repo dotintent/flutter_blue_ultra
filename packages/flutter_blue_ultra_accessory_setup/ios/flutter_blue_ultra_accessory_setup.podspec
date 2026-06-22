@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_blue_ultra_accessory_setup'
-  s.version          = '0.0.4'
+  s.version          = '0.1.0'
   s.summary          = 'A bridge for AccessorySetupKit for Flutter.'
   s.description      = <<-DESC
 A bridge for AccessorySetupKit for Flutter.
@@ -13,7 +13,7 @@ A bridge for AccessorySetupKit for Flutter.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Intent' => 'growth@withintent.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup_swift/*.swift', 'flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup/*.{h,m}'
+  s.source_files = 'flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup/*.swift'
   s.dependency 'Flutter'
   s.frameworks = ['CoreBluetooth', 'AccessorySetupKit']
   s.platform = :ios, '18.0'

@@ -2,50 +2,55 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
-import 'package:flutter_blue_ultra_accessory_setup/src/helpers.dart';
-import 'package:flutter_blue_ultra_accessory_setup/src/session_adapter.dart';
-import 'package:objective_c/objective_c.dart';
 
-/// The main class of the library that provides service functionality
-/// Use it to activate the session and find and configure devices
-class FlutterAccessorySetup {
-  Stream<ASAccessoryEvent> get eventStream => _eventsController.stream;
-  List<ASAccessory> get accessories => _sessionAdapter.accessories.toList();
-  late final FFIAccessorySessionAdapter _sessionAdapter;
-  final _eventsController = StreamController<ASAccessoryEvent>.broadcast();
+import 'package:flutter_blue_ultra_accessory_setup/src/messages.g.dart';
+
+export 'package:flutter_blue_ultra_accessory_setup/src/messages.g.dart'
+    show
+        Accessory,
+        AccessoryEvent,
+        AccessoryEventType,
+        AccessoryState,
+        AccessorySettings,
+        PickerDisplayItem,
+        RenameOptions;
+
+/// The main entry point of the library.
+///
+/// Use it to activate the session and to discover and configure accessories
+/// through Apple's AccessorySetupKit. The native session is a singleton; create
+/// a single instance and [dispose] it when you are done.
+class FlutterAccessorySetup implements AccessorySetupFlutterApi {
+  FlutterAccessorySetup({@visibleForTesting AccessorySetupApi? api})
+      : _api = api ?? AccessorySetupApi() {
+    if (_instance != null) {
+      throw StateError(
+        'A FlutterAccessorySetup instance already exists. The native session and '
+        'its event channel are app-wide singletons — dispose() the existing '
+        'instance before creating another.',
+      );
+    }
+    _instance = this;
+    AccessorySetupFlutterApi.setUp(this);
+  }
+
+  /// The single live instance. The native `ASAccessorySession` and the Pigeon
+  /// event channel are app-wide, so a second instance would silently steal the
+  /// first's events — guarded against in the constructor.
+  static FlutterAccessorySetup? _instance;
+
+  final AccessorySetupApi _api;
+  final _eventsController = StreamController<AccessoryEvent>.broadcast();
   bool _isDisposed = false;
-
-  DelegateAdapter? _delegateAdapter;
-
-  // TODO: bind completers to accessories to enable multiple calls
   bool _isShowPickerInProgress = false;
-  Completer<void>? _showPickerCompleter;
-  Completer<void>? _renameAccessoryCompleter;
-  Completer<void>? _removeAccessoryCompleter;
-  Completer<void>? _finishAuthorizationForAccessoryCompleter;
-  Completer<void>? _failAuthorizationForAccessoryCompleter;
 
-  late NSArray Function(List<Object?>) _convertToNSArray;
-  late NativeCodeError Function(NSError) _convertToNativeCodeError;
+  /// Stream of session events delivered from the native layer.
+  Stream<AccessoryEvent> get eventStream => _eventsController.stream;
 
-  FlutterAccessorySetup({
-    @visibleForTesting FFIAccessorySessionAdapter? sessionAdapter,
-    @visibleForTesting DelegateAdapterFactory delegateAdapterFactory = DelegateAdapter.new,
-    @visibleForTesting NSArray Function(List<Object?>)? listConverter,
-    @visibleForTesting NativeCodeError Function(NSError)? nsErrorConverter,
-  }) {
-    _convertToNSArray = listConverter ?? (list) => list.toNSArray();
-    _convertToNativeCodeError = nsErrorConverter ?? (nsError) => NativeCodeError(nsError);
-    _sessionAdapter =
-        sessionAdapter ?? FFIAccessorySessionAdapter(FFIAccessorySession.alloc().init());
-    _delegateAdapter = delegateAdapterFactory(
-        handleEvent: _handleEvent,
-        didShowPickerWithError: _didShowPicker,
-        didRenameAccessoryWithError: _didRenameAccessory,
-        didRemoveAccessoryWithError: _didRemoveAccessory,
-        didFinishAuthorizationForAccessoryWithError: _didFinishAuthorization,
-        didFailAuthorizationForAccessoryWithError: _didFailAuthorization);
+  /// The accessories currently authorized for this app.
+  Future<List<Accessory>> getAccessories() {
+    _throwIfDisposed();
+    return _guard(() => _api.getAccessories());
   }
 
   void dispose() {
@@ -53,217 +58,133 @@ class FlutterAccessorySetup {
       return;
     }
     _isDisposed = true;
-    // Invalidate can prevent native callbacks from arriving, so fail pending
-    // public futures before tearing down the session.
-    _completePendingOperationCompletersWithDisposeError();
-    _sessionAdapter.invalidate();
+    if (identical(_instance, this)) {
+      _instance = null;
+    }
+    AccessorySetupFlutterApi.setUp(null);
+    unawaited(_api.invalidate());
     _eventsController.close();
-    _delegateAdapter = null;
   }
 
   // region Interface
 
-  /// Activates the session.
-  /// You should activate the session before using it
-  void activate() {
+  /// Activates the session. You should activate before using it; the
+  /// [AccessoryEventType.activated] event signals that activation completed.
+  Future<void> activate() {
     _throwIfDisposed();
-    _sessionAdapter.setDelegateAdapter(_delegateAdapter!);
-    _sessionAdapter.activate();
+    return _guard(() => _api.activate());
   }
 
-  /// Shows device picker
-  Future<void> showPicker() async {
-    _throwIfDisposed();
-    _startShowPickerOperation();
-    final completer = Completer<void>();
-    _showPickerCompleter = completer;
-    try {
-      _sessionAdapter.showPicker();
-      return completer.future;
-    } catch (_) {
-      _clearShowPickerOperation();
-      rethrow;
-    }
+  /// Shows the device picker.
+  Future<void> showPicker() {
+    return _runPickerOperation(() => _api.showPicker());
   }
 
-  /// Shows device picker configured with list of `ASPickerDisplayItem`
-  Future<void> showPickerForItems(List<ASPickerDisplayItem> items) async {
-    _throwIfDisposed();
-    _startShowPickerOperation();
-    final completer = Completer<void>();
-    _showPickerCompleter = completer;
-    try {
-      _sessionAdapter.showPickerForItems_(_convertToNSArray(items));
-      return completer.future;
-    } catch (_) {
-      _clearShowPickerOperation();
-      rethrow;
-    }
+  /// Shows the device picker configured with a list of [PickerDisplayItem]s.
+  Future<void> showPickerForItems(List<PickerDisplayItem> items) {
+    return _runPickerOperation(() => _api.showPickerForItems(items));
   }
 
-  /// Shows device picker configured for a single device
-  /// parameters:
-  /// - name: the name of the device to display in picker
-  /// - asset: the asset of the device image to display in picker
-  /// - serviceID: the service UUID advertised by device (to search for a particular device)
+  /// Shows the device picker configured for a single device.
+  ///
+  /// - [name]: the device name to display in the picker.
+  /// - [asset]: the Flutter asset path of the device image to display.
+  /// - [serviceID]: the service UUID advertised by the device.
   Future<void> showPickerForDevice(
     String name,
     String asset,
     String serviceID,
-  ) async {
-    _throwIfDisposed();
-    _startShowPickerOperation();
-    try {
-      final image = await nativeUIImageWithDartAsset(asset);
+  ) {
+    return _runPickerOperation(() async {
+      final bytes = await rootBundle.load(asset);
       _throwIfDisposed();
-      if (image == null) {
-        throw FlutterAccessorySetupError(
-            code: 1, description: "Failed to load UIImage for the asset: $asset");
-      }
-      final descriptor = ASDiscoveryDescriptor.alloc().init();
-      descriptor.bluetoothServiceUUID = CBUUID.UUIDWithString_(serviceID.toNSString());
-      final item = ASPickerDisplayItem.alloc()
-          .initWithName_productImage_descriptor_(name.toNSString(), image, descriptor);
-      final completer = Completer<void>();
-      _showPickerCompleter = completer;
-      _sessionAdapter.showPickerForItems_(_convertToNSArray([item]));
-      return completer.future;
-    } catch (_) {
-      _clearShowPickerOperation();
-      rethrow;
-    }
+      await _api.showPickerForDevice(
+        name,
+        bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+        serviceID,
+      );
+    });
   }
 
-  /// Renames provided accessory using the `ASAccessoryRenameOptions`
-  ///
-  /// Only one rename operation can be pending at a time. A concurrent call
-  /// throws a [StateError].
-  Future<void> renameAccessory(ASAccessory accessory, ASAccessoryRenameOptions options) async {
-    _throwIfDisposed();
-    if (_renameAccessoryCompleter != null && !_renameAccessoryCompleter!.isCompleted) {
-      throw StateError('A renameAccessory operation is already in progress.');
-    }
-    final completer = Completer<void>();
-    _renameAccessoryCompleter = completer;
-    _sessionAdapter.renameAccessory_options_(accessory, options);
-    return completer.future;
+  /// Renames the provided accessory using [RenameOptions].
+  Future<void> renameAccessory(Accessory accessory, RenameOptions options) {
+    return _guard(() => _api.renameAccessory(_requireId(accessory), options));
   }
 
-  /// Removes provided accessory (disconnects from the app)
-  ///
-  /// Only one remove operation can be pending at a time. A concurrent call
-  /// throws a [StateError].
-  Future<void> removeAccessory(ASAccessory accessory) async {
-    _throwIfDisposed();
-    if (_removeAccessoryCompleter != null && !_removeAccessoryCompleter!.isCompleted) {
-      throw StateError('A removeAccessory operation is already in progress.');
-    }
-    final completer = Completer<void>();
-    _removeAccessoryCompleter = completer;
-    _sessionAdapter.removeAccessory_(accessory);
-    return completer.future;
+  /// Removes the provided accessory (disconnects it from the app).
+  Future<void> removeAccessory(Accessory accessory) {
+    return _guard(() => _api.removeAccessory(_requireId(accessory)));
   }
 
-  /// Finishes the Authorization for accessory using `ASAccessorySettings`
-  ///
-  /// Only one finish-authorization operation can be pending at a time. A
-  /// concurrent call throws a [StateError].
+  /// Finishes the authorization for the accessory using [AccessorySettings].
   Future<void> finishAuthorizationForAccessory(
-      ASAccessory accessory, ASAccessorySettings settings) async {
-    _throwIfDisposed();
-    if (_finishAuthorizationForAccessoryCompleter != null &&
-        !_finishAuthorizationForAccessoryCompleter!.isCompleted) {
-      throw StateError('A finishAuthorizationForAccessory operation is already in progress.');
-    }
-    final completer = Completer<void>();
-    _finishAuthorizationForAccessoryCompleter = completer;
-    _sessionAdapter.finishAuthorizationForAccessory_settings_(accessory, settings);
-    return completer.future;
+      Accessory accessory, AccessorySettings settings) {
+    return _guard(
+        () => _api.finishAuthorization(_requireId(accessory), settings));
   }
 
-  /// Fails the Authorization for the accessory
-  ///
-  /// Only one fail-authorization operation can be pending at a time. A
-  /// concurrent call throws a [StateError].
-  Future<void> failAuthorizationForAccessory(ASAccessory accessory) async {
+  /// Fails the authorization for the accessory.
+  Future<void> failAuthorizationForAccessory(Accessory accessory) {
+    return _guard(() => _api.failAuthorization(_requireId(accessory)));
+  }
+
+  /// Prints logs collected by the native layer. Use it for debugging.
+  Future<void> printNativeSessionLogs() async {
     _throwIfDisposed();
-    if (_failAuthorizationForAccessoryCompleter != null &&
-        !_failAuthorizationForAccessoryCompleter!.isCompleted) {
-      throw StateError('A failAuthorizationForAccessory operation is already in progress.');
+    final logs = await _api.getLogs();
+    debugPrint('logs count: ${logs.length}');
+    for (final log in logs) {
+      debugPrint(log);
     }
-    final completer = Completer<void>();
-    _failAuthorizationForAccessoryCompleter = completer;
-    _sessionAdapter.failAuthorizationForAccessory_(accessory);
-    return completer.future;
   }
 
   // endregion
 
-  // region Delegate
+  // region AccessorySetupFlutterApi
 
-  void _handleEvent(ASAccessoryEvent event) {
+  @override
+  void onAccessoryEvent(AccessoryEvent event) {
     if (_isDisposed) {
       return;
     }
     _eventsController.add(event);
   }
 
-  void _didShowPicker(NSError? nsError) {
-    final completer = _showPickerCompleter;
-    _clearShowPickerOperation();
-    if (completer == null || completer.isCompleted) {
-      return;
-    }
-    if (nsError != null) {
-      completer.completeError(_convertToNativeCodeError(nsError));
-      return;
-    }
-    completer.complete();
-  }
-
-  void _didRenameAccessory(ASAccessory accessory, NSError? nsError) {
-    final completer = _renameAccessoryCompleter;
-    _renameAccessoryCompleter = null;
-    if (nsError != null) {
-      completer?.completeError(_convertToNativeCodeError(nsError));
-      return;
-    }
-    completer?.complete();
-  }
-
-  void _didRemoveAccessory(ASAccessory accessory, NSError? nsError) {
-    final completer = _removeAccessoryCompleter;
-    _removeAccessoryCompleter = null;
-    if (nsError != null) {
-      completer?.completeError(_convertToNativeCodeError(nsError));
-      return;
-    }
-    completer?.complete();
-  }
-
-  void _didFinishAuthorization(ASAccessory accessory, NSError? nsError) {
-    final completer = _finishAuthorizationForAccessoryCompleter;
-    _finishAuthorizationForAccessoryCompleter = null;
-    if (nsError != null) {
-      completer?.completeError(_convertToNativeCodeError(nsError));
-      return;
-    }
-    completer?.complete();
-  }
-
-  void _didFailAuthorization(ASAccessory accessory, NSError? nsError) {
-    final completer = _failAuthorizationForAccessoryCompleter;
-    _failAuthorizationForAccessoryCompleter = null;
-    if (nsError != null) {
-      completer?.completeError(_convertToNativeCodeError(nsError));
-      return;
-    }
-    completer?.complete();
-  }
-
   // endregion
 
   // region Helpers
+
+  Future<void> _runPickerOperation(Future<void> Function() op) async {
+    _throwIfDisposed();
+    if (_isShowPickerInProgress) {
+      throw StateError('A picker operation is already in progress.');
+    }
+    _isShowPickerInProgress = true;
+    try {
+      await _guard(op);
+    } finally {
+      _isShowPickerInProgress = false;
+    }
+  }
+
+  Future<T> _guard<T>(Future<T> Function() op) async {
+    try {
+      return await op();
+    } on PlatformException catch (e) {
+      throw NativeCodeError.fromPlatformException(e);
+    }
+  }
+
+  String _requireId(Accessory accessory) {
+    final id = accessory.bluetoothIdentifier;
+    if (id == null) {
+      throw FlutterAccessorySetupError(
+        code: 1,
+        description: 'Accessory has no bluetoothIdentifier.',
+      );
+    }
+    return id;
+  }
 
   void _throwIfDisposed() {
     if (_isDisposed) {
@@ -271,114 +192,72 @@ class FlutterAccessorySetup {
     }
   }
 
-  void _completePendingOperationCompletersWithDisposeError() {
-    final disposeError = StateError('FlutterAccessorySetup has been disposed.');
-    _completePendingCompleterWithError(_showPickerCompleter, disposeError);
-    _clearShowPickerOperation();
-    _completePendingCompleterWithError(_renameAccessoryCompleter, disposeError);
-    _renameAccessoryCompleter = null;
-    _completePendingCompleterWithError(_removeAccessoryCompleter, disposeError);
-    _removeAccessoryCompleter = null;
-    _completePendingCompleterWithError(_finishAuthorizationForAccessoryCompleter, disposeError);
-    _finishAuthorizationForAccessoryCompleter = null;
-    _completePendingCompleterWithError(_failAuthorizationForAccessoryCompleter, disposeError);
-    _failAuthorizationForAccessoryCompleter = null;
-  }
-
-  static void _completePendingCompleterWithError(Completer<void>? completer, Object error) {
-    if (completer == null || completer.isCompleted) {
-      return;
-    }
-    completer.completeError(error);
-  }
-
-  void _startShowPickerOperation() {
-    if (_isShowPickerInProgress) {
-      throw StateError('A picker operation is already in progress.');
-    }
-    _isShowPickerInProgress = true;
-  }
-
-  void _clearShowPickerOperation() {
-    _isShowPickerInProgress = false;
-    _showPickerCompleter = null;
-  }
-
-  /// Prints logs from the native code
-  /// Use it for debugging the native part of the code
-  void printNativeSessionLogs() {
-    _throwIfDisposed();
-    final logs = _sessionAdapter.logs.toDartStringList();
-    debugPrint("logs count: ${logs.length}");
-    for (final log in logs) {
-      debugPrint(log);
-    }
-  }
-
-  // Loads an image from the flutter dart asset
-  static Future<UIImage?> nativeUIImageWithDartAsset(String asset) async {
-    final bytes = await rootBundle.load(asset);
-    return UIImage.imageWithData_(bytes.toNSData());
-  }
-
   // endregion
 }
 
-/// The class for errors occurred in the Dart code of the library
+/// An error raised in the Dart layer of the library.
 class FlutterAccessorySetupError implements Exception {
+  FlutterAccessorySetupError({required this.code, required this.description});
+
   final int code;
   final String description;
 
-  FlutterAccessorySetupError({required this.code, required this.description});
-
   @override
-  String toString() => 'FlutterAccessorySetupError(code: $code, description: $description)';
+  String toString() =>
+      'FlutterAccessorySetupError(code: $code, description: $description)';
 }
 
-/// The class for errors occurred in the Native code of the library
+/// An error raised in the native layer of the library.
 class NativeCodeError implements Exception {
+  NativeCodeError({
+    required this.domain,
+    required this.code,
+    required this.description,
+  });
+
+  /// Builds a [NativeCodeError] from a Pigeon [PlatformException]. The native
+  /// layer encodes the `NSError` as `code` (numeric string), `message`
+  /// (localized description) and `details` (domain).
+  factory NativeCodeError.fromPlatformException(PlatformException e) {
+    return NativeCodeError(
+      domain: e.details is String ? e.details as String : '',
+      code: int.tryParse(e.code) ?? 0,
+      description: e.message ?? '',
+    );
+  }
+
+  /// Maps the wire-level [NativeError] carried by an [AccessoryEvent] onto the
+  /// library's single public error type.
+  factory NativeCodeError.fromNativeError(NativeError e) {
+    return NativeCodeError(
+      domain: e.domain,
+      code: e.code,
+      description: e.message,
+    );
+  }
+
   final String domain;
   final int code;
   final String description;
 
-  NativeCodeError(NSError nsError)
-      : code = nsError.code,
-        domain = nsError.domain.toDartString(),
-        description = nsError.localizedDescription.toDartString();
-
   @override
-  String toString() => 'NativeCodeError(domain: $domain, code: $code, description: $description)';
+  String toString() =>
+      'NativeCodeError(domain: $domain, code: $code, description: $description)';
 }
 
-/// Exposing native properties as Dart types
-extension ASAccessoryDartExtension on ASAccessory {
-  String? get dartBluetoothIdentifier {
-    return bluetoothIdentifier?.toDartUUIDString();
-  }
-
-  String get dartDisplayName {
-    return displayName.toDartString();
-  }
-}
-
-/// Exposing native properties as Dart types
-extension ASAccessoryEventDartExtension on ASAccessoryEvent {
-  NativeCodeError? get dartError {
-    final nsError = error;
-    if (nsError != null) {
-      return NativeCodeError(nsError);
-    }
-    return null;
-  }
+/// Convenience helpers for logging [AccessoryEvent]s.
+extension AccessoryEventDartExtension on AccessoryEvent {
+  /// The event's error, mapped to the library's single public error type
+  /// ([NativeCodeError]), or `null` when the event carries no error.
+  NativeCodeError? get failure =>
+      error == null ? null : NativeCodeError.fromNativeError(error!);
 
   String get dartDescription {
-    final pickedAccessory = accessory;
-    final accessoryDescription = pickedAccessory == null
+    final picked = accessory;
+    final accessoryDescription = picked == null
         ? null
-        : 'Accessory(name: ${pickedAccessory.dartDisplayName}, '
-            'id: ${pickedAccessory.dartBluetoothIdentifier}, '
-            'state: ${pickedAccessory.state})';
-    return 'AccessoryEvent($eventType, accessory: $accessoryDescription, '
-        'error: $dartError)';
+        : 'Accessory(name: ${picked.displayName}, '
+            'id: ${picked.bluetoothIdentifier}, state: ${picked.state})';
+    return 'AccessoryEvent($type, accessory: $accessoryDescription, error: $error)';
   }
 }

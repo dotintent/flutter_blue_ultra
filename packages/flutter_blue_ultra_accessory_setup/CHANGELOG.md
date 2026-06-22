@@ -1,3 +1,15 @@
+## 0.1.0
+
+* **Breaking:** Replace the `dart:ffi`/`objective_c` bridge with Pigeon-based
+  platform channels. The plugin is now a pure-Swift Flutter plugin and supports
+  Swift Package Manager without CocoaPods.
+* **Breaking:** The public API no longer exposes Objective-C types. `ASAccessory`,
+  `ASAccessoryEvent`, and the `ASAccessory*` enums are replaced by plain Dart
+  types (`Accessory`, `AccessoryEvent`, `AccessoryEventType`, `AccessoryState`,
+  `PickerDisplayItem`, `RenameOptions`, `AccessorySettings`).
+* Remove the `objective_c` and `ffi` dependencies.
+* The native `ASAccessorySession` is now a singleton owned by the plugin.
+
 ## 0.0.4
 
 * Prepare package metadata for pub.dev release.

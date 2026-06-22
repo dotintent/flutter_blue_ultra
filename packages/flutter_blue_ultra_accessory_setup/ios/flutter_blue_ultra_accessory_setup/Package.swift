@@ -11,30 +11,20 @@ let package = Package(
     products: [
         .library(
             name: "flutter-blue-ultra-accessory-setup",
-            // type: .dynamic,
-            targets: ["flutter_blue_ultra_accessory_setup", "flutter_blue_ultra_accessory_setup_swift"]
+            targets: ["flutter_blue_ultra_accessory_setup"]
         )
     ],
     dependencies: [],
     targets: [
         .target(
             name: "flutter_blue_ultra_accessory_setup",
-            publicHeadersPath: "public_headers",
-            linkerSettings: [
-                .linkedFramework("AccessorySetupKit"),
-                .linkedFramework("Foundation"),
-                .unsafeFlags(["-fvisibility=default"])
-            ]
-        ),
-        .target(
-            name: "flutter_blue_ultra_accessory_setup_swift",
             dependencies: [],
-            resources: [],
+            // Explicit so the SPM link matches the podspec's `s.frameworks` and
+            // doesn't rely solely on Swift autolinking. Flutter is injected by
+            // the generated plugin package; Foundation/UIKit autolink.
             linkerSettings: [
                 .linkedFramework("AccessorySetupKit"),
-                .linkedFramework("UIKit"),
-                .linkedFramework("Security"),
-                .linkedFramework("Foundation"),
+                .linkedFramework("CoreBluetooth"),
             ]
         )
     ]
