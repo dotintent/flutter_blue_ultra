@@ -13,7 +13,8 @@ A bridge for AccessorySetupKit for Flutter.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Intent' => 'growth@withintent.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup_swift/*.swift', 'flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup/*.{h,m}'
+  s.source_files = 'flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup_swift/*.swift', 'flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup/**/*.{h,m}'
+  s.public_header_files = 'flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup/public_headers/*.h'
   s.dependency 'Flutter'
   s.frameworks = ['CoreBluetooth', 'AccessorySetupKit']
   s.platform = :ios, '18.0'

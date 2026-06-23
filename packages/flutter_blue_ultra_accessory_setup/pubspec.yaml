@@ -2,7 +2,7 @@ name: flutter_blue_ultra_accessory_setup
 description: >-
   Use it to discover and configure Bluetooth or Wi-Fi accessories with images and names provided by the app.
   Works on iOS 18 and above, and uses AccessorySetupKit through FFI.
-version: 0.0.5
+version: 0.0.6
 homepage: https://github.com/dotintent/flutter_blue_ultra/tree/main/packages/flutter_blue_ultra_accessory_setup
 repository: https://github.com/dotintent/flutter_blue_ultra
 issue_tracker: https://github.com/dotintent/flutter_blue_ultra/issues
@@ -14,7 +14,7 @@ topics:
 
 environment:
   sdk: '>=3.4.1 <4.0.0'
-  flutter: '>=3.44.0'
+  flutter: '>=3.3.0'
 
 dependencies:
   flutter:

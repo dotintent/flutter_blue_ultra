@@ -1,3 +1,12 @@
+## 0.0.6
+
+* Fix CocoaPods builds failing with `'AccessorySetupBindings.h' file not
+  found`: recurse into `public_headers/` in `source_files` and declare it
+  as `public_header_files` in the podspec.
+* Restore Flutter `>=3.3.0` constraint so the package can be consumed on
+  Flutter versions older than 3.44 (CocoaPods path); newer Flutter still
+  uses the SwiftPM `Package.swift`.
+
 ## 0.0.5
 
 * Move `AccessorySetupBindings.h` into the declared `public_headers/`

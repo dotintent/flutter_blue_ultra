@@ -92,7 +92,7 @@ packages:
       path: "../flutter_blue_ultra_accessory_setup"
       relative: true
     source: path
-    version: "0.0.4"
+    version: "0.0.5"
   flutter_blue_ultra_android:
     dependency: "direct main"
     description:
@@ -106,7 +106,7 @@ packages:
       path: "../flutter_blue_ultra_darwin"
       relative: true
     source: path
-    version: "2.1.0"
+    version: "2.1.1"
   flutter_blue_ultra_linux:
     dependency: "direct main"
     description:

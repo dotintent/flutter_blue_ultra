@@ -1,3 +1,8 @@
+## 2.1.2
+* Restore Flutter `>=3.7.0` constraint so the package can be consumed on
+  Flutter versions older than 3.44 (CocoaPods path); newer Flutter still
+  uses the SwiftPM `Package.swift`.
+
 ## 2.1.1
 * Declare `FlutterFramework` as a SwiftPM dependency so the package builds
   with newer Flutter toolchains and directly from Xcode.
