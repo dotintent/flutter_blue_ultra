@@ -20,6 +20,9 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
+  # Pigeon-generated lib/src/messages.g.dart imports package:meta
+  # (@immutable / visibleForTesting), so it must be a direct dependency.
+  meta: ^1.10.0
 
 dev_dependencies:
   pigeon: ^27.1.0

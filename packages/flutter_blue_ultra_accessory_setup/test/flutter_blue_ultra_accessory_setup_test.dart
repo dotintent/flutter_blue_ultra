@@ -62,8 +62,7 @@ class FakeAccessorySetupApi extends AccessorySetupApi {
   }
 
   @override
-  Future<void> showPickerForDevice(
-      String name, Uint8List imageBytes, String serviceUuid) {
+  Future<void> showPickerForDevice(String name, Uint8List imageBytes, String serviceUuid) {
     return _result('showPickerForDevice');
   }
 
@@ -81,8 +80,7 @@ class FakeAccessorySetupApi extends AccessorySetupApi {
   }
 
   @override
-  Future<void> finishAuthorization(
-      String accessoryId, AccessorySettings settings) {
+  Future<void> finishAuthorization(String accessoryId, AccessorySettings settings) {
     lastAccessoryId = accessoryId;
     lastSettings = settings;
     return _result('finishAuthorization');
@@ -150,15 +148,13 @@ void main() {
 
   test('ignores events received after dispose', () {
     sut.dispose();
-    expect(() => sut.onAccessoryEvent(_event(AccessoryEventType.invalidated)),
-        returnsNormally);
+    expect(() => sut.onAccessoryEvent(_event(AccessoryEventType.invalidated)), returnsNormally);
   });
 
   test('throws when a second instance is constructed before the first is disposed', () {
     // `sut` is already live (from setUp); a second instance would silently
     // steal its events, so the constructor must reject it.
-    expect(() => FlutterAccessorySetup(api: FakeAccessorySetupApi()),
-        throwsA(isA<StateError>()));
+    expect(() => FlutterAccessorySetup(api: FakeAccessorySetupApi()), throwsA(isA<StateError>()));
   });
 
   test('allows a new instance after the previous is disposed', () {
@@ -190,10 +186,8 @@ void main() {
 
   test('event stream supports multiple listeners', () async {
     final event = _event(AccessoryEventType.activated);
-    final first = expectLater(sut.eventStream, emits(event))
-        .timeout(const Duration(seconds: 1));
-    final second = expectLater(sut.eventStream, emits(event))
-        .timeout(const Duration(seconds: 1));
+    final first = expectLater(sut.eventStream, emits(event)).timeout(const Duration(seconds: 1));
+    final second = expectLater(sut.eventStream, emits(event)).timeout(const Duration(seconds: 1));
 
     sut.onAccessoryEvent(event);
     await Future.wait([first, second]);
@@ -219,8 +213,7 @@ void main() {
     api.showPickerCompleter = Completer<void>();
     final first = sut.showPicker();
 
-    await expectLater(
-        sut.showPickerForItems(const []), throwsA(isA<StateError>()));
+    await expectLater(sut.showPickerForItems(const []), throwsA(isA<StateError>()));
 
     api.showPickerCompleter!.complete();
     await first.timeout(const Duration(seconds: 1));
@@ -231,8 +224,7 @@ void main() {
     // The asset is not registered, so rootBundle.load throws before the host
     // call and the picker-in-progress flag must be cleared.
     await expectLater(
-        sut.showPickerForDevice('Device', 'missing_asset.png', '1234'),
-        throwsA(anything));
+        sut.showPickerForDevice('Device', 'missing_asset.png', '1234'), throwsA(anything));
 
     await sut.showPicker().timeout(const Duration(seconds: 1));
     expect(api.calls, equals(['showPicker']));
@@ -248,8 +240,7 @@ void main() {
 
   test('renames an accessory by id with options', () async {
     final options = RenameOptions(renameSSID: true);
-    await sut.renameAccessory(_accessory(id: 'XY'), options)
-        .timeout(const Duration(seconds: 1));
+    await sut.renameAccessory(_accessory(id: 'XY'), options).timeout(const Duration(seconds: 1));
     expect(api.calls, equals(['renameAccessory']));
     expect(api.lastAccessoryId, equals('XY'));
     expect(api.lastRenameOptions, equals(options));
@@ -257,7 +248,8 @@ void main() {
 
   test('finishes authorization with settings', () async {
     final settings = AccessorySettings(ssid: 'net');
-    await sut.finishAuthorizationForAccessory(_accessory(id: 'XY'), settings)
+    await sut
+        .finishAuthorizationForAccessory(_accessory(id: 'XY'), settings)
         .timeout(const Duration(seconds: 1));
     expect(api.calls, equals(['finishAuthorization']));
     expect(api.lastAccessoryId, equals('XY'));
@@ -265,7 +257,8 @@ void main() {
   });
 
   test('fails authorization by id', () async {
-    await sut.failAuthorizationForAccessory(_accessory(id: 'XY'))
+    await sut
+        .failAuthorizationForAccessory(_accessory(id: 'XY'))
         .timeout(const Duration(seconds: 1));
     expect(api.calls, equals(['failAuthorization']));
     expect(api.lastAccessoryId, equals('XY'));
@@ -279,8 +272,7 @@ void main() {
   // Error mapping
 
   test('maps PlatformException to NativeCodeError', () async {
-    api.nextError = PlatformException(
-        code: '42', message: 'boom', details: 'com.test.domain');
+    api.nextError = PlatformException(code: '42', message: 'boom', details: 'com.test.domain');
     await expectLater(
       sut.removeAccessory(_accessory(id: 'XY')),
       throwsA(isA<NativeCodeError>()

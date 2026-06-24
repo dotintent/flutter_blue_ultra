@@ -4,6 +4,11 @@
 // and Swift channel code. Generated files:
 //   - lib/src/messages.g.dart
 //   - ios/flutter_blue_ultra_accessory_setup/Sources/flutter_blue_ultra_accessory_setup/Messages.g.swift
+//
+// Pigeon schema conventions: `@HostApi`/`@FlutterApi` must be abstract classes
+// (one_member_abstracts), and doc comments reference cross-package types that
+// aren't imported here (comment_references).
+// ignore_for_file: one_member_abstracts, comment_references
 import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(PigeonOptions(

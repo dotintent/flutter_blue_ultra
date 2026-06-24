@@ -10,9 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 
 Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
+  List<Object?>? replyList,
+  String channelName, {
+  required bool isNullValid,
 }) {
   if (replyList == null) {
     throw PlatformException(
@@ -34,8 +34,8 @@ Object? _extractReplyValueOrThrow(
   return replyList.firstOrNull;
 }
 
-
-List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty = false}) {
+List<Object?> wrapResponse(
+    {Object? result, PlatformException? error, bool empty = false}) {
   if (empty) {
     return <Object?>[];
   }
@@ -44,6 +44,7 @@ List<Object?> wrapResponse({Object? result, PlatformException? error, bool empty
   }
   return <Object?>[error.code, error.message, error.details];
 }
+
 bool _deepEquals(Object? a, Object? b) {
   if (identical(a, b)) {
     return true;
@@ -106,7 +107,6 @@ int _deepHash(Object? value) {
   return value.hashCode;
 }
 
-
 /// Mirrors `ASAccessoryEventType`. Raw values are not exposed to Dart; the
 /// native side maps the platform enum onto these cases.
 enum AccessoryEventType {
@@ -156,7 +156,8 @@ class NativeError {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static NativeError decode(Object result) {
     result as List<Object?>;
@@ -176,7 +177,9 @@ class NativeError {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(domain, other.domain) && _deepEquals(code, other.code) && _deepEquals(message, other.message);
+    return _deepEquals(domain, other.domain) &&
+        _deepEquals(code, other.code) &&
+        _deepEquals(message, other.message);
   }
 
   @override
@@ -217,7 +220,8 @@ class Accessory {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static Accessory decode(Object result) {
     result as List<Object?>;
@@ -238,7 +242,10 @@ class Accessory {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(bluetoothIdentifier, other.bluetoothIdentifier) && _deepEquals(displayName, other.displayName) && _deepEquals(state, other.state) && _deepEquals(ssid, other.ssid);
+    return _deepEquals(bluetoothIdentifier, other.bluetoothIdentifier) &&
+        _deepEquals(displayName, other.displayName) &&
+        _deepEquals(state, other.state) &&
+        _deepEquals(ssid, other.ssid);
   }
 
   @override
@@ -274,7 +281,8 @@ class AccessoryEvent {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static AccessoryEvent decode(Object result) {
     result as List<Object?>;
@@ -294,7 +302,9 @@ class AccessoryEvent {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(type, other.type) && _deepEquals(accessory, other.accessory) && _deepEquals(error, other.error);
+    return _deepEquals(type, other.type) &&
+        _deepEquals(accessory, other.accessory) &&
+        _deepEquals(error, other.error);
   }
 
   @override
@@ -330,7 +340,8 @@ class PickerDisplayItem {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static PickerDisplayItem decode(Object result) {
     result as List<Object?>;
@@ -350,7 +361,9 @@ class PickerDisplayItem {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(name, other.name) && _deepEquals(imageBytes, other.imageBytes) && _deepEquals(serviceUuid, other.serviceUuid);
+    return _deepEquals(name, other.name) &&
+        _deepEquals(imageBytes, other.imageBytes) &&
+        _deepEquals(serviceUuid, other.serviceUuid);
   }
 
   @override
@@ -378,7 +391,8 @@ class RenameOptions {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static RenameOptions decode(Object result) {
     result as List<Object?>;
@@ -428,7 +442,8 @@ class AccessorySettings {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static AccessorySettings decode(Object result) {
     result as List<Object?>;
@@ -447,7 +462,9 @@ class AccessorySettings {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(ssid, other.ssid) && _deepEquals(bluetoothTransportBridgingIdentifier, other.bluetoothTransportBridgingIdentifier);
+    return _deepEquals(ssid, other.ssid) &&
+        _deepEquals(bluetoothTransportBridgingIdentifier,
+            other.bluetoothTransportBridgingIdentifier);
   }
 
   @override
@@ -460,7 +477,6 @@ class AccessorySettings {
   }
 }
 
-
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -468,28 +484,28 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is AccessoryEventType) {
+    } else if (value is AccessoryEventType) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is AccessoryState) {
+    } else if (value is AccessoryState) {
       buffer.putUint8(130);
       writeValue(buffer, value.index);
-    }    else if (value is NativeError) {
+    } else if (value is NativeError) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is Accessory) {
+    } else if (value is Accessory) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is AccessoryEvent) {
+    } else if (value is AccessoryEvent) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is PickerDisplayItem) {
+    } else if (value is PickerDisplayItem) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is RenameOptions) {
+    } else if (value is RenameOptions) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is AccessorySettings) {
+    } else if (value is AccessorySettings) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
     } else {
@@ -531,9 +547,11 @@ class AccessorySetupApi {
   /// Constructor for [AccessorySetupApi]. The [binaryMessenger] named argument is
   /// available for dependency injection. If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  AccessorySetupApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+  AccessorySetupApi(
+      {BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
       : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+        pigeonVar_messageChannelSuffix =
+            messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -543,7 +561,8 @@ class AccessorySetupApi {
   /// Activates the session. Returns immediately; the
   /// [AccessoryEventType.activated] event signals completion.
   Future<void> activate() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.activate$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.activate$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -553,15 +572,15 @@ class AccessorySetupApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<void> showPicker() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.showPicker$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.showPicker$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -571,123 +590,132 @@ class AccessorySetupApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<void> showPickerForItems(List<PickerDisplayItem> items) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.showPickerForItems$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.showPickerForItems$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[items]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[items]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
-  Future<void> showPickerForDevice(String name, Uint8List imageBytes, String serviceUuid) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.showPickerForDevice$pigeonVar_messageChannelSuffix';
+  Future<void> showPickerForDevice(
+      String name, Uint8List imageBytes, String serviceUuid) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.showPickerForDevice$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[name, imageBytes, serviceUuid]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[name, imageBytes, serviceUuid]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<void> removeAccessory(String accessoryId) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.removeAccessory$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.removeAccessory$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[accessoryId]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[accessoryId]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
-  Future<void> renameAccessory(String accessoryId, RenameOptions options) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.renameAccessory$pigeonVar_messageChannelSuffix';
+  Future<void> renameAccessory(
+      String accessoryId, RenameOptions options) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.renameAccessory$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[accessoryId, options]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[accessoryId, options]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
-  Future<void> finishAuthorization(String accessoryId, AccessorySettings settings) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.finishAuthorization$pigeonVar_messageChannelSuffix';
+  Future<void> finishAuthorization(
+      String accessoryId, AccessorySettings settings) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.finishAuthorization$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[accessoryId, settings]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[accessoryId, settings]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<void> failAuthorization(String accessoryId) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.failAuthorization$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.failAuthorization$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[accessoryId]);
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[accessoryId]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 
   Future<List<Accessory>> getAccessories() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.getAccessories$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.getAccessories$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -697,16 +725,16 @@ class AccessorySetupApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return (pigeonVar_replyValue! as List<Object?>).cast<Accessory>();
   }
 
   Future<List<String>> getLogs() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.getLogs$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.getLogs$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -716,16 +744,16 @@ class AccessorySetupApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return (pigeonVar_replyValue! as List<Object?>).cast<String>();
   }
 
   Future<void> invalidate() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.invalidate$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupApi.invalidate$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -735,11 +763,10 @@ class AccessorySetupApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: true,
+    );
   }
 }
 
@@ -749,11 +776,17 @@ abstract class AccessorySetupFlutterApi {
 
   void onAccessoryEvent(AccessoryEvent event);
 
-  static void setUp(AccessorySetupFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
-    messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  static void setUp(
+    AccessorySetupFlutterApi? api, {
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  }) {
+    messageChannelSuffix =
+        messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
     {
       final pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupFlutterApi.onAccessoryEvent$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.flutter_blue_ultra_accessory_setup.AccessorySetupFlutterApi.onAccessoryEvent$messageChannelSuffix',
+          pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
@@ -766,8 +799,9 @@ abstract class AccessorySetupFlutterApi {
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
-          }          catch (e) {
-            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          } catch (e) {
+            return wrapResponse(
+                error: PlatformException(code: 'error', message: e.toString()));
           }
         });
       }

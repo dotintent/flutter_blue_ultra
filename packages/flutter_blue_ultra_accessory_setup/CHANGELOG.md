@@ -7,7 +7,8 @@
   `ASAccessoryEvent`, and the `ASAccessory*` enums are replaced by plain Dart
   types (`Accessory`, `AccessoryEvent`, `AccessoryEventType`, `AccessoryState`,
   `PickerDisplayItem`, `RenameOptions`, `AccessorySettings`).
-* Remove the `objective_c` and `ffi` dependencies.
+* Remove the `objective_c` and `ffi` dependencies; add `meta` (used by the
+  generated Pigeon bindings).
 * The native `ASAccessorySession` is now a singleton owned by the plugin.
 
 ## 0.0.4
