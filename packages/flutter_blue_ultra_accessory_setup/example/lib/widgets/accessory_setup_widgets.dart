@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
-import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 
 import '../cubits/accessory_setup_cubit.dart';
 import '../theme/app_theme.dart';
@@ -127,15 +126,14 @@ class AccessoryTile extends StatelessWidget {
     required this.onRemove,
   });
 
-  final ASAccessory accessory;
+  final Accessory accessory;
   final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
     final it = IntentTheme.of(context);
-    final authorized =
-        accessory.state == ASAccessoryState.ASAccessoryStateAuthorized;
-    final id = accessory.dartBluetoothIdentifier;
+    final authorized = accessory.state == AccessoryState.authorized;
+    final id = accessory.bluetoothIdentifier;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       decoration: BoxDecoration(

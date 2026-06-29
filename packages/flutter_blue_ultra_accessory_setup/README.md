@@ -67,13 +67,13 @@ example. Use that app when testing the iOS picker flow.
 ```dart
 class _MyScreenState extends State<MyScreen> {
   final _accessorySetup = FlutterAccessorySetup();
-  StreamSubscription<ASAccessoryEvent>? _eventSubscription;
+  StreamSubscription<AccessoryEvent>? _eventSubscription;
 
   @override
   void initState() {
     super.initState();
     _eventSubscription = _accessorySetup.eventStream.listen((event) {
-      debugPrint('Got event: ${event.eventType}');
+      debugPrint('Got event: ${event.type}');
       // handle session events here
     });
     _accessorySetup.activate();
@@ -87,7 +87,7 @@ class _MyScreenState extends State<MyScreen> {
         Assets.images.ble.path,
         '149E9E42-33AD-41AD-8665-70D153533EC1',
       );
-    } on PlatformException {
+    } on NativeCodeError {
       debugPrint('Failed to show the picker');
     }
   }
@@ -113,7 +113,7 @@ class _MyScreenState extends State<MyScreen> {
 
 - When the user closes the Picker by tapping the cross button, the `showPicker` closure emits an error (ASErrorDomain, code 700). Be prepared.
 
-- ⚠️ When the person picks a BLE accessory, the picker sends an event of type `ASAccessoryEventType.accessoryChanged`. The picker is supposed to sends an event of type `ASAccessoryEventType.accessoryAdded`, but I can't reproduce it at all.⚠️
+- ⚠️ When the person picks a BLE accessory, the picker sends an event of type `AccessoryEventType.accessoryChanged`. The picker is supposed to sends an event of type `AccessoryEventType.accessoryAdded`, but I can't reproduce it at all.⚠️
 
 - If the device has been connected previously, it will be in the `session.accessories` array right after the session is activated.  
   ⚠️ **This device will not be discoverable by the Setup Picker until the user disconnects it from the settings.** ⚠️

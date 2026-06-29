@@ -23,6 +23,10 @@ migrate_working_dir/
 .dart_tool/
 build/
 
+# Swift Package Manager build output (ios/.../.build/)
+.build/
+.swiftpm/
+
 .fvm/
 .vscode/
 

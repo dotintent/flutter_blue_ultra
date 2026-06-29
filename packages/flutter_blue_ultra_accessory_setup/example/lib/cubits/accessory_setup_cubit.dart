@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
 import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
-import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
 
 import '../models/accessory_setup_config.dart';
 
@@ -23,8 +22,8 @@ class AccessorySetupState extends Equatable {
   final bool isPickerLoading;
   final String? connectedId;
   final String? initError;
-  final ASAccessory? pendingAccessory;
-  final List<ASAccessory> accessories;
+  final Accessory? pendingAccessory;
+  final List<Accessory> accessories;
   final List<String> eventLog;
 
   bool get canOpenPicker => isActivated && !isPickerLoading && initError == null;
@@ -35,7 +34,7 @@ class AccessorySetupState extends Equatable {
     Object? connectedId = _sentinel,
     Object? initError = _sentinel,
     Object? pendingAccessory = _sentinel,
-    List<ASAccessory>? accessories,
+    List<Accessory>? accessories,
     List<String>? eventLog,
   }) {
     return AccessorySetupState(
@@ -45,7 +44,7 @@ class AccessorySetupState extends Equatable {
       initError: identical(initError, _sentinel) ? this.initError : initError as String?,
       pendingAccessory: identical(pendingAccessory, _sentinel)
           ? this.pendingAccessory
-          : pendingAccessory as ASAccessory?,
+          : pendingAccessory as Accessory?,
       accessories: accessories ?? this.accessories,
       eventLog: eventLog ?? this.eventLog,
     );
@@ -75,48 +74,48 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
   final AccessorySetupConfig config;
   final FlutterAccessorySetup _accessorySetup;
 
-  StreamSubscription<ASAccessoryEvent>? _eventsSubscription;
+  StreamSubscription<AccessoryEvent>? _eventsSubscription;
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
   final StreamController<String> _messages = StreamController<String>.broadcast();
   String? _connectingId;
 
   Stream<String> get messages => _messages.stream;
 
-  void initialize() {
+  Future<void> initialize() async {
     try {
       _eventsSubscription = _accessorySetup.eventStream.listen(_onEvent);
-      _accessorySetup.activate();
+      await _accessorySetup.activate();
     } catch (e) {
       emit(state.copyWith(initError: '$e'));
       _log('setup init error: $e');
     }
   }
 
-  void _onEvent(ASAccessoryEvent event) {
+  Future<void> _onEvent(AccessoryEvent event) async {
     _log('event: ${event.dartDescription}');
     if (isClosed) return;
 
-    final eventType = event.eventType;
-    final accessories = _accessorySetup.accessories;
-    switch (eventType) {
-      case ASAccessoryEventType.ASAccessoryEventTypeActivated:
+    final accessories = await _accessorySetup.getAccessories();
+    if (isClosed) return;
+    switch (event.type) {
+      case AccessoryEventType.activated:
         emit(state.copyWith(
           isActivated: true,
           accessories: accessories,
         ));
-      case ASAccessoryEventType.ASAccessoryEventTypeAccessoryAdded:
-      case ASAccessoryEventType.ASAccessoryEventTypeAccessoryChanged:
+      case AccessoryEventType.accessoryAdded:
+      case AccessoryEventType.accessoryChanged:
         emit(state.copyWith(
           pendingAccessory: event.accessory,
           accessories: accessories,
         ));
-      case ASAccessoryEventType.ASAccessoryEventTypePickerDidDismiss:
+      case AccessoryEventType.pickerDidDismiss:
         emit(state.copyWith(
           isPickerLoading: false,
           accessories: accessories,
         ));
         _onPickerDismissed();
-      case ASAccessoryEventType.ASAccessoryEventTypeAccessoryRemoved:
+      case AccessoryEventType.accessoryRemoved:
         emit(state.copyWith(
           pendingAccessory: null,
           accessories: accessories,
@@ -130,12 +129,12 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
     final accessory = state.pendingAccessory;
     emit(state.copyWith(pendingAccessory: null));
 
-    final id = accessory?.dartBluetoothIdentifier;
+    final id = accessory?.bluetoothIdentifier;
     if (accessory == null || id == null) {
       _log('picker dismissed without a picked accessory');
       return;
     }
-    if (accessory.state != ASAccessoryState.ASAccessoryStateAuthorized) {
+    if (accessory.state != AccessoryState.authorized) {
       _log('accessory not authorized, state: ${accessory.state}');
       return;
     }
@@ -165,12 +164,12 @@ class AccessorySetupCubit extends Cubit<AccessorySetupState> {
     }
   }
 
-  Future<void> removeAccessory(ASAccessory accessory) async {
-    _log('removing accessory ${accessory.dartBluetoothIdentifier}');
+  Future<void> removeAccessory(Accessory accessory) async {
+    _log('removing accessory ${accessory.bluetoothIdentifier}');
     try {
       await _accessorySetup.removeAccessory(accessory);
       if (!isClosed) {
-        emit(state.copyWith(accessories: _accessorySetup.accessories));
+        emit(state.copyWith(accessories: await _accessorySetup.getAccessories()));
       }
     } catch (e) {
       _log('remove error: $e');

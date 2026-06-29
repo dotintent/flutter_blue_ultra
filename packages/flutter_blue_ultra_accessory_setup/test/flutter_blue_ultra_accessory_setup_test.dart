@@ -1,377 +1,297 @@
-import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
-import 'package:flutter_blue_ultra_accessory_setup/gen/ios/accessory_setup_bindings.dart';
-import 'package:flutter_blue_ultra_accessory_setup/src/session_adapter.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:objective_c/objective_c.dart' as objc;
+import 'dart:async';
 
-import 'mocks/delegate_adapter_mock.dart';
-import 'mocks/ffi_accessory_event_mock.dart';
-import 'mocks/ffi_accessory_mock.dart';
-import 'mocks/ffi_accessory_session_mock.dart';
-import 'mocks/ffi_accessory_settings_mock.dart';
-import 'mocks/ffi_nserror_mock.dart';
-import 'mocks/native_code_error_mock.dart';
-import 'mocks/objc_ns_array_mock.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
+import 'package:flutter_blue_ultra_accessory_setup/src/messages.g.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+/// Records calls and lets tests control completion / failures of the Pigeon
+/// host API without a platform channel.
+class FakeAccessorySetupApi extends AccessorySetupApi {
+  final List<String> calls = [];
+
+  List<PickerDisplayItem>? lastItems;
+  String? lastAccessoryId;
+  RenameOptions? lastRenameOptions;
+  AccessorySettings? lastSettings;
+
+  List<Accessory> accessories = [];
+
+  /// When set, [showPicker] returns this future instead of completing
+  /// immediately. Used to exercise the in-progress guard.
+  Completer<void>? showPickerCompleter;
+
+  /// When non-null, the next completion-based call fails with this exception.
+  PlatformException? nextError;
+
+  Future<void> _result(String name) {
+    calls.add(name);
+    final error = nextError;
+    if (error != null) {
+      nextError = null;
+      return Future<void>.error(error);
+    }
+    return Future<void>.value();
+  }
+
+  @override
+  Future<void> activate() {
+    calls.add('activate');
+    return Future<void>.value();
+  }
+
+  @override
+  Future<void> showPicker() {
+    calls.add('showPicker');
+    final completer = showPickerCompleter;
+    if (completer != null) {
+      return completer.future;
+    }
+    final error = nextError;
+    if (error != null) {
+      nextError = null;
+      return Future<void>.error(error);
+    }
+    return Future<void>.value();
+  }
+
+  @override
+  Future<void> showPickerForItems(List<PickerDisplayItem> items) {
+    lastItems = items;
+    return _result('showPickerForItems');
+  }
+
+  @override
+  Future<void> showPickerForDevice(String name, Uint8List imageBytes, String serviceUuid) {
+    return _result('showPickerForDevice');
+  }
+
+  @override
+  Future<void> removeAccessory(String accessoryId) {
+    lastAccessoryId = accessoryId;
+    return _result('removeAccessory');
+  }
+
+  @override
+  Future<void> renameAccessory(String accessoryId, RenameOptions options) {
+    lastAccessoryId = accessoryId;
+    lastRenameOptions = options;
+    return _result('renameAccessory');
+  }
+
+  @override
+  Future<void> finishAuthorization(String accessoryId, AccessorySettings settings) {
+    lastAccessoryId = accessoryId;
+    lastSettings = settings;
+    return _result('finishAuthorization');
+  }
+
+  @override
+  Future<void> failAuthorization(String accessoryId) {
+    lastAccessoryId = accessoryId;
+    return _result('failAuthorization');
+  }
+
+  @override
+  Future<List<Accessory>> getAccessories() {
+    calls.add('getAccessories');
+    return Future<List<Accessory>>.value(accessories);
+  }
+
+  @override
+  Future<List<String>> getLogs() {
+    calls.add('getLogs');
+    return Future<List<String>>.value(const []);
+  }
+
+  @override
+  Future<void> invalidate() {
+    return _result('invalidate');
+  }
+}
+
+Accessory _accessory({String? id = 'AA', AccessoryState state = AccessoryState.authorized}) {
+  return Accessory(bluetoothIdentifier: id, displayName: 'Device', state: state);
+}
+
+AccessoryEvent _event(AccessoryEventType type) => AccessoryEvent(type: type);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late FFIAccessorySessionMock sessionMock;
-  late FFIAccessorySessionAdapter sessionAdapter;
+  late FakeAccessorySetupApi api;
   late FlutterAccessorySetup sut;
-  late DelegateAdapterMock delegateAdapter;
-
-  List<Object?>? listToConvert;
-  late objc.NSArray convertedList;
-
-  objc.NSError? nsErrorToConvert;
-  late NativeCodeError convertedError;
 
   setUp(() {
-    convertedList = NSArrayMock();
-    convertedError = NativeCodeErrorMock();
-    sessionMock = FFIAccessorySessionMock();
-    sessionAdapter = FFIAccessorySessionAdapter(sessionMock);
-    sut = FlutterAccessorySetup(
-        sessionAdapter: sessionAdapter,
-        delegateAdapterFactory: DelegateAdapterMock.new,
-        listConverter: (list) {
-          listToConvert = list;
-          return convertedList;
-        },
-        nsErrorConverter: (nsError) {
-          nsErrorToConvert = nsError;
-          return convertedError;
-        });
-    sut.activate();
-    delegateAdapter = sessionAdapter.delegateAdapter as DelegateAdapterMock;
-    sessionMock.resetMock();
+    api = FakeAccessorySetupApi();
+    sut = FlutterAccessorySetup(api: api);
   });
 
   tearDown(() {
     sut.dispose();
   });
 
-  // Tests
-
-  test('session calls activate and sets up delegate adapter when the `activate` method called',
-      () async {
-    // Given
-    // When
-    sut.activate();
-    // Then
-    expect(sessionAdapter.delegateAdapter, isNotNull);
-    expect(sessionMock.calls,
-        equals([SessionMockMethodCall.setDelegate, SessionMockMethodCall.activate]));
+  test('activate calls the host api', () async {
+    await sut.activate();
+    expect(api.calls, equals(['activate']));
   });
 
-  test('session calls invalidate when the `dispose` method called', () async {
-    // Given
-    // When
+  test('dispose invalidates the native session', () {
     sut.dispose();
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.invalidate]));
+    expect(api.calls, contains('invalidate'));
   });
 
-  test('session ignores events received after dispose', () async {
-    // Given
-    final event = FFIASAccessoryEventMock(ASAccessoryEventType.ASAccessoryEventTypeInvalidated);
+  test('throws after dispose', () async {
     sut.dispose();
-    // When / Then
-    expect(() => delegateAdapter.handleEvent(event), returnsNormally);
-    expect(sessionMock.calls, equals([SessionMockMethodCall.invalidate]));
+    expect(() => sut.activate(), throwsA(isA<StateError>()));
   });
 
-  test('dispose completes pending showPicker future with StateError', () async {
-    // Given
-    // No native callback: the future stays pending until dispose completes it.
-    final pendingFuture = sut.showPicker();
-
-    // When
+  test('ignores events received after dispose', () {
     sut.dispose();
-
-    // Then
-    await expectLater(pendingFuture, throwsA(isA<StateError>()));
-    expect(sessionMock.calls,
-        equals([SessionMockMethodCall.showPicker, SessionMockMethodCall.invalidate]));
+    expect(() => sut.onAccessoryEvent(_event(AccessoryEventType.invalidated)), returnsNormally);
   });
 
-  test('dispose completes pending removeAccessory future with StateError', () async {
-    // Given
-    final accessory = FFIASAccessoryMock();
-    // No native callback: the future stays pending until dispose completes it.
-    final pendingFuture = sut.removeAccessory(accessory);
+  test('throws when a second instance is constructed before the first is disposed', () {
+    // `sut` is already live (from setUp); a second instance would silently
+    // steal its events, so the constructor must reject it.
+    expect(() => FlutterAccessorySetup(api: FakeAccessorySetupApi()), throwsA(isA<StateError>()));
+  });
 
-    // When
+  test('allows a new instance after the previous is disposed', () {
     sut.dispose();
-
-    // Then
-    await expectLater(pendingFuture, throwsA(isA<StateError>()));
-    expect(sessionMock.calls,
-        equals([SessionMockMethodCall.removeAccessory, SessionMockMethodCall.invalidate]));
+    final next = FlutterAccessorySetup(api: FakeAccessorySetupApi());
+    addTearDown(next.dispose);
+    expect(next, isNotNull);
   });
 
-  test('session sends events', () async {
-    // Given
-    final expectedEvents = [
-      ASAccessoryEventType.ASAccessoryEventTypeActivated,
-      ASAccessoryEventType.ASAccessoryEventTypePickerDidPresent,
-      ASAccessoryEventType.ASAccessoryEventTypeAccessoryAdded,
-      ASAccessoryEventType.ASAccessoryEventTypePickerDidDismiss,
-      ASAccessoryEventType.ASAccessoryEventTypeAccessoryChanged,
-      ASAccessoryEventType.ASAccessoryEventTypeAccessoryRemoved,
-      ASAccessoryEventType.ASAccessoryEventTypeInvalidated
-    ].map((type) => FFIASAccessoryEventMock(type)).toList();
+  // Events
 
-    // Then
+  test('emits events in order', () {
+    final types = [
+      AccessoryEventType.activated,
+      AccessoryEventType.pickerDidPresent,
+      AccessoryEventType.accessoryAdded,
+      AccessoryEventType.pickerDidDismiss,
+      AccessoryEventType.accessoryRemoved,
+      AccessoryEventType.invalidated,
+    ];
+
     expectLater(
-      sut.eventStream,
-      emitsInOrder(expectedEvents),
+      sut.eventStream.map((e) => e.type),
+      emitsInOrder(types),
     ).timeout(const Duration(seconds: 1));
 
-    // When
-    expectedEvents.forEach(delegateAdapter.handleEvent);
+    types.map(_event).forEach(sut.onAccessoryEvent);
   });
 
   test('event stream supports multiple listeners', () async {
-    // Given
-    final event = FFIASAccessoryEventMock(ASAccessoryEventType.ASAccessoryEventTypeActivated);
+    final event = _event(AccessoryEventType.activated);
+    final first = expectLater(sut.eventStream, emits(event)).timeout(const Duration(seconds: 1));
+    final second = expectLater(sut.eventStream, emits(event)).timeout(const Duration(seconds: 1));
 
-    // Then
-    final firstListener = expectLater(
-      sut.eventStream,
-      emits(event),
-    ).timeout(const Duration(seconds: 1));
-    final secondListener = expectLater(
-      sut.eventStream,
-      emits(event),
-    ).timeout(const Duration(seconds: 1));
-
-    // When
-    delegateAdapter.handleEvent(event);
-
-    // Then
-    await Future.wait([firstListener, secondListener]);
+    sut.onAccessoryEvent(event);
+    await Future.wait([first, second]);
   });
 
-  // Success
+  // Picker
 
-  test('session shows picker', () async {
-    // Given
-    sessionMock.showPickerCallback = () => delegateAdapter.didShowPickerWithError(null);
-    // When
+  test('shows picker', () async {
     await sut.showPicker().timeout(const Duration(seconds: 1));
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
+    expect(api.calls, equals(['showPicker']));
   });
 
-  test('session shows picker for items', () async {
-    // Given
-    sessionMock.showPickerForItemsCallback = () => delegateAdapter.didShowPickerWithError(null);
-    final List<ASPickerDisplayItem> items = [];
-    // When
+  test('shows picker for items', () async {
+    final items = [
+      PickerDisplayItem(name: 'D', imageBytes: Uint8List(0), serviceUuid: '1234'),
+    ];
     await sut.showPickerForItems(items).timeout(const Duration(seconds: 1));
-    // Then
-    expect(listToConvert, equals(items));
-    expect(sessionMock.calls, equals([SessionMockMethodCall.showPickerForItems]));
-    expect(sessionMock.showPickerForItemsValue, equals(convertedList));
+    expect(api.calls, equals(['showPickerForItems']));
+    expect(api.lastItems, equals(items));
   });
 
-  test('rejects second picker call while first showPicker is pending', () async {
-    // Given
-    final firstFuture = sut.showPicker();
+  test('rejects a second picker call while the first is pending', () async {
+    api.showPickerCompleter = Completer<void>();
+    final first = sut.showPicker();
 
-    // When / Then
-    await expectLater(
-        sut.showPickerForItems(const <ASPickerDisplayItem>[]), throwsA(isA<StateError>()));
+    await expectLater(sut.showPickerForItems(const []), throwsA(isA<StateError>()));
 
-    // When
-    delegateAdapter.didShowPickerWithError(null);
-
-    // Then
-    await firstFuture.timeout(const Duration(seconds: 1));
-    expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
+    api.showPickerCompleter!.complete();
+    await first.timeout(const Duration(seconds: 1));
+    expect(api.calls, equals(['showPicker']));
   });
 
-  test('rejects showPickerForDevice while another picker operation is pending', () async {
-    // Given
-    final firstFuture = sut.showPicker();
-
-    // When / Then
-    await expectLater(
-        sut.showPickerForDevice('Device', 'missing_asset.png', '1234'), throwsA(isA<StateError>()));
-
-    // When
-    delegateAdapter.didShowPickerWithError(null);
-
-    // Then
-    await firstFuture.timeout(const Duration(seconds: 1));
-    expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
-  });
-
-  test('showPickerForDevice pre-picker failure clears in-progress state', () async {
-    // Given / When
+  test('showPickerForDevice clears in-progress state on a pre-call failure', () async {
+    // The asset is not registered, so rootBundle.load throws before the host
+    // call and the picker-in-progress flag must be cleared.
     await expectLater(
         sut.showPickerForDevice('Device', 'missing_asset.png', '1234'), throwsA(anything));
 
-    // Then: a subsequent picker call is allowed and completes.
-    final secondFuture = sut.showPicker();
-    delegateAdapter.didShowPickerWithError(null);
-    await secondFuture.timeout(const Duration(seconds: 1));
-    expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
+    await sut.showPicker().timeout(const Duration(seconds: 1));
+    expect(api.calls, equals(['showPicker']));
   });
 
-  test('session renames accessory', () async {
-    // Given
-    final accessory = FFIASAccessoryMock();
-    final options = ASAccessoryRenameOptions.ASAccessoryRenameSSID;
-    sessionMock.renameAccessoryOptionsCallback =
-        () => delegateAdapter.didRenameAccessoryWithError(accessory, null);
-    // When
-    await sut.renameAccessory(accessory, options).timeout(const Duration(seconds: 1));
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.renameAccessoryOptions]));
-    expect(sessionMock.renameAccessoryOptionsAccessoryValue, equals(accessory));
-    expect(sessionMock.renameAccessoryOptionsOptionsValue, equals(options));
+  // Accessory operations
+
+  test('removes an accessory by id', () async {
+    await sut.removeAccessory(_accessory(id: 'XY')).timeout(const Duration(seconds: 1));
+    expect(api.calls, equals(['removeAccessory']));
+    expect(api.lastAccessoryId, equals('XY'));
   });
 
-  test('session removes accessory', () async {
-    // Given
-    final accessory = FFIASAccessoryMock();
-    sessionMock.removeAccessoryCallback =
-        () => delegateAdapter.didRemoveAccessoryWithError(accessory, null);
-    // When
-    await sut.removeAccessory(accessory).timeout(const Duration(seconds: 1));
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.removeAccessory]));
-    expect(sessionMock.removeAccessoryValue, equals(accessory));
+  test('renames an accessory by id with options', () async {
+    final options = RenameOptions(renameSSID: true);
+    await sut.renameAccessory(_accessory(id: 'XY'), options).timeout(const Duration(seconds: 1));
+    expect(api.calls, equals(['renameAccessory']));
+    expect(api.lastAccessoryId, equals('XY'));
+    expect(api.lastRenameOptions, equals(options));
   });
 
-  test('session finishes authorization of the accessory', () async {
-    // Given
-    final accessory = FFIASAccessoryMock();
-    final settings = FFIASAccessorySettingsMock();
-    sessionMock.finishAuthorizationForAccessorySettingsCallback =
-        () => delegateAdapter.didFinishAuthorizationForAccessoryWithError(accessory, null);
-    // When
+  test('finishes authorization with settings', () async {
+    final settings = AccessorySettings(ssid: 'net');
     await sut
-        .finishAuthorizationForAccessory(accessory, settings)
+        .finishAuthorizationForAccessory(_accessory(id: 'XY'), settings)
         .timeout(const Duration(seconds: 1));
-    // Then
-    expect(
-        sessionMock.calls, equals([SessionMockMethodCall.finishAuthorizationForAccessorySettings]));
-    expect(sessionMock.finishAuthorizationForAccessorySettingsAccessoryValue, equals(accessory));
-    expect(sessionMock.finishAuthorizationForAccessorySettingsSettingsValue, equals(settings));
+    expect(api.calls, equals(['finishAuthorization']));
+    expect(api.lastAccessoryId, equals('XY'));
+    expect(api.lastSettings, equals(settings));
   });
 
-  test('session fails authorization of the accessory', () async {
-    // Given
-    final accessory = FFIASAccessoryMock();
-    sessionMock.failAuthorizationForAccessoryCallback =
-        () => delegateAdapter.didFailAuthorizationForAccessoryWithError(accessory, null);
-    // When
-    await sut.failAuthorizationForAccessory(accessory).timeout(const Duration(seconds: 1));
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.failAuthorizationForAccessory]));
-    expect(sessionMock.failAuthorizationForAccessoryValue, equals(accessory));
+  test('fails authorization by id', () async {
+    await sut
+        .failAuthorizationForAccessory(_accessory(id: 'XY'))
+        .timeout(const Duration(seconds: 1));
+    expect(api.calls, equals(['failAuthorization']));
+    expect(api.lastAccessoryId, equals('XY'));
   });
 
-  // Failures
-
-  test('session throws errors when shows picker', () async {
-    // Given
-    final error = FFINSErrorMock();
-    sessionMock.showPickerCallback = () => delegateAdapter.didShowPickerWithError(error);
-    // When
-    expect(
-        () async => sut.showPicker().timeout(const Duration(seconds: 1)), throwsA(convertedError));
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.showPicker]));
-    expect(error, equals(nsErrorToConvert));
+  test('throws when an accessory has no bluetoothIdentifier', () {
+    expect(() => sut.removeAccessory(_accessory(id: null)),
+        throwsA(isA<FlutterAccessorySetupError>()));
   });
 
-  test('session throws errors when shows picker for items', () async {
-    // Given
-    final error = FFINSErrorMock();
-    sessionMock.showPickerForItemsCallback = () => delegateAdapter.didShowPickerWithError(error);
-    final List<ASPickerDisplayItem> items = [];
-    // When
-    expect(() async => sut.showPickerForItems(items).timeout(const Duration(seconds: 1)),
-        throwsA(convertedError));
-    // Then
-    expect(listToConvert, equals(items));
-    expect(sessionMock.calls, equals([SessionMockMethodCall.showPickerForItems]));
-    expect(sessionMock.showPickerForItemsValue, equals(convertedList));
-    expect(error, equals(nsErrorToConvert));
+  // Error mapping
+
+  test('maps PlatformException to NativeCodeError', () async {
+    api.nextError = PlatformException(code: '42', message: 'boom', details: 'com.test.domain');
+    await expectLater(
+      sut.removeAccessory(_accessory(id: 'XY')),
+      throwsA(isA<NativeCodeError>()
+          .having((e) => e.code, 'code', 42)
+          .having((e) => e.domain, 'domain', 'com.test.domain')
+          .having((e) => e.description, 'description', 'boom')),
+    );
   });
 
-  test('session throws errors when renames accessory', () async {
-    // Given
-    final error = FFINSErrorMock();
-    final accessory = FFIASAccessoryMock();
-    final options = ASAccessoryRenameOptions.ASAccessoryRenameSSID;
-    sessionMock.renameAccessoryOptionsCallback =
-        () => delegateAdapter.didRenameAccessoryWithError(accessory, error);
-    // When
-    expect(() async => sut.renameAccessory(accessory, options).timeout(const Duration(seconds: 1)),
-        throwsA(convertedError));
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.renameAccessoryOptions]));
-    expect(sessionMock.renameAccessoryOptionsAccessoryValue, equals(accessory));
-    expect(sessionMock.renameAccessoryOptionsOptionsValue, equals(options));
-    expect(error, equals(nsErrorToConvert));
-  });
-
-  test('session removes accessory', () async {
-    // Given
-    final error = FFINSErrorMock();
-    final accessory = FFIASAccessoryMock();
-    sessionMock.removeAccessoryCallback =
-        () => delegateAdapter.didRemoveAccessoryWithError(accessory, error);
-    // When
-    expect(() async => sut.removeAccessory(accessory).timeout(const Duration(seconds: 1)),
-        throwsA(convertedError));
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.removeAccessory]));
-    expect(sessionMock.removeAccessoryValue, equals(accessory));
-    expect(error, equals(nsErrorToConvert));
-  });
-
-  test('session finishes authorization of the accessory', () async {
-    // Given
-    final error = FFINSErrorMock();
-    final accessory = FFIASAccessoryMock();
-    final settings = FFIASAccessorySettingsMock();
-    sessionMock.finishAuthorizationForAccessorySettingsCallback =
-        () => delegateAdapter.didFinishAuthorizationForAccessoryWithError(accessory, error);
-    // When
-    expect(
-        () async => sut
-            .finishAuthorizationForAccessory(accessory, settings)
-            .timeout(const Duration(seconds: 1)),
-        throwsA(convertedError));
-    // Then
-    expect(
-        sessionMock.calls, equals([SessionMockMethodCall.finishAuthorizationForAccessorySettings]));
-    expect(sessionMock.finishAuthorizationForAccessorySettingsAccessoryValue, equals(accessory));
-    expect(sessionMock.finishAuthorizationForAccessorySettingsSettingsValue, equals(settings));
-    expect(error, equals(nsErrorToConvert));
-  });
-
-  test('session throws errors when fails authorization of the accessory', () async {
-    // Given
-    final error = FFINSErrorMock();
-    final accessory = FFIASAccessoryMock();
-    sessionMock.failAuthorizationForAccessoryCallback =
-        () => delegateAdapter.didFailAuthorizationForAccessoryWithError(accessory, error);
-    // When
-    expect(
-        () async =>
-            sut.failAuthorizationForAccessory(accessory).timeout(const Duration(seconds: 1)),
-        throwsA(convertedError));
-    // Then
-    expect(sessionMock.calls, equals([SessionMockMethodCall.failAuthorizationForAccessory]));
-    expect(sessionMock.failAuthorizationForAccessoryValue, equals(accessory));
-    expect(error, equals(nsErrorToConvert));
+  test('event.failure maps the wire NativeError to NativeCodeError', () {
+    final event = AccessoryEvent(
+      type: AccessoryEventType.pickerSetupFailed,
+      error: NativeError(domain: 'com.test', code: 7, message: 'nope'),
+    );
+    final failure = event.failure;
+    expect(failure, isA<NativeCodeError>());
+    expect(failure!.domain, equals('com.test'));
+    expect(failure.code, equals(7));
+    expect(failure.description, equals('nope'));
+    expect(_event(AccessoryEventType.activated).failure, isNull);
   });
 }
