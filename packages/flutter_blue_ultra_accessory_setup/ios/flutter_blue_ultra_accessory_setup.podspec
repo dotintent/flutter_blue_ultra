@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_blue_ultra_accessory_setup'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'A bridge for AccessorySetupKit for Flutter.'
   s.description      = <<-DESC
 A bridge for AccessorySetupKit for Flutter.
