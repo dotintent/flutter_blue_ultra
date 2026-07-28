@@ -23,6 +23,13 @@ There is a standalone app in [`example`](example) that keeps
 AccessorySetupKit isolated from the regular `flutter_blue_ultra` scanner
 example. Use that app when testing the iOS picker flow.
 
+To verify that merely embedding this package does not crash apps without
+AccessorySetupKit `Info.plist` keys, run the launch regression check:
+
+```sh
+tool/launch_without_ask_keys_test.sh
+```
+
 ### ⚙️ Setup
 
 - For the full details refer [apple docs](https://developer.apple.com/documentation/accessorysetupkit/discovering-and-configuring-accessories)
