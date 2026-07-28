@@ -23,11 +23,21 @@ There is a standalone app in [`example`](example) that keeps
 AccessorySetupKit isolated from the regular `flutter_blue_ultra` scanner
 example. Use that app when testing the iOS picker flow.
 
+To verify that merely embedding this package does not crash apps without
+AccessorySetupKit `Info.plist` keys, run the launch regression check:
+
+```sh
+tool/launch_without_ask_keys_test.sh
+```
+
 ### ⚙️ Setup
 
 - For the full details refer [apple docs](https://developer.apple.com/documentation/accessorysetupkit/discovering-and-configuring-accessories)
 - You should add the keys to the `Info.plist` of the iOS app to make it work.
-  ⚠️ **If you miss the required key the app will crash when you show the picker.** ⚠️
+  ⚠️ **If you miss the required key the app will crash the first time it calls
+  into AccessorySetupKit (e.g. `activate` / `showPicker`).** ⚠️ The native
+  session is created lazily, so merely depending on this package does not crash
+  the app at launch — only an actual ASK call without the keys does.
 
   - ALWAYS: (Bluetooth or WiFi, or both)
 
@@ -37,7 +47,18 @@ example. Use that app when testing the iOS picker flow.
     <string>Bluetooth</string>
     <string>WiFi</string>
   </array>
+  <key>NSAccessorySetupKitSupports</key>
+  <array>
+    <string>Bluetooth</string>
+    <string>WiFi</string>
+  </array>
   ```
+
+  Declare **both** keys. Apple documents
+  [`NSAccessorySetupSupports`](https://developer.apple.com/documentation/bundleresources/information-property-list/nsaccessorysetupsupports)
+  (iOS 18+), but the runtime validates `NSAccessorySetupKitSupports` at
+  `ASAccessorySession` init and fatal-errors when it is missing — even though
+  that key is currently undocumented. Shipping both is the safe choice.
 
   - When you use the `ASDiscoveryDescriptor` with `bluetoothServiceUUID`  
     ⚠️ **The UUID string must be upper-cased here.** ⚠️

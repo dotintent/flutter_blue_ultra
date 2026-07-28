@@ -40,7 +40,8 @@ list after connecting. AccessorySetupKit filters the picker using the advertised
 identifiers declared in `ASDiscoveryDescriptor`; a GATT service that appears
 only after connection is not enough for the picker to match the device.
 
-The example declares both `NSAccessorySetupSupports` and the older
-`NSAccessorySetupKitSupports` compatibility key. `NSAccessorySetupSupports` is
-Apple's current Info.plist key for declaring Bluetooth or Wi-Fi AccessorySetupKit
-support.
+The example declares both `NSAccessorySetupSupports` and
+`NSAccessorySetupKitSupports`. Apple documents `NSAccessorySetupSupports`
+(iOS 18+), but the runtime validates `NSAccessorySetupKitSupports` at
+`ASAccessorySession` init and fatal-errors when it is missing (even though that
+key is currently undocumented), so both are declared.

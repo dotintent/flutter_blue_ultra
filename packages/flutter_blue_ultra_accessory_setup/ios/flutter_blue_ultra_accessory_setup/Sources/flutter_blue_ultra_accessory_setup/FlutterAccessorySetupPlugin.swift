@@ -4,10 +4,15 @@ import Flutter
 import UIKit
 
 /// Flutter plugin bridging Apple's AccessorySetupKit through Pigeon platform
-/// channels. The session is a singleton owned by the plugin instance.
+/// channels. The `ASAccessorySession` is created lazily on first real use, not
+/// at plugin registration, so an app that embeds the plugin but never opens the
+/// picker does not touch ASK at launch.
 public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, AccessorySetupApi {
 
-  private let session = ASAccessorySession()
+  /// nil until the first ASK call. `ASAccessorySession.init` fatal-errors when
+  /// the host Info.plist lacks `NSAccessorySetupKitSupports`, so it must never
+  /// be created from `init`/`register(with:)`.
+  private var session: ASAccessorySession?
   private let flutterApi: AccessorySetupFlutterApi
 
   /// Retains the native accessories so Dart can address them by identifier.
@@ -27,18 +32,30 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
     registrar.publish(instance)
   }
 
+  /// Returns the ASK session, creating it on first use. Deferring creation out
+  /// of `init`/`register(with:)` keeps launch clean for apps that never call
+  /// into ASK; this is the only place `ASAccessorySession()` is constructed.
+  private func sessionCreatingIfNeeded() -> ASAccessorySession {
+    if let session {
+      return session
+    }
+    let created = ASAccessorySession()
+    session = created
+    return created
+  }
+
   // MARK: - AccessorySetupApi
 
   func activate() throws {
     appendLog("activate")
-    session.activate(on: .main) { [weak self] event in
+    sessionCreatingIfNeeded().activate(on: .main) { [weak self] event in
       self?.handle(event: event)
     }
   }
 
   func showPicker(completion: @escaping (Result<Void, Error>) -> Void) {
     appendLog("showPicker")
-    session.showPicker { [weak self] error in
+    sessionCreatingIfNeeded().showPicker { [weak self] error in
       self?.complete(completion, error)
     }
   }
@@ -50,7 +67,7 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
     appendLog("showPickerForItems")
     do {
       let displayItems = try items.map { try makePickerDisplayItem($0) }
-      session.showPicker(for: displayItems) { [weak self] error in
+      sessionCreatingIfNeeded().showPicker(for: displayItems) { [weak self] error in
         self?.complete(completion, error)
       }
     } catch {
@@ -68,7 +85,7 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
     do {
       let item = try makePickerDisplayItem(
         name: name, imageData: imageBytes.data, serviceUuid: serviceUuid)
-      session.showPicker(for: [item]) { [weak self] error in
+      sessionCreatingIfNeeded().showPicker(for: [item]) { [weak self] error in
         self?.complete(completion, error)
       }
     } catch {
@@ -85,7 +102,7 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
       completion(.failure(unknownAccessoryError(accessoryId)))
       return
     }
-    session.removeAccessory(accessory) { [weak self] error in
+    sessionCreatingIfNeeded().removeAccessory(accessory) { [weak self] error in
       self?.complete(completion, error)
     }
   }
@@ -104,7 +121,7 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
     if options.renameSSID {
       renameOptions.insert(.ssid)
     }
-    session.renameAccessory(accessory, options: renameOptions) { [weak self] error in
+    sessionCreatingIfNeeded().renameAccessory(accessory, options: renameOptions) { [weak self] error in
       self?.complete(completion, error)
     }
   }
@@ -123,7 +140,7 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
     accessorySettings.ssid = settings.ssid
     accessorySettings.bluetoothTransportBridgingIdentifier =
       settings.bluetoothTransportBridgingIdentifier?.data
-    session.finishAuthorization(for: accessory, settings: accessorySettings) {
+    sessionCreatingIfNeeded().finishAuthorization(for: accessory, settings: accessorySettings) {
       [weak self] error in
       self?.complete(completion, error)
     }
@@ -138,7 +155,7 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
       completion(.failure(unknownAccessoryError(accessoryId)))
       return
     }
-    session.failAuthorization(for: accessory) { [weak self] error in
+    sessionCreatingIfNeeded().failAuthorization(for: accessory) { [weak self] error in
       self?.complete(completion, error)
     }
   }
@@ -154,7 +171,10 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
 
   func invalidate() throws {
     appendLog("invalidate")
-    session.invalidate()
+    // No-op when the session was never created — don't force-create one just to
+    // tear it down (that would touch ASK and could fatal-error without keys).
+    session?.invalidate()
+    session = nil
   }
 
   // MARK: - Events
@@ -175,6 +195,11 @@ public final class FlutterAccessorySetupPlugin: NSObject, FlutterPlugin, Accesso
 
   @discardableResult
   private func refreshAccessories() -> [Accessory] {
+    // Read the existing session only — never create one here. Creating on a
+    // read would let a `.invalidated` event during teardown resurrect the
+    // session, and would give `getAccessories()` a session-creating side
+    // effect. With no session there are simply no accessories.
+    guard let session else { return [] }
     let native = session.accessories
     var map: [String: ASAccessory] = [:]
     var result: [Accessory] = []

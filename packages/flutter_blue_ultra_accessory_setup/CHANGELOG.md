@@ -1,3 +1,15 @@
+## 0.1.1
+
+* **Fix:** Create the native `ASAccessorySession` lazily on first ASK call
+  instead of at plugin registration. Embedding the plugin no longer crashes an
+  app at launch when its `Info.plist` lacks the `NSAccessorySetupKitSupports`
+  keys — the crash is now only reachable if the app actually calls into
+  AccessorySetupKit without the keys.
+* **Docs:** Correct the required `Info.plist` keys. The runtime validates
+  `NSAccessorySetupKitSupports` at `ASAccessorySession` init and fatal-errors
+  without it, while Apple documents `NSAccessorySetupSupports`; the READMEs now
+  tell apps to declare both.
+
 ## 0.1.0
 
 * **Breaking:** Replace the `dart:ffi`/`objective_c` bridge with Pigeon-based
