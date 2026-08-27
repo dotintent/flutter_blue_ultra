@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_ultra_accessory_setup/flutter_blue_ultra_accessory_setup.dart';
 
+import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
+
 import '../cubits/accessory_setup_cubit.dart';
-import '../theme/app_theme.dart';
-import 'atoms.dart';
 
 class AccessoryStatusPanel extends StatelessWidget {
   const AccessoryStatusPanel({super.key, required this.state});
@@ -12,7 +12,7 @@ class AccessoryStatusPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     final color = state.initError != null
         ? it.accent
         : state.isActivated
@@ -54,66 +54,33 @@ class AccessoryStatusPanel extends StatelessWidget {
                       : state.isActivated
                           ? 'SESSION.READY'
                           : 'SESSION.STARTING',
-                  style: IntentTextStyles.monoLabel(10, it.accent),
+                  style: DsTypography.monoLabel(10, color: it.accent),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   status,
-                  style: IntentTextStyles.serifTitle(20, it.textPrimary),
+                  style: DsTypography.serif(20, color: it.textPrimary),
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (state.connectedId != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     state.connectedId!,
-                    style: IntentTextStyles.mono(10.5, it.textDim),
+                    style: DsTypography.monoStyle(10.5, color: it.textDim),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ],
             ),
           ),
-          IntentChip(
+          DsChip(
             label: state.accessories.length.toString().padLeft(2, '0'),
-            kind: state.accessories.isEmpty
-                ? ChipKind.muted
-                : ChipKind.defaultKind,
-            small: false,
+            variant: state.accessories.isEmpty
+                ? DsChipVariant.muted
+                : DsChipVariant.neutral,
+            size: DsChipSize.medium,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class EmptyState extends StatelessWidget {
-  const EmptyState({
-    super.key,
-    required this.title,
-    required this.icon,
-  });
-
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 26, 20, 24),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: it.textFaint, size: 26),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: IntentTextStyles.sans(13, it.textDim),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -131,55 +98,43 @@ class AccessoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     final authorized = accessory.state == AccessoryState.authorized;
     final id = accessory.bluetoothIdentifier;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: it.border)),
+
+    return DsListRow(
+      minTileHeight: 76,
+      contentPadding: const EdgeInsets.symmetric(horizontal: DsSpace.s20),
+      leading: DsAvatar(
+        child: Icon(
+          Icons.bluetooth,
+          color: authorized ? it.success : it.warn,
+        ),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: it.borderHi),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.bluetooth,
-                size: 20,
-                color: authorized ? it.success : it.warn,
-              ),
-            ),
+      title: Text(
+        id ?? 'No Bluetooth ID',
+        style: DsTypography.serif(16, color: it.textPrimary),
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: DsSpace.s4),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: DsChip(
+            label: authorized ? 'AUTHORIZED' : 'AWAITING',
+            variant:
+                authorized ? DsChipVariant.neutral : DsChipVariant.notify,
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  id ?? 'No Bluetooth ID',
-                  style: IntentTextStyles.serifTitle(16, it.textPrimary),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                IntentChip(
-                  label: authorized ? 'AUTHORIZED' : 'AWAITING',
-                  kind: authorized ? ChipKind.defaultKind : ChipKind.notify,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          IntentIconBtn(
-            onTap: onRemove,
-            child: Icon(Icons.close, color: it.accent, size: 18),
-          ),
-        ],
+        ),
+      ),
+      trailing: DsIconButton(
+        onPressed: onRemove,
+        tooltip: 'Remove accessory',
+        child: Icon(
+          Icons.close,
+          color: it.accent,
+          size: DsSize.iconMedium,
+        ),
       ),
     );
   }
@@ -192,9 +147,9 @@ class EventLogList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     if (entries.isEmpty) {
-      return const EmptyState(
+      return const DsEmptyState(
         icon: Icons.notes,
         title: 'No events yet.',
       );
@@ -222,7 +177,7 @@ class EventLogList extends StatelessWidget {
                 ),
                 child: Text(
                   entry,
-                  style: IntentTextStyles.mono(10.5, it.textDim),
+                  style: DsTypography.monoStyle(10.5, color: it.textDim),
                 ),
               ),
           ],
@@ -246,43 +201,11 @@ class AccessoryPickerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
-    final active = enabled && !loading;
-    return GestureDetector(
-      onTap: active ? onPressed : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        height: 54,
-        decoration: BoxDecoration(
-          color: active ? it.accent : it.surfaceHi,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (loading)
-              const SizedBox.square(
-                dimension: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            else
-              const Icon(Icons.add_circle_outline, color: Colors.white),
-            const SizedBox(width: 10),
-            Text(
-              loading ? 'Opening picker' : 'Show picker',
-              style: IntentTextStyles.sans(
-                14,
-                Colors.white,
-                weight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return DsButton(
+      label: loading ? 'Opening picker' : 'Show picker',
+      icon: Icons.add_circle_outline,
+      loading: loading,
+      onPressed: enabled ? onPressed : null,
     );
   }
 }

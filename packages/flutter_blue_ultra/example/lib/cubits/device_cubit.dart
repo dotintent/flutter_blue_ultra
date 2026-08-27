@@ -4,28 +4,28 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
 
-import '../widgets/atoms.dart';
+import '../models/ble_models.dart';
 
 const Duration _kRssiPollInterval = Duration(seconds: 2);
 const int _kRequestedMtu = 512;
 
 class DeviceState extends Equatable {
   const DeviceState({
-    this.connState = ConnectionDotState.disconnected,
+    this.connState = ConnectionPhase.disconnected,
     this.services = const [],
     this.expanded = const {},
     this.mtu = 23,
     this.currentRssi = 0,
   });
 
-  final ConnectionDotState connState;
+  final ConnectionPhase connState;
   final List<BluetoothService> services;
   final Set<String> expanded;
   final int mtu;
   final int currentRssi;
 
   DeviceState copyWith({
-    ConnectionDotState? connState,
+    ConnectionPhase? connState,
     List<BluetoothService>? services,
     Set<String>? expanded,
     int? mtu,
@@ -61,30 +61,30 @@ class DeviceCubit extends Cubit<DeviceState> {
   Stream<String> get messages => _messages.stream;
 
   Future<void> connect() async {
-    if (state.connState == ConnectionDotState.connecting ||
-        state.connState == ConnectionDotState.discovering ||
-        state.connState == ConnectionDotState.connected) {
+    if (state.connState == ConnectionPhase.connecting ||
+        state.connState == ConnectionPhase.discovering ||
+        state.connState == ConnectionPhase.connected) {
       return;
     }
     await _rssiSub?.cancel();
     _rssiSub = null;
     await _connSub?.cancel();
     _connSub = null;
-    emit(state.copyWith(connState: ConnectionDotState.connecting));
+    emit(state.copyWith(connState: ConnectionPhase.connecting));
     try {
       _connSub = device.connectionState.listen((s) {
         if (isClosed) return;
         if (s == BluetoothConnectionState.connected) {
           _discover();
         } else if (s == BluetoothConnectionState.disconnected) {
-          emit(state.copyWith(connState: ConnectionDotState.disconnected));
+          emit(state.copyWith(connState: ConnectionPhase.disconnected));
         }
       });
 
       await device.connect(autoConnect: false);
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(connState: ConnectionDotState.disconnected));
+      emit(state.copyWith(connState: ConnectionPhase.disconnected));
       _messages.add('Connection failed: $e');
     }
   }
@@ -92,7 +92,7 @@ class DeviceCubit extends Cubit<DeviceState> {
   Future<void> _discover() async {
     if (_discoverInFlight) return;
     _discoverInFlight = true;
-    emit(state.copyWith(connState: ConnectionDotState.discovering));
+    emit(state.copyWith(connState: ConnectionPhase.discovering));
     try {
       final services = await device.discoverServices();
       int mtu = state.mtu;
@@ -111,13 +111,13 @@ class DeviceCubit extends Cubit<DeviceState> {
       emit(state.copyWith(
         services: services,
         mtu: mtu,
-        connState: ConnectionDotState.connected,
+        connState: ConnectionPhase.connected,
         expanded: newExpanded,
       ));
       _startRssi();
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(connState: ConnectionDotState.disconnected));
+      emit(state.copyWith(connState: ConnectionPhase.disconnected));
       _messages.add('Service discovery failed: $e');
     } finally {
       _discoverInFlight = false;

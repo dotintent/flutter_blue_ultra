@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'screens/accessory_setup_screen.dart';
-import 'theme/app_theme.dart';
+import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
 
 class AccessorySetupExampleApp extends StatelessWidget {
   const AccessorySetupExampleApp({super.key});
@@ -11,8 +11,8 @@ class AccessorySetupExampleApp extends StatelessWidget {
     return MaterialApp(
       title: 'Accessory Setup Example',
       debugShowCheckedModeBanner: false,
-      theme: buildLightTheme(),
-      darkTheme: buildDarkTheme(),
+      theme: DsTheme.light(),
+      darkTheme: DsTheme.dark(),
       themeMode: ThemeMode.dark,
       home: const AccessorySetupScreen(),
     );

@@ -2,11 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
+
 import '../cubits/device_cubit.dart';
+import '../models/ble_models.dart';
 import '../models/gatt_names.dart';
-import '../theme/app_theme.dart';
-import '../widgets/atoms.dart';
+import '../widgets/connection_status.dart';
 import 'characteristic_screen.dart';
 
 class DeviceScreen extends StatelessWidget {
@@ -61,7 +62,7 @@ class _DeviceBodyState extends State<_DeviceBody> {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     final name = widget.device.platformName;
     final mac = widget.device.remoteId.str;
 
@@ -75,22 +76,22 @@ class _DeviceBodyState extends State<_DeviceBody> {
           p.mtu != c.mtu ||
           p.expanded != c.expanded,
       builder: (context, state) {
-        final connected = state.connState == ConnectionDotState.connected;
+        final connected = state.connState == ConnectionPhase.connected;
 
         return Scaffold(
-          backgroundColor: it.bg,
+          backgroundColor: it.background,
           body: Column(
             children: [
-              IntentAppBar(
+              DsAppBar(
                 title: 'Device',
                 subtitle: mac,
-                leading: IntentIconBtn(
-                  onTap: () => Navigator.of(context).pop(),
+                leading: DsIconButton(
+                  onPressed: () => Navigator.of(context).pop(),
                   child:
                       Icon(Icons.arrow_back, size: 18, color: it.textPrimary),
                 ),
-                trailing: IntentIconBtn(
-                  onTap: connected
+                trailing: DsIconButton(
+                  onPressed: connected
                       ? () async {
                           await context.read<DeviceCubit>().disconnect();
                           if (context.mounted) Navigator.of(context).pop();
@@ -116,7 +117,7 @@ class _DeviceBodyState extends State<_DeviceBody> {
                             right: -50,
                             child: Opacity(
                               opacity: 0.5,
-                              child: SunburstDecor(size: 220),
+                              child: DsSunburst(size: 220),
                             ),
                           ),
                           Padding(
@@ -124,23 +125,18 @@ class _DeviceBodyState extends State<_DeviceBody> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ConnectionDot(state: state.connState),
+                                ConnectionStatusIndicator(phase: state.connState),
                                 const SizedBox(height: 12),
                                 Text(
                                   name.isNotEmpty ? name : 'Unnamed',
                                   style: name.isNotEmpty
-                                      ? IntentTextStyles.serifTitle(
-                                          32, it.textPrimary)
-                                      : GoogleFonts.crimsonPro(
-                                          fontSize: 32,
-                                          color: it.textDim,
-                                          fontStyle: FontStyle.italic,
-                                        ),
+                                      ? DsTypography.serif(32, color: it.textPrimary)
+                                      : DsTypography.serifItalic(32, color: it.textDim),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '$mac · TX ${widget.rssi > 0 ? '+' : ''}${widget.rssi} dBm',
-                                  style: IntentTextStyles.mono(11, it.textDim),
+                                  style: DsTypography.monoStyle(11, color: it.textDim),
                                 ),
                               ],
                             ),
@@ -201,7 +197,7 @@ class _DeviceBodyState extends State<_DeviceBody> {
                           decoration: BoxDecoration(
                             border: Border.all(
                                 color: state.connState ==
-                                        ConnectionDotState.disconnected
+                                        ConnectionPhase.disconnected
                                     ? it.borderHi
                                     : it.accent),
                             borderRadius: BorderRadius.circular(999),
@@ -210,21 +206,19 @@ class _DeviceBodyState extends State<_DeviceBody> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (state.connState !=
-                                  ConnectionDotState.disconnected) ...[
+                                  ConnectionPhase.disconnected) ...[
                                 _SpinnerWidget(color: it.accent),
                                 const SizedBox(width: 10),
                               ],
                               Text(
-                                state.connState == ConnectionDotState.connecting
+                                state.connState == ConnectionPhase.connecting
                                     ? 'ESTABLISHING GATT…'
                                     : state.connState ==
-                                            ConnectionDotState.discovering
+                                            ConnectionPhase.discovering
                                         ? 'DISCOVERING SERVICES…'
                                         : 'DISCONNECTED',
-                                style: IntentTextStyles.monoLabel(
-                                    12,
-                                    state.connState ==
-                                            ConnectionDotState.disconnected
+                                style: DsTypography.monoLabel(12, color: state.connState ==
+                                            ConnectionPhase.disconnected
                                         ? it.textPrimary
                                         : it.accent),
                               ),
@@ -237,7 +231,7 @@ class _DeviceBodyState extends State<_DeviceBody> {
                         child: GestureDetector(
                           onTap: () async {
                             if (state.connState ==
-                                ConnectionDotState.disconnected) {
+                                ConnectionPhase.disconnected) {
                               await context.read<DeviceCubit>().connect();
                             } else {
                               await context.read<DeviceCubit>().disconnect();
@@ -248,20 +242,20 @@ class _DeviceBodyState extends State<_DeviceBody> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 18, vertical: 8),
                             child: Text(
-                              state.connState == ConnectionDotState.disconnected
+                              state.connState == ConnectionPhase.disconnected
                                   ? 'RETRY'
                                   : 'CANCEL',
-                              style: IntentTextStyles.monoLabel(11, it.textDim),
+                              style: DsTypography.monoLabel(11, color: it.textDim),
                             ),
                           ),
                         ),
                       ),
                     ] else ...[
-                      SectionHeader(
+                      DsSectionHeader(
                         label: 'Services',
                         count: state.services.length,
                         trailing: Text('GATT',
-                            style: IntentTextStyles.mono(10, it.textFaint,
+                            style: DsTypography.monoStyle(10, color: it.textFaint,
                                 letterSpacing: 1)),
                       ),
                       ...state.services.map((s) => _ServiceCard(
@@ -304,7 +298,7 @@ class _StatCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     // Caller is responsible for wrapping in Expanded — keeps this widget
     // free of Flex assumptions so BlocSelector can wrap it cleanly.
     return Column(
@@ -312,17 +306,17 @@ class _StatCell extends StatelessWidget {
       children: [
         Text(label,
             style:
-                IntentTextStyles.mono(9.5, it.textFaint, letterSpacing: 1.2)),
+                DsTypography.monoStyle(9.5, color: it.textFaint, letterSpacing: 1.2)),
         const SizedBox(height: 2),
         RichText(
           text: TextSpan(
-            style: IntentTextStyles.serifDisplay(24, it.textPrimary,
+            style: DsTypography.serifDisplay(24, color: it.textPrimary,
                 letterSpacing: -0.5),
             children: [
               TextSpan(text: value),
               TextSpan(
                 text: ' $unit',
-                style: IntentTextStyles.mono(11, it.textDim),
+                style: DsTypography.monoStyle(11, color: it.textDim),
               ),
             ],
           ),
@@ -351,7 +345,7 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     return Container(
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: it.border)),
@@ -373,7 +367,7 @@ class _ServiceCard extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text('S',
-                          style: IntentTextStyles.monoLabel(9, it.accent)),
+                          style: DsTypography.monoLabel(9, color: it.accent)),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -382,17 +376,16 @@ class _ServiceCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(_displayName,
-                            style: IntentTextStyles.serifTitle(
-                                16, it.textPrimary)),
+                            style: DsTypography.serif(16, color: it.textPrimary)),
                         const SizedBox(height: 3),
                         Row(
                           children: [
-                            UUIDText(
+                            DsUuidText(
                                 uuid: service.serviceUuid.str, short: true),
                             const SizedBox(width: 8),
                             Text(
                               '· ${service.characteristics.length} char',
-                              style: IntentTextStyles.mono(10.5, it.textFaint),
+                              style: DsTypography.monoStyle(10.5, color: it.textFaint),
                             ),
                           ],
                         ),
@@ -432,7 +425,7 @@ class _CharRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     final props = characteristic.properties;
     return InkWell(
       onTap: onTap,
@@ -449,10 +442,10 @@ class _CharRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(_displayName,
-                      style: IntentTextStyles.sans(13.5, it.textPrimary,
+                      style: DsTypography.sans(13.5, color: it.textPrimary,
                           weight: FontWeight.w500)),
                   const SizedBox(height: 2),
-                  UUIDText(
+                  DsUuidText(
                       uuid: characteristic.characteristicUuid.str, short: true),
                 ],
               ),
@@ -460,17 +453,17 @@ class _CharRow extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (props.read) const IntentChip(label: 'R'),
+                if (props.read) const DsChip(label: 'R'),
                 if (props.write || props.writeWithoutResponse)
                   const Padding(
                     padding: EdgeInsets.only(left: 4),
-                    child: IntentChip(label: 'W'),
+                    child: DsChip(label: 'W'),
                   ),
                 if (props.notify || props.indicate)
                   Padding(
                     padding: const EdgeInsets.only(left: 4),
-                    child: IntentChip(
-                        label: props.notify ? 'N' : 'I', kind: ChipKind.notify),
+                    child: DsChip(
+                        label: props.notify ? 'N' : 'I', variant: DsChipVariant.notify),
                   ),
                 const SizedBox(width: 4),
                 Icon(Icons.chevron_right, size: 13, color: it.textFaint),

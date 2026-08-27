@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../cubits/characteristic_cubit.dart';
 import '../models/ble_models.dart';
 import '../models/gatt_names.dart';
-import '../theme/app_theme.dart';
-import '../widgets/atoms.dart';
+import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
 
 class CharacteristicScreen extends StatelessWidget {
   const CharacteristicScreen({
@@ -116,7 +114,7 @@ class _CharacteristicViewState extends State<_CharacteristicView>
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     final props = widget.characteristic.properties;
 
     return BlocBuilder<CharacteristicCubit, CharacteristicState>(
@@ -124,19 +122,19 @@ class _CharacteristicViewState extends State<_CharacteristicView>
         final cubit = context.read<CharacteristicCubit>();
 
         return Scaffold(
-          backgroundColor: it.bg,
+          backgroundColor: it.background,
           body: Column(
             children: [
-              IntentAppBar(
+              DsAppBar(
                 title: 'Characteristic',
                 subtitle: _serviceName,
-                leading: IntentIconBtn(
-                  onTap: () => Navigator.of(context).pop(),
+                leading: DsIconButton(
+                  onPressed: () => Navigator.of(context).pop(),
                   child:
                       Icon(Icons.arrow_back, size: 18, color: it.textPrimary),
                 ),
-                trailing: IntentIconBtn(
-                  onTap: () {
+                trailing: DsIconButton(
+                  onPressed: () {
                     Clipboard.setData(ClipboardData(
                         text: widget.characteristic.characteristicUuid.str));
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -152,31 +150,31 @@ class _CharacteristicViewState extends State<_CharacteristicView>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('· $_shortUuid',
-                        style: IntentTextStyles.monoLabel(11, it.accent)),
+                        style: DsTypography.monoLabel(11, color: it.accent)),
                     const SizedBox(height: 10),
                     Text(_charName,
-                        style: IntentTextStyles.serifTitle(28, it.textPrimary)),
+                        style: DsTypography.serif(28, color: it.textPrimary)),
                     const SizedBox(height: 14),
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        if (props.read) const IntentChip(label: 'READ'),
-                        if (props.write) const IntentChip(label: 'WRITE'),
+                        if (props.read) const DsChip(label: 'READ'),
+                        if (props.write) const DsChip(label: 'WRITE'),
                         if (props.writeWithoutResponse)
-                          const IntentChip(label: 'WRITE NO RSP'),
+                          const DsChip(label: 'WRITE NO RSP'),
                         if (props.notify)
-                          const IntentChip(
-                              label: 'NOTIFY', kind: ChipKind.notify),
+                          const DsChip(
+                              label: 'NOTIFY', variant: DsChipVariant.notify),
                         if (props.indicate)
-                          const IntentChip(
-                              label: 'INDICATE', kind: ChipKind.notify),
+                          const DsChip(
+                              label: 'INDICATE', variant: DsChipVariant.notify),
                       ],
                     ),
                     const SizedBox(height: 18),
                     Text(
                       widget.characteristic.characteristicUuid.str,
-                      style: IntentTextStyles.mono(10.5, it.textDim,
+                      style: DsTypography.monoStyle(10.5, color: it.textDim,
                           letterSpacing: 0.3),
                     ),
                   ],
@@ -194,9 +192,9 @@ class _CharacteristicViewState extends State<_CharacteristicView>
                     unselectedLabelColor: it.textDim,
                     indicatorColor: it.accent,
                     indicatorWeight: 2,
-                    labelStyle: IntentTextStyles.sans(13, it.textPrimary,
+                    labelStyle: DsTypography.sans(13, color: it.textPrimary,
                         weight: FontWeight.w600),
-                    unselectedLabelStyle: IntentTextStyles.sans(13, it.textDim,
+                    unselectedLabelStyle: DsTypography.sans(13, color: it.textDim,
                         weight: FontWeight.w500),
                     tabs: _tabs.map((t) => Tab(text: t)).toList(),
                   ),
@@ -238,7 +236,7 @@ class _CharacteristicViewState extends State<_CharacteristicView>
                   child: Center(
                     child: Text(
                       'No supported operations',
-                      style: IntentTextStyles.sans(14, it.textDim),
+                      style: DsTypography.sans(14, color: it.textDim),
                     ),
                   ),
                 ),
@@ -265,7 +263,7 @@ class _ReadTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
       child: Column(
@@ -276,7 +274,7 @@ class _ReadTab extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Last value · ${value.isEmpty ? '—' : '${value.length} byte${value.length == 1 ? '' : 's'}'}',
-                  style: IntentTextStyles.mono(10, it.textFaint,
+                  style: DsTypography.monoStyle(10, color: it.textFaint,
                       letterSpacing: 1.4),
                 ),
               ),
@@ -298,8 +296,7 @@ class _ReadTab extends StatelessWidget {
                       ),
                       child: Text(
                         f.label(),
-                        style: IntentTextStyles.mono(
-                            10, active ? it.bg : it.textDim,
+                        style: DsTypography.monoStyle(10, color: active ? it.background : it.textDim,
                             letterSpacing: 0.5),
                       ),
                     ),
@@ -309,24 +306,19 @@ class _ReadTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: it.surface,
-              border: Border.all(color: it.border),
-              borderRadius: BorderRadius.circular(18),
-            ),
+          DsCard(
+            padding: const EdgeInsets.all(DsSpace.s24),
             child: SelectableText(
               value.isEmpty ? '—' : format.format(value),
               style:
-                  IntentTextStyles.mono(22, it.textPrimary, letterSpacing: 0.4),
+                  DsTypography.monoStyle(22, color: it.textPrimary, letterSpacing: 0.4),
             ),
           ),
           const SizedBox(height: 14),
-          IntentButton(
+          DsButton(
             label: 'Read',
             icon: Icons.download,
-            onTap: onRead,
+            onPressed: onRead,
           ),
         ],
       ),
@@ -383,7 +375,7 @@ class _WriteTabState extends State<_WriteTab> {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     final byteCount =
         (widget.input.replaceAll(RegExp(r'\s'), '').length / 2).floor();
 
@@ -394,28 +386,25 @@ class _WriteTabState extends State<_WriteTab> {
         children: [
           Text('Payload (hex)',
               style:
-                  IntentTextStyles.mono(10, it.textFaint, letterSpacing: 1.4)),
+                  DsTypography.monoStyle(10, color: it.textFaint, letterSpacing: 1.4)),
           const SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              color: it.surface,
-              border: Border.all(color: it.border),
-              borderRadius: BorderRadius.circular(14),
-            ),
+          DsCard(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(DsRadius.medium),
             child: TextField(
               controller: _controller,
               onChanged: widget.onInputChange,
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
               ],
-              style: IntentTextStyles.mono(16, it.textPrimary),
+              style: DsTypography.monoStyle(16, color: it.textPrimary),
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                 border: InputBorder.none,
                 hintText: 'e.g. 01 FF A0',
-                hintStyle: IntentTextStyles.mono(16, it.textFaint),
+                hintStyle: DsTypography.monoStyle(16, color: it.textFaint),
               ),
             ),
           ),
@@ -425,20 +414,20 @@ class _WriteTabState extends State<_WriteTab> {
             children: [
               Text(
                   '$byteCount BYTE · MAX ${widget.negotiatedMtu > 3 ? widget.negotiatedMtu - 3 : 0}',
-                  style: IntentTextStyles.mono(10, it.textDim,
+                  style: DsTypography.monoStyle(10, color: it.textDim,
                       letterSpacing: 0.5)),
               Text(
                   widget.isWriteNoResponse
                       ? 'WRITE_WITHOUT_RSP'
                       : 'WRITE_REQUEST',
-                  style: IntentTextStyles.mono(10, it.textDim,
+                  style: DsTypography.monoStyle(10, color: it.textDim,
                       letterSpacing: 0.5)),
             ],
           ),
           const SizedBox(height: 18),
           Text('Quick fill',
               style:
-                  IntentTextStyles.mono(10, it.textFaint, letterSpacing: 1.4)),
+                  DsTypography.monoStyle(10, color: it.textFaint, letterSpacing: 1.4)),
           const SizedBox(height: 8),
           GridView.count(
             crossAxisCount: 2,
@@ -457,15 +446,15 @@ class _WriteTabState extends State<_WriteTab> {
                         ),
                         child: Center(
                           child: Text(p,
-                              style: IntentTextStyles.mono(12, it.textPrimary)),
+                              style: DsTypography.monoStyle(12, color: it.textPrimary)),
                         ),
                       ),
                     ))
                 .toList(),
           ),
           const SizedBox(height: 18),
-          IntentButton(
-              label: 'Write', icon: Icons.upload, onTap: widget.onWrite),
+          DsButton(
+              label: 'Write', icon: Icons.upload, onPressed: widget.onWrite),
         ],
       ),
     );
@@ -487,7 +476,7 @@ class _NotifyTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -501,14 +490,14 @@ class _NotifyTab extends StatelessWidget {
                   children: [
                     Text(
                       notifying ? 'Subscribed' : 'Subscribe to notifications',
-                      style: IntentTextStyles.serifTitle(15, it.textPrimary),
+                      style: DsTypography.serif(15, color: it.textPrimary),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       notifying
                           ? '${stream.length} packet${stream.length == 1 ? '' : 's'} · CCCD 0x0001'
                           : 'CCCD 0x0000',
-                      style: IntentTextStyles.mono(11, it.textDim),
+                      style: DsTypography.monoStyle(11, color: it.textDim),
                     ),
                   ],
                 ),
@@ -551,12 +540,11 @@ class _NotifyTab extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('· Stream',
-                  style: IntentTextStyles.mono(10, it.textFaint,
+                  style: DsTypography.monoStyle(10, color: it.textFaint,
                       letterSpacing: 1.4)),
               Text(
                 notifying ? 'LIVE' : 'IDLE',
-                style: IntentTextStyles.monoLabel(
-                    10, notifying ? it.accent : it.textFaint),
+                style: DsTypography.monoLabel(10, color: notifying ? it.accent : it.textFaint),
               ),
             ],
           ),
@@ -569,11 +557,7 @@ class _NotifyTab extends StatelessWidget {
                     notifying
                         ? 'Waiting for first packet…'
                         : 'Toggle to subscribe.',
-                    style: GoogleFonts.crimsonPro(
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                      color: it.textDim,
-                    ),
+                    style: DsTypography.serifItalic(13, color: it.textDim),
                   ),
                 )
               : ListView.separated(
@@ -595,17 +579,13 @@ class _NotifyTab extends StatelessWidget {
                                 Text(
                                   format.format(p.bytes),
                                   style:
-                                      IntentTextStyles.mono(12, it.textPrimary),
+                                      DsTypography.monoStyle(12, color: it.textPrimary),
                                 ),
                                 if (parsed != null) ...[
                                   const SizedBox(height: 2),
                                   Text(
                                     parsed,
-                                    style: GoogleFonts.crimsonPro(
-                                      fontSize: 13,
-                                      fontStyle: FontStyle.italic,
-                                      color: it.accent,
-                                    ),
+                                    style: DsTypography.serifItalic(13, color: it.accent),
                                   ),
                                 ],
                               ],
@@ -615,7 +595,7 @@ class _NotifyTab extends StatelessWidget {
                             '${p.timestamp.hour.toString().padLeft(2, '0')}:'
                             '${p.timestamp.minute.toString().padLeft(2, '0')}:'
                             '${p.timestamp.second.toString().padLeft(2, '0')}',
-                            style: IntentTextStyles.mono(10, it.textFaint),
+                            style: DsTypography.monoStyle(10, color: it.textFaint),
                           ),
                         ],
                       ),

@@ -75,4 +75,6 @@ UI — every state mutation routes through `context.read<…Cubit>()`.
   `buildWhen` comments in those screens.
 - Typography is provided by the [`google_fonts`](https://pub.dev/packages/google_fonts) package
   (`Crimson Pro` for serif, `Inter` for sans, `JetBrains Mono` for mono).
-  Theme tokens live in [`lib/theme/app_theme.dart`](lib/theme/app_theme.dart).
+  Theme tokens and shared widgets live in the
+  [`flutter_blue_ultra_design_system`](../../flutter_blue_ultra_design_system)
+  package, shared with the accessory-setup example.

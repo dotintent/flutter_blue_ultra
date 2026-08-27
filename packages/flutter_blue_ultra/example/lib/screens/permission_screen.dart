@@ -2,8 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubits/permission_cubit.dart';
-import '../theme/app_theme.dart';
-import '../widgets/atoms.dart';
+import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
 
 const _iosLabels = [
   ('BLUETOOTH', 'Scan, connect & exchange GATT data'),
@@ -68,14 +67,14 @@ class PermissionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final it = DsColors.of(context);
 
     return BlocProvider(
       create: (_) => PermissionCubit(),
       child: BlocBuilder<PermissionCubit, PermissionState>(
         builder: (context, state) {
           return Scaffold(
-            backgroundColor: it.bg,
+            backgroundColor: it.background,
             body: Stack(
               children: [
                 Positioned(
@@ -83,10 +82,10 @@ class PermissionScreen extends StatelessWidget {
                   right: -60,
                   child: Opacity(
                     opacity: 0.6,
-                    child: ConcentricDecor(
+                    child: DsConcentricRings(
                       size: 320,
                       strokeOpacity: it.isDark ? 0.18 : 0.22,
-                      dot: true,
+                      showCore: true,
                     ),
                   ),
                 ),
@@ -95,10 +94,10 @@ class PermissionScreen extends StatelessWidget {
                   left: -100,
                   child: Opacity(
                     opacity: 0.5,
-                    child: ConcentricDecor(
+                    child: DsConcentricRings(
                       size: 300,
                       strokeOpacity: it.isDark ? 0.12 : 0.15,
-                      dot: false,
+                      showCore: false,
                     ),
                   ),
                 ),
@@ -108,17 +107,16 @@ class PermissionScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const IntentMark(height: 20),
+                        const DsBrandMark(height: 20),
                         const SizedBox(height: 60),
                         Text(
                           '· STEP 01 / 03',
-                          style: IntentTextStyles.monoLabel(12, it.accent),
+                          style: DsTypography.monoLabel(12, color: it.accent),
                         ),
                         const SizedBox(height: 16),
                         RichText(
                           text: TextSpan(
-                            style: IntentTextStyles.serifDisplay(
-                                38, it.textPrimary,
+                            style: DsTypography.serifDisplay(38, color: it.textPrimary,
                                 letterSpacing: -1),
                             children: [
                               const TextSpan(text: 'Permission to '),
@@ -135,7 +133,7 @@ class PermissionScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(
                           "We'll scan for nearby Bluetooth Low Energy peripherals so you can connect, inspect, and exchange data.",
-                          style: IntentTextStyles.sans(14, it.textDim),
+                          style: DsTypography.sans(14, color: it.textDim),
                         ),
                         const SizedBox(height: 36),
                         FutureBuilder<List<(String, String)>>(
@@ -179,8 +177,7 @@ class PermissionScreen extends StatelessWidget {
                                       children: [
                                         Text(
                                           '0${i + 1}',
-                                          style: IntentTextStyles.mono(
-                                              11, it.textFaint),
+                                          style: DsTypography.monoStyle(11, color: it.textFaint),
                                         ),
                                         const SizedBox(width: 14),
                                         Expanded(
@@ -189,12 +186,10 @@ class PermissionScreen extends StatelessWidget {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(perm,
-                                                  style: IntentTextStyles.mono(
-                                                      11.5, it.textPrimary)),
+                                                  style: DsTypography.monoStyle(11.5, color: it.textPrimary)),
                                               const SizedBox(height: 3),
                                               Text(desc,
-                                                  style: IntentTextStyles.sans(
-                                                      12.5, it.textDim)),
+                                                  style: DsTypography.sans(12.5, color: it.textDim)),
                                             ],
                                           ),
                                         ),
@@ -217,11 +212,11 @@ class PermissionScreen extends StatelessWidget {
                           },
                         ),
                         const Spacer(),
-                        IntentButton(
+                        DsButton(
                           label: state.requesting
                               ? 'Requesting…'
                               : 'Grant & continue',
-                          onTap: state.requesting
+                          onPressed: state.requesting
                               ? null
                               : () => _onGrantTap(context),
                         ),
@@ -229,7 +224,7 @@ class PermissionScreen extends StatelessWidget {
                         Center(
                           child: Text(
                             'REVOCABLE IN SYSTEM SETTINGS',
-                            style: IntentTextStyles.mono(11, it.textFaint,
+                            style: DsTypography.monoStyle(11, color: it.textFaint,
                                 letterSpacing: 0.5),
                           ),
                         ),

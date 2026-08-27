@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubits/accessory_setup_cubit.dart';
-import '../theme/app_theme.dart';
-import '../widgets/atoms.dart';
+import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
 import '../widgets/accessory_setup_widgets.dart';
 
 class AccessorySetupScreen extends StatelessWidget {
@@ -69,17 +68,17 @@ class _AccessorySetupViewState extends State<_AccessorySetupView> {
     return BlocBuilder<AccessorySetupCubit, AccessorySetupState>(
       builder: (context, state) {
         final cubit = context.read<AccessorySetupCubit>();
-        final it = IntentTheme.of(context);
+        final it = DsColors.of(context);
 
         return Scaffold(
-          backgroundColor: it.bg,
+          backgroundColor: it.background,
           body: Column(
             children: [
-              IntentAppBar(
+              DsAppBar(
                 title: 'Accessory SetupKit',
                 subtitle: 'iOS pairing picker',
-                trailing: IntentIconBtn(
-                  onTap: cubit.printNativeSessionLogs,
+                trailing: DsIconButton(
+                  onPressed: cubit.printNativeSessionLogs,
                   child: Icon(
                     Icons.bug_report_outlined,
                     color: it.textPrimary,
@@ -98,17 +97,13 @@ class _AccessorySetupViewState extends State<_AccessorySetupView> {
                         children: [
                           Text(
                             '· ACCESSORY SETUPKIT',
-                            style: IntentTextStyles.monoLabel(
-                              11,
-                              it.textFaint,
+                            style: DsTypography.monoLabel(11, color: it.textFaint,
                             ),
                           ),
                           const SizedBox(height: 14),
                           RichText(
                             text: TextSpan(
-                              style: IntentTextStyles.serifDisplay(
-                                40,
-                                it.textPrimary,
+                              style: DsTypography.serifDisplay(40, color: it.textPrimary,
                                 letterSpacing: -1.5,
                               ),
                               children: [
@@ -126,19 +121,19 @@ class _AccessorySetupViewState extends State<_AccessorySetupView> {
                           const SizedBox(height: 8),
                           Text(
                             'The picker filters for ${cubit.config.serviceUuid}.',
-                            style: IntentTextStyles.sans(13.5, it.textDim),
+                            style: DsTypography.sans(13.5, color: it.textDim),
                           ),
                           const SizedBox(height: 22),
                           AccessoryStatusPanel(state: state),
                         ],
                       ),
                     ),
-                    SectionHeader(
+                    DsSectionHeader(
                       label: 'Paired accessories',
                       count: state.accessories.length,
                     ),
                     if (state.accessories.isEmpty)
-                      const EmptyState(
+                      const DsEmptyState(
                         icon: Icons.bluetooth_searching,
                         title: 'No accessories paired yet.',
                       )
@@ -148,7 +143,7 @@ class _AccessorySetupViewState extends State<_AccessorySetupView> {
                           accessory: accessory,
                           onRemove: () => cubit.removeAccessory(accessory),
                         ),
-                    SectionHeader(
+                    DsSectionHeader(
                       label: 'Event log',
                       trailing: state.eventLog.isEmpty
                           ? null
