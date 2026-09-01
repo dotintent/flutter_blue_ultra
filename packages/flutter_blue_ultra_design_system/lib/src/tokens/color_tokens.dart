@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class DsColorTokens {
   const DsColorTokens._();
 
-  static const Color accent = Color(0xFFFF3B5C);
-  static const Color accentSoftDark = Color(0x24FF3B5C);
-  static const Color accentSoftLight = Color(0x1AFF3B5C);
+  static const Color accent = Color(0xFFFF304D);
+  static const Color accentSoftDark = Color(0x24FF304D);
+  static const Color accentSoftLight = Color(0x1AFF304D);
   static const Color onAccent = Color(0xFFFFFFFF);
 
   static const Color bgDark = Color(0xFF0A0A0A);
@@ -16,7 +16,7 @@ class DsColorTokens {
   static const Color borderHiDark = Color(0x29FFFFFF);
   static const Color textDark = Color(0xFFFFFFFF);
   static const Color textDimDark = Color(0xFF9A9A9A);
-  static const Color textFaintDark = Color(0xFF5A5A5A);
+  static const Color textFaintDark = Color(0xFF7A7A7A);
   static const Color successDark = Color(0xFF7CE0A8);
   static const Color warnDark = Color(0xFFF5C66F);
   static const Color chipBgDark = Color(0x0FFFFFFF);

@@ -133,7 +133,11 @@ class PermissionScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(
                           "We'll scan for nearby Bluetooth Low Energy peripherals so you can connect, inspect, and exchange data.",
-                          style: DsTypography.sans(14, color: it.textDim),
+                          style: DsTypography.sans(
+                            14,
+                            color: it.textDim,
+                            height: 1.45,
+                          ),
                         ),
                         const SizedBox(height: 36),
                         FutureBuilder<List<(String, String)>>(
@@ -185,8 +189,15 @@ class PermissionScreen extends StatelessWidget {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(perm,
-                                                  style: DsTypography.monoStyle(11.5, color: it.textPrimary)),
+                                              Text(
+                                                perm,
+                                                style: DsTypography.monoStyle(
+                                                  11.5,
+                                                  color: it.textPrimary,
+                                                  letterSpacing:
+                                                      DsTracking.monoTight,
+                                                ),
+                                              ),
                                               const SizedBox(height: 3),
                                               Text(desc,
                                                   style: DsTypography.sans(12.5, color: it.textDim)),
@@ -219,6 +230,10 @@ class PermissionScreen extends StatelessWidget {
                           onPressed: state.requesting
                               ? null
                               : () => _onGrantTap(context),
+                          style: FilledButton.styleFrom(
+                            disabledBackgroundColor: it.accent,
+                            disabledForegroundColor: it.onAccent,
+                          ),
                         ),
                         const SizedBox(height: 14),
                         Center(

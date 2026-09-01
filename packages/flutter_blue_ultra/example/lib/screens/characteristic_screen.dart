@@ -282,22 +282,25 @@ class _ReadTab extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: ValueFormat.values.map((f) {
                   final active = f == format;
-                  return GestureDetector(
-                    onTap: () => onFormatChange(f),
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 4),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: active ? it.textPrimary : Colors.transparent,
-                        border: Border.all(
-                            color: active ? it.textPrimary : it.border),
-                        borderRadius: BorderRadius.circular(999),
+                  return Padding(
+                    padding: const EdgeInsets.only(left: DsSpace.s4),
+                    child: DsChip(
+                      label: f.label(),
+                      onPressed: () => onFormatChange(f),
+                      backgroundColor:
+                          active ? it.textPrimary : Colors.transparent,
+                      foregroundColor: active ? it.background : it.textDim,
+                      side: BorderSide(
+                        color: active ? it.textPrimary : it.border,
                       ),
-                      child: Text(
-                        f.label(),
-                        style: DsTypography.monoStyle(10, color: active ? it.background : it.textDim,
-                            letterSpacing: 0.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: DsSpace.s4,
+                      ),
+                      labelStyle: DsTypography.monoStyle(
+                        10,
+                        color: active ? it.background : it.textDim,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   );
@@ -437,17 +440,17 @@ class _WriteTabState extends State<_WriteTab> {
             crossAxisSpacing: 8,
             childAspectRatio: 4,
             children: _quickFill
-                .map((p) => GestureDetector(
-                      onTap: () => widget.onInputChange(p.replaceAll(' ', '')),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: it.border),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Center(
-                          child: Text(p,
-                              style: DsTypography.monoStyle(12, color: it.textPrimary)),
-                        ),
+                .map((p) => DsButton(
+                      label: p,
+                      variant: DsButtonVariant.outlined,
+                      size: DsButtonSize.small,
+                      onPressed: () =>
+                          widget.onInputChange(p.replaceAll(' ', '')),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: it.textPrimary,
+                        side: BorderSide(color: it.border),
+                        textStyle: DsTypography.monoStyle(12),
+                        minimumSize: Size.zero,
                       ),
                     ))
                 .toList(),

@@ -75,12 +75,14 @@ class DsTypography extends ThemeExtension<DsTypography> {
     Color? color,
     FontWeight weight = DsFontWeight.regular,
     double letterSpacing = DsTracking.mono,
+    double? height,
   }) =>
       GoogleFonts.jetBrainsMono(
         fontSize: size,
         color: color,
         fontWeight: weight,
         letterSpacing: letterSpacing,
+        height: height,
       );
 
   static TextStyle serifItalic(double size, {Color? color}) => serif(
@@ -104,12 +106,14 @@ class DsTypography extends ThemeExtension<DsTypography> {
     Color? color,
     FontWeight weight = DsFontWeight.regular,
     double letterSpacing = DsTracking.body,
+    double? height,
   }) =>
       GoogleFonts.inter(
         fontSize: size,
         color: color,
         fontWeight: weight,
         letterSpacing: letterSpacing,
+        height: height,
       );
 
   static final DsTypography standard = DsTypography(

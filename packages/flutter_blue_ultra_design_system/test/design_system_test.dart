@@ -14,6 +14,13 @@ Widget _gallery() {
         const DsChip(label: 'NOTIFY', variant: DsChipVariant.notify),
         const DsChip(label: 'IDLE', variant: DsChipVariant.muted),
         const DsChip(label: 'LIVE', variant: DsChipVariant.accent),
+        const DsChip(
+          label: 'ESTABLISHING GATT…',
+          avatar: SizedBox.square(
+            dimension: 12,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
         DsButton(label: 'Connect', onPressed: () {}),
         DsButton(
           label: 'Loading',
@@ -116,6 +123,36 @@ void main() {
     expect(DsColors.of(ctx).accent, cyan);
     expect(DsDimensions.of(ctx).screenPadding, 4);
     expect(Theme.of(ctx).colorScheme.primary, cyan);
+  });
+
+  testWidgets('per-instance disabled colors beat the theme', (tester) async {
+    late BuildContext ctx;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DsTheme.dark(),
+        home: Builder(builder: (context) {
+          ctx = context;
+          return Scaffold(
+            body: DsButton(
+              label: 'Requesting…',
+              onPressed: null,
+              style: FilledButton.styleFrom(
+                disabledBackgroundColor: DsColors.of(context).accent,
+                disabledForegroundColor: DsColors.of(context).onAccent,
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+    final material = tester.widget<Material>(
+      find.descendant(
+        of: find.byType(FilledButton),
+        matching: find.byType(Material),
+      ),
+    );
+    expect(material.color, DsColors.of(ctx).accent);
+    expect(material.color, isNot(DsColors.of(ctx).surfaceHi));
   });
 
   testWidgets('per-instance style beats the theme default', (tester) async {

@@ -21,6 +21,8 @@ class DsChip extends StatelessWidget {
     this.side,
     this.labelStyle,
     this.padding,
+    this.labelPadding,
+    this.avatarBoxConstraints,
     this.shape,
   });
 
@@ -34,6 +36,8 @@ class DsChip extends StatelessWidget {
   final BorderSide? side;
   final TextStyle? labelStyle;
   final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? labelPadding;
+  final BoxConstraints? avatarBoxConstraints;
   final OutlinedBorder? shape;
 
   ({Color background, Color foreground, bool bordered}) _palette(
@@ -92,7 +96,10 @@ class DsChip extends StatelessWidget {
             horizontal: isSmall ? dimensions.spaceSm : 10,
             vertical: isSmall ? dimensions.spaceXxs : dimensions.spaceXs,
           ),
-      labelPadding: EdgeInsets.zero,
+      labelPadding: labelPadding ??
+          EdgeInsets.only(left: avatar == null ? 0 : dimensions.spaceMd),
+      avatarBoxConstraints: avatarBoxConstraints ??
+          (avatar == null ? null : const BoxConstraints.tightFor()),
       visualDensity: VisualDensity.compact,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       showCheckmark: false,

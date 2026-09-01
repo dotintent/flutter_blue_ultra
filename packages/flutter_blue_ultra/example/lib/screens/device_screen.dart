@@ -190,46 +190,49 @@ class _DeviceBodyState extends State<_DeviceBody> {
                     ),
                     if (!connected) ...[
                       const SizedBox(height: 40),
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color: state.connState ==
-                                        ConnectionPhase.disconnected
-                                    ? it.borderHi
-                                    : it.accent),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (state.connState !=
-                                  ConnectionPhase.disconnected) ...[
-                                _SpinnerWidget(color: it.accent),
-                                const SizedBox(width: 10),
-                              ],
-                              Text(
-                                state.connState == ConnectionPhase.connecting
-                                    ? 'ESTABLISHING GATT…'
-                                    : state.connState ==
-                                            ConnectionPhase.discovering
-                                        ? 'DISCOVERING SERVICES…'
-                                        : 'DISCONNECTED',
-                                style: DsTypography.monoLabel(12, color: state.connState ==
-                                            ConnectionPhase.disconnected
-                                        ? it.textPrimary
-                                        : it.accent),
+                      Builder(
+                        builder: (context) {
+                          final disconnected = state.connState ==
+                              ConnectionPhase.disconnected;
+                          final tone =
+                              disconnected ? it.textPrimary : it.accent;
+                          return Center(
+                            child: DsChip(
+                              label: switch (state.connState) {
+                                ConnectionPhase.connecting =>
+                                  'ESTABLISHING GATT…',
+                                ConnectionPhase.discovering =>
+                                  'DISCOVERING SERVICES…',
+                                _ => 'DISCONNECTED',
+                              },
+                              avatar: disconnected
+                                  ? null
+                                  : _SpinnerWidget(color: it.accent),
+                              backgroundColor: Colors.transparent,
+                              side: BorderSide(
+                                color: disconnected ? it.borderHi : it.accent,
                               ),
-                            ],
-                          ),
-                        ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DsSpace.s16,
+                                vertical: DsSpace.s10,
+                              ),
+                              labelStyle:
+                                  DsTypography.monoLabel(12, color: tone),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 18),
                       Center(
-                        child: GestureDetector(
-                          onTap: () async {
+                        child: DsButton(
+                          label: state.connState ==
+                                  ConnectionPhase.disconnected
+                              ? 'RETRY'
+                              : 'CANCEL',
+                          variant: DsButtonVariant.text,
+                          size: DsButtonSize.small,
+                          expand: false,
+                          onPressed: () async {
                             if (state.connState ==
                                 ConnectionPhase.disconnected) {
                               await context.read<DeviceCubit>().connect();
@@ -238,15 +241,14 @@ class _DeviceBodyState extends State<_DeviceBody> {
                               if (context.mounted) Navigator.of(context).pop();
                             }
                           },
-                          child: Padding(
+                          style: TextButton.styleFrom(
+                            foregroundColor: it.textDim,
+                            textStyle: DsTypography.monoLabel(11),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 8),
-                            child: Text(
-                              state.connState == ConnectionPhase.disconnected
-                                  ? 'RETRY'
-                                  : 'CANCEL',
-                              style: DsTypography.monoLabel(11, color: it.textDim),
+                              horizontal: DsSpace.s18,
+                              vertical: DsSpace.s8,
                             ),
+                            minimumSize: Size.zero,
                           ),
                         ),
                       ),
