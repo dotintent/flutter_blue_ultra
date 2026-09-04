@@ -172,3 +172,186 @@ class _SunburstPainter extends CustomPainter {
       old.outerRadius != outerRadius ||
       old.strokeWidth != strokeWidth;
 }
+
+class DsRadarSweep extends StatefulWidget {
+  const DsRadarSweep({
+    super.key,
+    this.active = true,
+    this.rings = 5,
+    this.ringOpacity = 0.1,
+    this.crosshairOpacity = 0.07,
+    this.coreRadius = 5,
+    this.sweepArc = 0.22,
+    this.duration = const Duration(milliseconds: 3600),
+    this.ringColor,
+    this.coreColor,
+    this.sweepColor,
+  });
+
+  final bool active;
+  final int rings;
+  final double ringOpacity;
+  final double crosshairOpacity;
+  final double coreRadius;
+  final double sweepArc;
+  final Duration duration;
+  final Color? ringColor;
+  final Color? coreColor;
+  final Color? sweepColor;
+
+  @override
+  State<DsRadarSweep> createState() => _DsRadarSweepState();
+}
+
+class _DsRadarSweepState extends State<DsRadarSweep>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.active) _controller.repeat();
+  }
+
+  @override
+  void didUpdateWidget(DsRadarSweep oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active == oldWidget.active) return;
+    if (widget.active) {
+      _controller.repeat();
+    } else {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = DsColors.of(context);
+    final ring = widget.ringColor ?? colors.textPrimary;
+    final core = widget.coreColor ?? colors.accent;
+    final sweep = widget.sweepColor ?? colors.textPrimary;
+
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) => CustomPaint(
+          painter: _RadarPainter(
+            phase: _controller.value,
+            rings: widget.rings,
+            ringColor: ring,
+            ringOpacity: widget.ringOpacity,
+            crosshairOpacity: widget.crosshairOpacity,
+            coreColor: core,
+            coreRadius: widget.coreRadius,
+            sweepColor: sweep,
+            sweepArc: widget.sweepArc,
+            showSweep: widget.active,
+          ),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+  }
+}
+
+class _RadarPainter extends CustomPainter {
+  _RadarPainter({
+    required this.phase,
+    required this.rings,
+    required this.ringColor,
+    required this.ringOpacity,
+    required this.crosshairOpacity,
+    required this.coreColor,
+    required this.coreRadius,
+    required this.sweepColor,
+    required this.sweepArc,
+    required this.showSweep,
+  });
+
+  final double phase;
+  final int rings;
+  final Color ringColor;
+  final double ringOpacity;
+  final double crosshairOpacity;
+  final Color coreColor;
+  final double coreRadius;
+  final Color sweepColor;
+  final double sweepArc;
+  final bool showSweep;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.shortestSide / 2;
+
+    final crosshairPaint = Paint()
+      ..color = ringColor.withValues(alpha: crosshairOpacity)
+      ..strokeWidth = 1;
+    canvas.drawLine(
+      Offset(center.dx, center.dy - maxRadius),
+      Offset(center.dx, center.dy + maxRadius),
+      crosshairPaint,
+    );
+    canvas.drawLine(
+      Offset(center.dx - maxRadius, center.dy),
+      Offset(center.dx + maxRadius, center.dy),
+      crosshairPaint,
+    );
+
+    final ringPaint = Paint()
+      ..color = ringColor.withValues(alpha: ringOpacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    for (var index = 1; index <= rings; index++) {
+      canvas.drawCircle(center, maxRadius * index / rings, ringPaint);
+    }
+
+    if (showSweep) {
+      final startAngle = phase * math.pi * 2 - math.pi / 2;
+      final sweepAngle = sweepArc * math.pi * 2;
+      final rect = Rect.fromCircle(center: center, radius: maxRadius);
+      final sweepPaint = Paint()
+        ..shader = SweepGradient(
+          center: Alignment.center,
+          startAngle: startAngle,
+          endAngle: startAngle + sweepAngle,
+          colors: [
+            sweepColor.withValues(alpha: 0),
+            sweepColor.withValues(alpha: 0.22),
+          ],
+          tileMode: TileMode.clamp,
+          transform: GradientRotation(startAngle),
+        ).createShader(rect);
+      canvas.drawArc(rect, startAngle, sweepAngle, true, sweepPaint);
+    }
+
+    canvas.drawCircle(
+      center,
+      coreRadius * 2.6,
+      Paint()..color = coreColor.withValues(alpha: 0.18),
+    );
+    canvas.drawCircle(center, coreRadius, Paint()..color = coreColor);
+  }
+
+  @override
+  bool shouldRepaint(_RadarPainter old) =>
+      old.phase != phase ||
+      old.rings != rings ||
+      old.ringColor != ringColor ||
+      old.ringOpacity != ringOpacity ||
+      old.crosshairOpacity != crosshairOpacity ||
+      old.coreColor != coreColor ||
+      old.coreRadius != coreRadius ||
+      old.sweepColor != sweepColor ||
+      old.sweepArc != sweepArc ||
+      old.showSweep != showSweep;
+}

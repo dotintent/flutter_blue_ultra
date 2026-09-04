@@ -134,7 +134,7 @@ class DsTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: colors.accent,
+          backgroundColor: colors.brandFill,
           foregroundColor: colors.onAccent,
           disabledBackgroundColor: colors.surfaceHi,
           disabledForegroundColor: colors.textFaint,

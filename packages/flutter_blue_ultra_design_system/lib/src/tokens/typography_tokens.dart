@@ -3,6 +3,25 @@ import 'package:flutter/material.dart';
 class DsFontSize {
   const DsFontSize._();
 
+  static const double heading2xl = 34;
+  static const double heading2xlLeading = 40;
+  static const double headingLg = 24;
+  static const double headingLgLeading = 34;
+  static const double bodySm = 14;
+  static const double bodySmLeading = 20;
+  static const double bodyXs = 12;
+  static const double bodyXsLeading = 16;
+  static const double headingXl = 28;
+  static const double headingXlLeading = 34;
+  static const double headingSm = 16;
+  static const double headingSmLeading = 24;
+  static const double monoValue = 28;
+  static const double monoValueLeading = 32;
+  static const double monoLg = 16;
+  static const double monoLgLeading = 22;
+  static const double monoMd = 12;
+  static const double monoMdLeading = 16;
+
   static const double display = 40;
   static const double headline = 28;
   static const double titleLarge = 18;
@@ -18,6 +37,15 @@ class DsFontSize {
 
 class DsTracking {
   const DsTracking._();
+
+  static const double heading2xl = -0.5;
+  static const double monoLabelLoud = 2;
+  static const double monoLabel = 1.5;
+  static const double monoPlain = 0;
+  static const double monoCaption = 0.5;
+  static const double monoValue = -1;
+  static const double headingSm = 0;
+  static const double headingXl = -0.3;
 
   static const double display = -1.5;
   static const double headline = -0.8;

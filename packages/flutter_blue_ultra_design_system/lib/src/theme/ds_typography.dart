@@ -145,7 +145,11 @@ class DsTypography extends ThemeExtension<DsTypography> {
     bodyLarge: sans(DsFontSize.bodyLarge),
     bodyMedium: sans(DsFontSize.bodyMedium),
     bodySmall: sans(DsFontSize.bodySmall),
-    button: sans(DsFontSize.bodyLarge, weight: DsFontWeight.semiBold),
+    button: sans(
+      DsFontSize.bodySm,
+      weight: DsFontWeight.semiBold,
+      height: DsFontSize.bodySmLeading / DsFontSize.bodySm,
+    ),
     mono: monoStyle(DsFontSize.monoLarge, letterSpacing: DsTracking.monoTight),
     monoSmall: monoStyle(DsFontSize.monoMedium),
     label: monoStyle(

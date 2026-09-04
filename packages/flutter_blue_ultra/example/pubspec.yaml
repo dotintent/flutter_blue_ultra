@@ -22,6 +22,8 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: 6.0.0
+  flutter_test:
+    sdk: flutter
 
 dependency_overrides:
   flutter_blue_ultra_android:

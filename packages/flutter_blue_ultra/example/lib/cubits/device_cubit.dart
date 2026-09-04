@@ -12,35 +12,51 @@ const int _kRequestedMtu = 512;
 class DeviceState extends Equatable {
   const DeviceState({
     this.connState = ConnectionPhase.disconnected,
+    this.failure = DeviceFailure.none,
     this.services = const [],
     this.expanded = const {},
     this.mtu = 23,
     this.currentRssi = 0,
+    this.latencyMs,
   });
 
   final ConnectionPhase connState;
+  final DeviceFailure failure;
   final List<BluetoothService> services;
   final Set<String> expanded;
   final int mtu;
   final int currentRssi;
+  final int? latencyMs;
 
   DeviceState copyWith({
     ConnectionPhase? connState,
+    DeviceFailure? failure,
     List<BluetoothService>? services,
     Set<String>? expanded,
     int? mtu,
     int? currentRssi,
+    int? latencyMs,
   }) =>
       DeviceState(
         connState: connState ?? this.connState,
+        failure: failure ?? this.failure,
         services: services ?? this.services,
         expanded: expanded ?? this.expanded,
         mtu: mtu ?? this.mtu,
         currentRssi: currentRssi ?? this.currentRssi,
+        latencyMs: latencyMs ?? this.latencyMs,
       );
 
   @override
-  List<Object?> get props => [connState, services, expanded, mtu, currentRssi];
+  List<Object?> get props => [
+        connState,
+        failure,
+        services,
+        expanded,
+        mtu,
+        currentRssi,
+        latencyMs,
+      ];
 }
 
 class DeviceCubit extends Cubit<DeviceState> {
@@ -50,8 +66,9 @@ class DeviceCubit extends Cubit<DeviceState> {
   final BluetoothDevice device;
 
   StreamSubscription<BluetoothConnectionState>? _connSub;
-  StreamSubscription<int>? _rssiSub;
+  StreamSubscription<({int rssi, int latencyMs})>? _rssiSub;
   bool _discoverInFlight = false;
+  bool _reachedConnected = false;
   final StreamController<String> _messages =
       StreamController<String>.broadcast();
 
@@ -70,21 +87,33 @@ class DeviceCubit extends Cubit<DeviceState> {
     _rssiSub = null;
     await _connSub?.cancel();
     _connSub = null;
-    emit(state.copyWith(connState: ConnectionPhase.connecting));
+    _reachedConnected = false;
+    emit(state.copyWith(
+      connState: ConnectionPhase.connecting,
+      failure: DeviceFailure.none,
+    ));
     try {
       _connSub = device.connectionState.listen((s) {
         if (isClosed) return;
         if (s == BluetoothConnectionState.connected) {
           _discover();
         } else if (s == BluetoothConnectionState.disconnected) {
-          emit(state.copyWith(connState: ConnectionPhase.disconnected));
+          emit(state.copyWith(
+            connState: ConnectionPhase.disconnected,
+            failure: _reachedConnected
+                ? DeviceFailure.connectionLost
+                : DeviceFailure.connectFailed,
+          ));
         }
       });
 
       await device.connect(autoConnect: false);
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(connState: ConnectionPhase.disconnected));
+      emit(state.copyWith(
+        connState: ConnectionPhase.disconnected,
+        failure: DeviceFailure.connectFailed,
+      ));
       _messages.add('Connection failed: $e');
     }
   }
@@ -104,6 +133,7 @@ class DeviceCubit extends Cubit<DeviceState> {
         }
       }
       if (isClosed) return;
+      _reachedConnected = true;
       final newExpanded = Set<String>.from(state.expanded);
       if (services.isNotEmpty) {
         newExpanded.add(services.last.serviceUuid.str);
@@ -112,12 +142,16 @@ class DeviceCubit extends Cubit<DeviceState> {
         services: services,
         mtu: mtu,
         connState: ConnectionPhase.connected,
+        failure: DeviceFailure.none,
         expanded: newExpanded,
       ));
       _startRssi();
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(connState: ConnectionPhase.disconnected));
+      emit(state.copyWith(
+        connState: ConnectionPhase.disconnected,
+        failure: DeviceFailure.discoveryFailed,
+      ));
       _messages.add('Service discovery failed: $e');
     } finally {
       _discoverInFlight = false;
@@ -131,15 +165,30 @@ class DeviceCubit extends Cubit<DeviceState> {
     // freezes at its last value with no visible feedback — so we swallow
     // the error and let the connection-state listener drive the UI back
     // to "disconnected".
+    //
+    // The round-trip time of the same call doubles as the "latency" stat —
+    // it is a real GATT round trip rather than a synthetic number.
     _rssiSub = Stream.periodic(_kRssiPollInterval)
-        .asyncMap((_) => device.readRssi())
+        .asyncMap((_) => _measureRssi())
         .listen(
-      (rssi) {
+      (sample) {
         if (isClosed) return;
-        emit(state.copyWith(currentRssi: rssi));
+        emit(state.copyWith(
+          currentRssi: sample.rssi,
+          latencyMs: sample.latencyMs,
+        ));
       },
       onError: (_) {},
       cancelOnError: false,
+    );
+  }
+
+  Future<({int rssi, int latencyMs})> _measureRssi() async {
+    final started = DateTime.now();
+    final rssi = await device.readRssi();
+    return (
+      rssi: rssi,
+      latencyMs: DateTime.now().difference(started).inMilliseconds,
     );
   }
 

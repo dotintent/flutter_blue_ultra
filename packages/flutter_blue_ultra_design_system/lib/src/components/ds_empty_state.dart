@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/ds_colors.dart';
 import '../theme/ds_dimensions.dart';
-import '../theme/ds_typography.dart';
+import '../theme/ds_text_styles.dart';
+import '../tokens/dimension_tokens.dart';
 
 class DsEmptyState extends StatelessWidget {
   const DsEmptyState({
@@ -13,8 +14,9 @@ class DsEmptyState extends StatelessWidget {
     this.description,
     this.action,
     this.padding,
-    this.iconSize = 26,
+    this.iconSize = DsSize.iconXXLarge,
     this.titleStyle,
+    this.iconColor,
   });
 
   final String title;
@@ -25,55 +27,47 @@ class DsEmptyState extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final double iconSize;
   final TextStyle? titleStyle;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = DsColors.of(context);
-    final typography = DsTypography.of(context);
     final dimensions = DsDimensions.of(context);
     final icon = this.icon;
+    final iconWidget = this.iconWidget;
     final description = this.description;
     final action = this.action;
 
     return Padding(
-      padding: padding ??
-          EdgeInsets.fromLTRB(
-            dimensions.screenPadding,
-            dimensions.spaceXxl,
-            dimensions.screenPadding,
-            dimensions.spaceXxl,
-          ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (iconWidget != null) ...[
-              iconWidget!,
-              SizedBox(height: dimensions.spaceMd),
-            ] else if (icon != null) ...[
-              Icon(icon, color: colors.textFaint, size: iconSize),
-              SizedBox(height: dimensions.spaceMd),
-            ],
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: titleStyle ??
-                  typography.bodySmall.copyWith(color: colors.textDim),
-            ),
-            if (description != null) ...[
-              SizedBox(height: dimensions.spaceSm),
-              Text(
-                description,
-                textAlign: TextAlign.center,
-                style: typography.bodySmall.copyWith(color: colors.textFaint),
-              ),
-            ],
-            if (action != null) ...[
-              SizedBox(height: dimensions.spaceLg),
-              action,
-            ],
+      padding: padding ?? EdgeInsets.all(dimensions.spaceXxl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (iconWidget != null) ...[
+            iconWidget,
+            SizedBox(height: dimensions.spaceMd),
+          ] else if (icon != null) ...[
+            Icon(icon, color: iconColor ?? colors.textDim, size: iconSize),
+            SizedBox(height: dimensions.spaceMd),
           ],
-        ),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: titleStyle ?? DsTextStyles.monoMd(color: colors.textPrimary),
+          ),
+          if (description != null) ...[
+            SizedBox(height: dimensions.spaceXs),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: DsTextStyles.monoCaption(color: colors.textDim),
+            ),
+          ],
+          if (action != null) ...[
+            SizedBox(height: dimensions.spaceXl),
+            action,
+          ],
+        ],
       ),
     );
   }

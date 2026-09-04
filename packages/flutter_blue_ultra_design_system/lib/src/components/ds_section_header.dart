@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/ds_colors.dart';
 import '../theme/ds_dimensions.dart';
-import '../theme/ds_typography.dart';
+import '../theme/ds_text_styles.dart';
 
 class DsSectionHeader extends StatelessWidget {
   const DsSectionHeader({
@@ -10,9 +10,9 @@ class DsSectionHeader extends StatelessWidget {
     required this.label,
     this.count,
     this.trailing,
+    this.trailingLabel,
     this.padding,
     this.labelStyle,
-    this.countStyle,
     this.showRule = true,
     this.uppercase = true,
   });
@@ -20,47 +20,29 @@ class DsSectionHeader extends StatelessWidget {
   final String label;
   final int? count;
   final Widget? trailing;
+  final String? trailingLabel;
   final EdgeInsetsGeometry? padding;
   final TextStyle? labelStyle;
-  final TextStyle? countStyle;
   final bool showRule;
   final bool uppercase;
 
   @override
   Widget build(BuildContext context) {
     final colors = DsColors.of(context);
-    final typography = DsTypography.of(context);
     final dimensions = DsDimensions.of(context);
     final count = this.count;
-    final trailing = this.trailing;
+    final trailingLabel = this.trailingLabel;
+    final resolved = uppercase ? label.toUpperCase() : label;
+    final text = count == null ? resolved : '$resolved · $count';
 
     return Padding(
-      padding: padding ??
-          EdgeInsets.fromLTRB(
-            dimensions.screenPadding,
-            dimensions.spaceXl,
-            dimensions.screenPadding,
-            dimensions.spaceMd,
-          ),
+      padding: padding ?? EdgeInsets.zero,
       child: Row(
         children: [
           Text(
-            uppercase ? label.toUpperCase() : label,
-            style: labelStyle ??
-                typography.labelSmall.copyWith(color: colors.textFaint),
+            text,
+            style: labelStyle ?? DsTextStyles.monoLabel(color: colors.textDim),
           ),
-          if (count != null) ...[
-            SizedBox(width: dimensions.spaceSm),
-            Text(
-              '· $count',
-              style: countStyle ??
-                  typography.labelSmall.copyWith(
-                    color: colors.accent,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0,
-                  ),
-            ),
-          ],
           if (showRule) ...[
             SizedBox(width: dimensions.spaceMd),
             Expanded(
@@ -69,12 +51,15 @@ class DsSectionHeader extends StatelessWidget {
                 color: colors.border,
               ),
             ),
+            SizedBox(width: dimensions.spaceMd),
           ] else
             const Spacer(),
-          if (trailing != null) ...[
-            SizedBox(width: dimensions.spaceSm),
-            trailing,
-          ],
+          if (trailingLabel != null)
+            Text(
+              trailingLabel.toUpperCase(),
+              style: DsTextStyles.monoLabel(color: colors.textFaint),
+            ),
+          if (trailing != null) trailing!,
         ],
       ),
     );
