@@ -1,14 +1,21 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
+
 import '../cubits/characteristic_cubit.dart';
 import '../models/ble_models.dart';
 import '../models/gatt_names.dart';
-import '../theme/app_theme.dart';
-import '../widgets/atoms.dart';
+import '../widgets/format_segments.dart';
+import '../widgets/notify_toggle.dart';
+import '../widgets/screen_nav.dart';
+import '../widgets/screen_tab_bar.dart';
+import '../widgets/value_field.dart';
+
+enum _CharTab { read, write, notify }
 
 class CharacteristicScreen extends StatelessWidget {
   const CharacteristicScreen({
@@ -29,7 +36,6 @@ class CharacteristicScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => CharacteristicCubit(characteristic: characteristic),
       child: _CharacteristicView(
-        device: device,
         service: service,
         characteristic: characteristic,
         negotiatedMtu: negotiatedMtu,
@@ -40,13 +46,11 @@ class CharacteristicScreen extends StatelessWidget {
 
 class _CharacteristicView extends StatefulWidget {
   const _CharacteristicView({
-    required this.device,
     required this.service,
     required this.characteristic,
     required this.negotiatedMtu,
   });
 
-  final BluetoothDevice device;
   final BluetoothService service;
   final BluetoothCharacteristic characteristic;
   final int negotiatedMtu;
@@ -55,35 +59,24 @@ class _CharacteristicView extends StatefulWidget {
   State<_CharacteristicView> createState() => _CharacteristicViewState();
 }
 
-class _CharacteristicViewState extends State<_CharacteristicView>
-    with SingleTickerProviderStateMixin {
-  TabController? _tabController;
-  late final bool _canRead;
-  late final bool _canWrite;
-  late final bool _canNotify;
-  late final List<String> _tabs;
+class _CharacteristicViewState extends State<_CharacteristicView> {
+  late final List<_CharTab> _tabs;
+  late int _index;
   StreamSubscription<String>? _messageSub;
+  final TextEditingController _payloadController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     final props = widget.characteristic.properties;
-    _canRead = props.read;
-    _canWrite = props.write || props.writeWithoutResponse;
-    _canNotify = props.notify || props.indicate;
-
     _tabs = [
-      if (_canRead) 'Read',
-      if (_canWrite) 'Write',
-      if (_canNotify) 'Notify',
+      if (props.read) _CharTab.read,
+      if (props.write || props.writeWithoutResponse) _CharTab.write,
+      if (props.notify || props.indicate) _CharTab.notify,
     ];
-
-    if (_tabs.isNotEmpty) {
-      final initialIndex =
-          _canRead ? 0 : (_canNotify ? _tabs.indexOf('Notify') : 0);
-      _tabController = TabController(
-          length: _tabs.length, vsync: this, initialIndex: initialIndex);
-    }
+    _index = 0;
+    _payloadController.text =
+        context.read<CharacteristicCubit>().state.writeInput;
 
     _messageSub = context.read<CharacteristicCubit>().messages.listen((msg) {
       if (!mounted) return;
@@ -94,155 +87,116 @@ class _CharacteristicViewState extends State<_CharacteristicView>
   @override
   void dispose() {
     _messageSub?.cancel();
-    _tabController?.dispose();
+    _payloadController.dispose();
     super.dispose();
   }
 
-  String get _shortUuid {
-    final uuid = widget.characteristic.characteristicUuid.str;
-    final short = shortUuid(uuid);
-    if (short != null) return '0x$short';
-    return uuid.length > 8 ? uuid.substring(0, 8) : uuid;
-  }
+  String get _serviceName =>
+      kGattServiceNames[shortUuid(widget.service.serviceUuid.str)] ??
+      'Custom service';
 
   String get _charName =>
       kGattCharacteristicNames[
           shortUuid(widget.characteristic.characteristicUuid.str)] ??
-      widget.characteristic.characteristicUuid.str;
+      'Custom characteristic';
 
-  String get _serviceName =>
-      kGattServiceNames[shortUuid(widget.service.serviceUuid.str)] ??
-      widget.service.serviceUuid.str;
+  void _copyUuid() {
+    Clipboard.setData(
+      ClipboardData(text: widget.characteristic.characteristicUuid.str),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('UUID copied')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
-    final props = widget.characteristic.properties;
+    final colors = DsColors.of(context);
 
     return BlocBuilder<CharacteristicCubit, CharacteristicState>(
       builder: (context, state) {
         final cubit = context.read<CharacteristicCubit>();
 
         return Scaffold(
-          backgroundColor: it.bg,
-          body: Column(
-            children: [
-              IntentAppBar(
-                title: 'Characteristic',
-                subtitle: _serviceName,
-                leading: IntentIconBtn(
-                  onTap: () => Navigator.of(context).pop(),
-                  child:
-                      Icon(Icons.arrow_back, size: 18, color: it.textPrimary),
-                ),
-                trailing: IntentIconBtn(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(
-                        text: widget.characteristic.characteristicUuid.str));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('UUID copied')),
-                    );
-                  },
-                  child: Icon(Icons.copy, size: 16, color: it.textPrimary),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('· $_shortUuid',
-                        style: IntentTextStyles.monoLabel(11, it.accent)),
-                    const SizedBox(height: 10),
-                    Text(_charName,
-                        style: IntentTextStyles.serifTitle(28, it.textPrimary)),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        if (props.read) const IntentChip(label: 'READ'),
-                        if (props.write) const IntentChip(label: 'WRITE'),
-                        if (props.writeWithoutResponse)
-                          const IntentChip(label: 'WRITE NO RSP'),
-                        if (props.notify)
-                          const IntentChip(
-                              label: 'NOTIFY', kind: ChipKind.notify),
-                        if (props.indicate)
-                          const IntentChip(
-                              label: 'INDICATE', kind: ChipKind.notify),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      widget.characteristic.characteristicUuid.str,
-                      style: IntentTextStyles.mono(10.5, it.textDim,
-                          letterSpacing: 0.3),
+          backgroundColor: colors.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                ScreenNav(
+                  actions: [
+                    NavCircleButton(
+                      icon: Icons.copy,
+                      tooltip: 'Copy UUID',
+                      onPressed: _copyUuid,
                     ),
                   ],
                 ),
-              ),
-              if (_tabController != null) ...[
-                Container(
-                  margin: const EdgeInsets.only(top: 20),
-                  decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: it.border)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DsSpace.s20,
+                    vertical: DsSpace.s16,
                   ),
-                  child: TabBar(
-                    controller: _tabController,
-                    labelColor: it.textPrimary,
-                    unselectedLabelColor: it.textDim,
-                    indicatorColor: it.accent,
-                    indicatorWeight: 2,
-                    labelStyle: IntentTextStyles.sans(13, it.textPrimary,
-                        weight: FontWeight.w600),
-                    unselectedLabelStyle: IntentTextStyles.sans(13, it.textDim,
-                        weight: FontWeight.w500),
-                    tabs: _tabs.map((t) => Tab(text: t)).toList(),
-                  ),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (_canRead)
-                        _ReadTab(
-                          value: state.lastValue,
-                          format: state.format,
-                          onRead: cubit.doRead,
-                          onFormatChange: cubit.setFormat,
-                        ),
-                      if (_canWrite)
-                        _WriteTab(
-                          input: state.writeInput,
-                          onInputChange: cubit.setWriteInput,
-                          onWrite: cubit.doWrite,
-                          negotiatedMtu: widget.negotiatedMtu,
-                          isWriteNoResponse:
-                              props.writeWithoutResponse && !props.write,
-                        ),
-                      if (_canNotify)
-                        _NotifyTab(
-                          notifying: state.notifying,
-                          stream: state.packets,
-                          onToggle: state.notifying
-                              ? cubit.stopNotify
-                              : cubit.startNotify,
-                          format: state.format,
-                        ),
+                      Text(
+                        _serviceName.toUpperCase(),
+                        style:
+                            DsTextStyles.monoLabelLoud(color: colors.textDim),
+                      ),
+                      const SizedBox(height: DsSpace.s8),
+                      Text(
+                        _charName,
+                        style:
+                            DsTextStyles.headingXl(color: colors.textPrimary),
+                      ),
+                      const SizedBox(height: DsSpace.s8),
+                      Text(
+                        widget.characteristic.characteristicUuid.str,
+                        style: DsTextStyles.monoMd(color: colors.textDim),
+                      ),
                     ],
                   ),
                 ),
-              ] else
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      'No supported operations',
-                      style: IntentTextStyles.sans(14, it.textDim),
+                if (_tabs.isEmpty)
+                  const Expanded(
+                    child: DsEmptyState(
+                      icon: Icons.block,
+                      title: 'No supported operations',
+                      description:
+                          'This characteristic exposes no readable, writable '
+                          'or notifiable properties.',
                     ),
+                  )
+                else ...[
+                  ScreenTabBar(
+                    tabs: [
+                      for (final tab in _tabs)
+                        switch (tab) {
+                          _CharTab.read => 'Read',
+                          _CharTab.write => 'Write',
+                          _CharTab.notify => 'Notify',
+                        },
+                    ],
+                    currentIndex: _index,
+                    onSelected: (index) => setState(() => _index = index),
                   ),
-                ),
-            ],
+                  Expanded(
+                    child: switch (_tabs[_index]) {
+                      _CharTab.read => _ReadTab(state: state, cubit: cubit),
+                      _CharTab.write => _WriteTab(
+                          state: state,
+                          cubit: cubit,
+                          controller: _payloadController,
+                          negotiatedMtu: widget.negotiatedMtu,
+                          properties: widget.characteristic.properties,
+                        ),
+                      _CharTab.notify => _NotifyTab(state: state, cubit: cubit),
+                    },
+                  ),
+                ],
+              ],
+            ),
           ),
         );
       },
@@ -251,374 +205,241 @@ class _CharacteristicViewState extends State<_CharacteristicView>
 }
 
 class _ReadTab extends StatelessWidget {
-  const _ReadTab({
-    required this.value,
-    required this.format,
-    required this.onRead,
-    required this.onFormatChange,
-  });
+  const _ReadTab({required this.state, required this.cubit});
 
-  final List<int> value;
-  final ValueFormat format;
-  final VoidCallback onRead;
-  final void Function(ValueFormat) onFormatChange;
+  final CharacteristicState state;
+  final CharacteristicCubit cubit;
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Last value · ${value.isEmpty ? '—' : '${value.length} byte${value.length == 1 ? '' : 's'}'}',
-                  style: IntentTextStyles.mono(10, it.textFaint,
-                      letterSpacing: 1.4),
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: ValueFormat.values.map((f) {
-                  final active = f == format;
-                  return GestureDetector(
-                    onTap: () => onFormatChange(f),
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 4),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: active ? it.textPrimary : Colors.transparent,
-                        border: Border.all(
-                            color: active ? it.textPrimary : it.border),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        f.label(),
-                        style: IntentTextStyles.mono(
-                            10, active ? it.bg : it.textDim,
-                            letterSpacing: 0.5),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: it.surface,
-              border: Border.all(color: it.border),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: SelectableText(
-              value.isEmpty ? '—' : format.format(value),
-              style:
-                  IntentTextStyles.mono(22, it.textPrimary, letterSpacing: 0.4),
-            ),
-          ),
-          const SizedBox(height: 14),
-          IntentButton(
-            label: 'Read',
-            icon: Icons.download,
-            onTap: onRead,
-          ),
-        ],
+    final colors = DsColors.of(context);
+    final length = state.lastValue.length;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        DsSpace.s20,
+        DsSpace.s24,
+        DsSpace.s20,
+        DsSpace.s20,
       ),
+      children: [
+        Text(
+          length == 0
+              ? 'Last value · —'
+              : 'Last value · $length ${length == 1 ? 'byte' : 'bytes'}',
+          style: DsTextStyles.monoLabel(color: colors.textDim),
+        ),
+        const SizedBox(height: DsSpace.s8),
+        FormatSegments(value: state.format, onChanged: cubit.setFormat),
+        const SizedBox(height: DsSpace.s8),
+        ReadonlyValueField(
+          value: state.lastValue.isEmpty
+              ? '—'
+              : state.format.format(state.lastValue),
+        ),
+        const SizedBox(height: DsSpace.s16),
+        DsButton(
+          label: 'Read',
+          icon: Icons.download,
+          onPressed: cubit.doRead,
+        ),
+      ],
     );
   }
 }
 
-class _WriteTab extends StatefulWidget {
+class _WriteTab extends StatelessWidget {
   const _WriteTab({
-    required this.input,
-    required this.onInputChange,
-    required this.onWrite,
+    required this.state,
+    required this.cubit,
+    required this.controller,
     required this.negotiatedMtu,
-    required this.isWriteNoResponse,
+    required this.properties,
   });
 
-  final String input;
-  final void Function(String) onInputChange;
-  final VoidCallback onWrite;
-  final int negotiatedMtu;
-  final bool isWriteNoResponse;
-
-  @override
-  State<_WriteTab> createState() => _WriteTabState();
-}
-
-class _WriteTabState extends State<_WriteTab> {
   static const _quickFill = ['00', '01', 'FF', '0A0B0C'];
 
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.input);
-  }
-
-  @override
-  void didUpdateWidget(covariant _WriteTab oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.input != _controller.text) {
-      _controller.value = TextEditingValue(
-        text: widget.input,
-        selection: TextSelection.collapsed(offset: widget.input.length),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final CharacteristicState state;
+  final CharacteristicCubit cubit;
+  final TextEditingController controller;
+  final int negotiatedMtu;
+  final CharacteristicProperties properties;
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
-    final byteCount =
-        (widget.input.replaceAll(RegExp(r'\s'), '').length / 2).floor();
+    final colors = DsColors.of(context);
+    final clean = state.writeInput.replaceAll(RegExp(r'\s'), '');
+    final byteCount = clean.length ~/ 2;
+    final maxBytes = negotiatedMtu > 3 ? negotiatedMtu - 3 : 0;
+    final withoutResponse =
+        properties.writeWithoutResponse && !properties.write;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Payload (hex)',
-              style:
-                  IntentTextStyles.mono(10, it.textFaint, letterSpacing: 1.4)),
-          const SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              color: it.surface,
-              border: Border.all(color: it.border),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: TextField(
-              controller: _controller,
-              onChanged: widget.onInputChange,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-              ],
-              style: IntentTextStyles.mono(16, it.textPrimary),
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                border: InputBorder.none,
-                hintText: 'e.g. 01 FF A0',
-                hintStyle: IntentTextStyles.mono(16, it.textFaint),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
+    void fill(String payload) {
+      controller.value = TextEditingValue(
+        text: payload,
+        selection: TextSelection.collapsed(offset: payload.length),
+      );
+      cubit.setWriteInput(payload);
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        DsSpace.s20,
+        DsSpace.s24,
+        DsSpace.s20,
+        DsSpace.s20,
+      ),
+      children: [
+        Text(
+          'QUICK FILL',
+          style: DsTextStyles.monoLabel(color: colors.textDim),
+        ),
+        const SizedBox(height: DsSpace.s8),
+        for (var row = 0; row < _quickFill.length; row += 2) ...[
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                  '$byteCount BYTE · MAX ${widget.negotiatedMtu > 3 ? widget.negotiatedMtu - 3 : 0}',
-                  style: IntentTextStyles.mono(10, it.textDim,
-                      letterSpacing: 0.5)),
-              Text(
-                  widget.isWriteNoResponse
-                      ? 'WRITE_WITHOUT_RSP'
-                      : 'WRITE_REQUEST',
-                  style: IntentTextStyles.mono(10, it.textDim,
-                      letterSpacing: 0.5)),
+              for (var column = row;
+                  column < row + 2 && column < _quickFill.length;
+                  column++) ...[
+                if (column > row) const SizedBox(width: DsSpace.s8),
+                Expanded(
+                  child: QuickFillChip(
+                    label: _quickFill[column],
+                    onTap: () => fill(_quickFill[column]),
+                  ),
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 18),
-          Text('Quick fill',
-              style:
-                  IntentTextStyles.mono(10, it.textFaint, letterSpacing: 1.4)),
-          const SizedBox(height: 8),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 4,
-            children: _quickFill
-                .map((p) => GestureDetector(
-                      onTap: () => widget.onInputChange(p.replaceAll(' ', '')),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: it.border),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Center(
-                          child: Text(p,
-                              style: IntentTextStyles.mono(12, it.textPrimary)),
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 18),
-          IntentButton(
-              label: 'Write', icon: Icons.upload, onTap: widget.onWrite),
+          if (row + 2 < _quickFill.length) const SizedBox(height: DsSpace.s8),
         ],
-      ),
+        const SizedBox(height: DsSpace.s16),
+        PayloadField(
+          controller: controller,
+          label: 'PAYLOAD (HEX)',
+          hint: '01FFA0',
+          onChanged: cubit.setWriteInput,
+          footerLeft: '$byteCount byte · max $maxBytes',
+          footerRight: withoutResponse ? 'WRITE_WITHOUT_RSP' : 'WRITE_REQUEST',
+        ),
+        const SizedBox(height: DsSpace.s16),
+        DsButton(
+          label: 'Write',
+          icon: Icons.upload,
+          onPressed: cubit.doWrite,
+        ),
+      ],
     );
   }
 }
 
 class _NotifyTab extends StatelessWidget {
-  const _NotifyTab({
-    required this.notifying,
-    required this.stream,
-    required this.onToggle,
-    required this.format,
-  });
+  const _NotifyTab({required this.state, required this.cubit});
 
-  final bool notifying;
-  final List<NotifyPacket> stream;
-  final VoidCallback onToggle;
-  final ValueFormat format;
+  final CharacteristicState state;
+  final CharacteristicCubit cubit;
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final colors = DsColors.of(context);
+    final count = state.packets.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      notifying ? 'Subscribed' : 'Subscribe to notifications',
-                      style: IntentTextStyles.serifTitle(15, it.textPrimary),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      notifying
-                          ? '${stream.length} packet${stream.length == 1 ? '' : 's'} · CCCD 0x0001'
-                          : 'CCCD 0x0000',
-                      style: IntentTextStyles.mono(11, it.textDim),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: onToggle,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 52,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: notifying ? it.accent : it.surfaceHi,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: AnimatedAlign(
-                    duration: const Duration(milliseconds: 200),
-                    alignment: notifying
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
+          padding: const EdgeInsets.fromLTRB(
+            DsSpace.s20,
+            DsSpace.s24,
+            DsSpace.s20,
+            0,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(DsSpace.s16),
+            decoration: BoxDecoration(
+              color: colors.surfaceAlt,
+              borderRadius: BorderRadius.circular(DsRadius.medium),
+              border: Border.all(color: colors.border),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        state.notifying ? 'SUBSCRIBED' : 'SUBSCRIBE',
+                        style:
+                            DsTextStyles.monoLabel(color: colors.textPrimary),
+                      ),
+                      const SizedBox(height: DsSpace.s4),
+                      Text(
+                        '$count ${count == 1 ? 'packet' : 'packets'} · '
+                        'CCCD ${state.notifying ? '0x0001' : '0x0000'}',
+                        style: DsTextStyles.monoCaption(
+                          color: colors.textFaint,
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: DsSpace.s16),
+                NotifyToggle(
+                  value: state.notifying,
+                  onChanged: (_) => state.notifying
+                      ? cubit.stopNotify()
+                      : cubit.startNotify(),
+                ),
+              ],
+            ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('· Stream',
-                  style: IntentTextStyles.mono(10, it.textFaint,
-                      letterSpacing: 1.4)),
-              Text(
-                notifying ? 'LIVE' : 'IDLE',
-                style: IntentTextStyles.monoLabel(
-                    10, notifying ? it.accent : it.textFaint),
+          padding: const EdgeInsets.fromLTRB(
+            DsSpace.s20,
+            DsSpace.s12,
+            DsSpace.s20,
+            DsSpace.s8,
+          ),
+          child: DsSectionHeader(
+            label: 'Stream',
+            trailing: Text(
+              state.notifying ? 'LIVE' : 'IDLE',
+              style: DsTextStyles.monoLabel(
+                color: state.notifying ? colors.accent : colors.textFaint,
               ),
-            ],
+            ),
           ),
         ),
-        Container(height: 1, color: it.border),
         Expanded(
-          child: stream.isEmpty
-              ? Center(
-                  child: Text(
-                    notifying
-                        ? 'Waiting for first packet…'
-                        : 'Toggle to subscribe.',
-                    style: GoogleFonts.crimsonPro(
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                      color: it.textDim,
-                    ),
-                  ),
+          child: state.packets.isEmpty
+              ? DsEmptyState(
+                  iconWidget: state.notifying
+                      ? const DsSpinner(size: DsSize.iconXXLarge)
+                      : null,
+                  icon: state.notifying ? null : Icons.notifications_off,
+                  title: state.notifying
+                      ? 'Waiting for first packet…'
+                      : 'Notifications off',
+                  description:
+                      state.notifying ? null : 'Subscribe to stream values.',
                 )
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
-                  itemCount: stream.length,
-                  separatorBuilder: (_, __) =>
-                      Container(height: 1, color: it.border),
-                  itemBuilder: (_, i) {
-                    final p = stream[i];
-                    final parsed = p.parsed;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  format.format(p.bytes),
-                                  style:
-                                      IntentTextStyles.mono(12, it.textPrimary),
-                                ),
-                                if (parsed != null) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    parsed,
-                                    style: GoogleFonts.crimsonPro(
-                                      fontSize: 13,
-                                      fontStyle: FontStyle.italic,
-                                      color: it.accent,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Text(
-                            '${p.timestamp.hour.toString().padLeft(2, '0')}:'
-                            '${p.timestamp.minute.toString().padLeft(2, '0')}:'
-                            '${p.timestamp.second.toString().padLeft(2, '0')}',
-                            style: IntentTextStyles.mono(10, it.textFaint),
-                          ),
-                        ],
-                      ),
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(
+                    DsSpace.s20,
+                    0,
+                    DsSpace.s20,
+                    DsSpace.s20,
+                  ),
+                  itemCount: state.packets.length,
+                  itemBuilder: (_, index) {
+                    final packet = state.packets[index];
+                    final at = packet.timestamp;
+                    return EventLogRow(
+                      value: state.format.format(packet.bytes),
+                      time: '${at.hour.toString().padLeft(2, '0')}:'
+                          '${at.minute.toString().padLeft(2, '0')}:'
+                          '${at.second.toString().padLeft(2, '0')}',
                     );
                   },
                 ),

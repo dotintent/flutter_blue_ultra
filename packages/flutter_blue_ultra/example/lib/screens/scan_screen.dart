@@ -1,11 +1,15 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 import '../cubits/scan_cubit.dart';
-import '../theme/app_theme.dart';
-import '../widgets/atoms.dart';
+import '../widgets/brand_header.dart';
+import '../widgets/device_row.dart';
+import '../widgets/scan_status_card.dart';
 
 class ScanScreen extends StatelessWidget {
   const ScanScreen({super.key, required this.onDeviceSelected});
@@ -50,292 +54,98 @@ class _ScanViewState extends State<_ScanView> {
 
   @override
   Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
+    final colors = DsColors.of(context);
+
     return BlocBuilder<ScanCubit, ScanState>(
-      // Skip the 200 ms elapsed-timer tick — only the "· 3.2s" status
-      // line needs it, and it has its own BlocSelector below.
+      // The 200 ms elapsed tick isn't rendered by this design, so it must not
+      // drive rebuilds here.
       buildWhen: (p, c) =>
           p.scanning != c.scanning ||
           p.results != c.results ||
           p.adapterState != c.adapterState,
       builder: (context, state) {
-        final sorted = [...state.results]
-          ..sort((a, b) => b.rssi.compareTo(a.rssi));
         final cubit = context.read<ScanCubit>();
         final adapterOn = state.adapterState == BluetoothAdapterState.on;
-        final adapterReady =
+        final adapterKnown =
             state.adapterState != BluetoothAdapterState.unknown;
-        final adapterBlocked = adapterReady && !adapterOn;
+        final adapterOff = adapterKnown && !adapterOn;
+        final scanning = state.scanning && adapterOn;
+
+        final sorted = [...state.results]
+          ..sort((a, b) => b.rssi.compareTo(a.rssi));
+
+        final phase = adapterOff
+            ? ScanStatusPhase.adapterOff
+            : scanning
+                ? ScanStatusPhase.scanning
+                : ScanStatusPhase.idle;
 
         return Scaffold(
-          backgroundColor: it.bg,
-          body: Column(
-            children: [
-              const IntentAppBar(brand: true),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '· FLUTTER BLUE ULTRA',
-                            style: IntentTextStyles.monoLabel(11, it.textFaint),
-                          ),
-                          const SizedBox(height: 14),
-                          RichText(
-                            text: TextSpan(
-                              style: IntentTextStyles.serifDisplay(
-                                  40, it.textPrimary,
-                                  letterSpacing: -1.5),
-                              children: [
-                                const TextSpan(text: 'Devices,\n'),
-                                TextSpan(
-                                  text: 'nearby.',
-                                  style: TextStyle(
-                                      color: it.accent,
-                                      fontStyle: FontStyle.italic),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // The 200 ms elapsed tick belongs to just this
-                          // line — selector keeps rebuilds local.
-                          BlocSelector<ScanCubit, ScanState, double>(
-                            selector: (s) => s.elapsed,
-                            builder: (_, elapsed) => Text(
-                              state.scanning && adapterOn
-                                  ? 'Listening for advertising packets · ${elapsed.toStringAsFixed(1)}s'
-                                  : adapterBlocked
-                                      ? 'Bluetooth is unavailable · turn it on to scan'
-                                      : 'Scan stopped · ${state.results.length} found',
-                              style: IntentTextStyles.sans(13.5, it.textDim),
-                            ),
-                          ),
-                          const SizedBox(height: 22),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: it.surface,
-                              border: Border.all(color: it.border),
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                ScanRipple(
-                                    scanning: state.scanning && adapterOn),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        state.scanning && adapterOn
-                                            ? 'SCAN.IN_PROGRESS'
-                                            : adapterBlocked
-                                                ? 'ADAPTER.OFF'
-                                                : 'SCAN.IDLE',
-                                        style: IntentTextStyles.monoLabel(
-                                            10, it.accent),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      RichText(
-                                        text: TextSpan(
-                                          style: IntentTextStyles.serifDisplay(
-                                              28, it.textPrimary,
-                                              letterSpacing: -0.8),
-                                          children: [
-                                            TextSpan(
-                                                text: state.results.length
-                                                    .toString()
-                                                    .padLeft(2, '0')),
-                                            TextSpan(
-                                              text:
-                                                  ' ${state.results.length == 1 ? 'device' : 'devices'}',
-                                              style: IntentTextStyles.sans(
-                                                  14, it.textDim),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: adapterOn
-                                      ? (state.scanning
-                                          ? cubit.stopScan
-                                          : cubit.startScan)
-                                      : cubit.startScan,
-                                  child: Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: state.scanning && adapterOn
-                                          ? it.textPrimary
-                                          : it.accent,
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    child: Center(
-                                      child: state.scanning && adapterOn
-                                          ? Container(
-                                              width: 12,
-                                              height: 12,
-                                              decoration: BoxDecoration(
-                                                color: it.bg,
-                                                borderRadius:
-                                                    BorderRadius.circular(1),
-                                              ),
-                                            )
-                                          : Icon(
-                                              adapterOn
-                                                  ? Icons.refresh
-                                                  : Icons.bluetooth_disabled,
-                                              color: Colors.white,
-                                              size: 18),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (adapterBlocked) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              'Enable Bluetooth in system settings, then tap scan.',
-                              style: IntentTextStyles.sans(12.5, it.textDim),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    SectionHeader(
-                      label: 'Nearby',
-                      count: sorted.length,
-                      trailing: Text('BY RSSI',
-                          style: IntentTextStyles.mono(10, it.textFaint,
-                              letterSpacing: 1)),
-                    ),
-                    if (sorted.isEmpty && state.scanning && adapterOn)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 48),
-                        child: Center(
-                          child: Text(
-                            'Listening…',
-                            style: GoogleFonts.crimsonPro(
-                              fontSize: 13,
-                              fontStyle: FontStyle.italic,
-                              color: it.textDim,
-                            ),
-                          ),
+          backgroundColor: colors.background,
+          body: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(DsSpace.s20),
+              children: [
+                const BrandHeader(),
+                const SizedBox(height: DsSpace.s24),
+                RichText(
+                  text: TextSpan(
+                    style: DsTextStyles.heading2xl(color: colors.textPrimary),
+                    children: [
+                      const TextSpan(text: 'Devices, '),
+                      TextSpan(
+                        text: 'nearby.',
+                        style: DsTextStyles.heading2xl(
+                          color: colors.accent,
+                          fontStyle: FontStyle.italic,
                         ),
                       ),
-                    ...sorted.map((r) => _DeviceRow(
-                          result: r,
-                          onTap: () =>
-                              widget.onDeviceSelected(r.device, r.rssi),
-                        )),
-                    const SizedBox(height: 80),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: DsSpace.s32),
+                ScanStatusCard(
+                  phase: phase,
+                  deviceCount: state.results.length,
+                  onPrimaryAction: () => switch (phase) {
+                    ScanStatusPhase.adapterOff => openAppSettings(),
+                    ScanStatusPhase.scanning => cubit.stopScan(),
+                    ScanStatusPhase.idle => cubit.startScan(),
+                  },
+                ),
+                if (!adapterOff) ...[
+                  const SizedBox(height: DsSpace.s32),
+                  DsSectionHeader(
+                    label: 'Nearby',
+                    count: sorted.length,
+                    trailingLabel: 'By RSSI',
+                  ),
+                  const SizedBox(height: DsSpace.s8),
+                  if (sorted.isEmpty)
+                    DsEmptyState(
+                      icon: scanning ? Icons.search : Icons.search_off,
+                      title: scanning
+                          ? 'Looking for devices…'
+                          : 'No devices found',
+                      description: scanning
+                          ? 'Listening for advertising packets…'
+                          : 'Nothing advertised during the scan.',
+                    )
+                  else
+                    for (final result in sorted)
+                      DeviceRow(
+                        result: result,
+                        onTap: () => widget.onDeviceSelected(
+                          result.device,
+                          result.rssi,
+                        ),
+                      ),
+                ],
+              ],
+            ),
           ),
         );
       },
-    );
-  }
-}
-
-class _DeviceRow extends StatelessWidget {
-  const _DeviceRow({required this.result, required this.onTap});
-
-  final ScanResult result;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final it = IntentTheme.of(context);
-    final name = result.device.platformName;
-    final hasName = name.isNotEmpty;
-    final mac = result.device.remoteId.str;
-    final adCount = result.advertisementData.serviceUuids.length;
-
-    final connectable = result.advertisementData.connectable;
-    return InkWell(
-      onTap: connectable ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: it.border)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: it.borderHi),
-              ),
-              child: Center(
-                child: Icon(Icons.bluetooth, size: 20, color: it.textPrimary),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    hasName ? name : '(unnamed)',
-                    style: hasName
-                        ? IntentTextStyles.serifTitle(16, it.textPrimary)
-                        : GoogleFonts.crimsonPro(
-                            fontSize: 16,
-                            color: it.textDim,
-                            fontStyle: FontStyle.italic,
-                          ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(mac,
-                            style: IntentTextStyles.mono(10.5, it.textDim),
-                            overflow: TextOverflow.ellipsis),
-                      ),
-                      if (adCount > 0) ...[
-                        const SizedBox(width: 8),
-                        Text('· $adCount svc',
-                            style: IntentTextStyles.mono(10.5, it.textFaint)),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                RSSIBars(rssi: result.rssi),
-                const SizedBox(height: 4),
-                Text('${result.rssi} dBm',
-                    style: IntentTextStyles.mono(10.5, it.textDim)),
-              ],
-            ),
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right, size: 16, color: it.textFaint),
-          ],
-        ),
-      ),
     );
   }
 }

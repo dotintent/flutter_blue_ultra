@@ -2,6 +2,10 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 
+enum ConnectionPhase { connecting, discovering, connected, disconnected }
+
+enum DeviceFailure { none, connectFailed, discoveryFailed, connectionLost }
+
 enum ValueFormat { hex, utf8, dec, bin }
 
 extension ValueFormatExt on ValueFormat {
