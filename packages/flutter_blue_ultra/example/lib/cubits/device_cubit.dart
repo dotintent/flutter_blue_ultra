@@ -93,16 +93,19 @@ class DeviceCubit extends Cubit<DeviceState> {
       failure: DeviceFailure.none,
     ));
     try {
+      // `connectionState` replays the cached state on listen, which is
+      // `disconnected` for a device we have never connected to. Only a drop
+      // *after* we reached `connected` is a real failure here — connect-time
+      // failures surface as a throw from `device.connect()` below.
       _connSub = device.connectionState.listen((s) {
         if (isClosed) return;
         if (s == BluetoothConnectionState.connected) {
           _discover();
-        } else if (s == BluetoothConnectionState.disconnected) {
+        } else if (s == BluetoothConnectionState.disconnected &&
+            _reachedConnected) {
           emit(state.copyWith(
             connState: ConnectionPhase.disconnected,
-            failure: _reachedConnected
-                ? DeviceFailure.connectionLost
-                : DeviceFailure.connectFailed,
+            failure: DeviceFailure.connectionLost,
           ));
         }
       });

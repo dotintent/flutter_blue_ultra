@@ -17,9 +17,13 @@ An open-source Bluetooth Low Energy (BLE) plugin for Flutter. Scan for nearby de
 A community continuation of [`flutter_blue_plus`](https://github.com/chipweinberger/flutter_blue_plus) 1.x — same familiar API, with new capabilities and ongoing platform maintenance.
 
 <p align="center">
-  <img alt="Scanning nearby BLE devices" src="https://raw.githubusercontent.com/dotintent/flutter_blue_ultra/master/.github/scan-demo.gif" width="280" />
+  <img alt="Example app: scanning, connecting, and subscribing to a characteristic" src="https://raw.githubusercontent.com/dotintent/flutter_blue_ultra/master/.github/example-app-demo.gif" width="280" />
   &nbsp;&nbsp;
-  <img alt="Connecting to a device and reading characteristics" src="https://raw.githubusercontent.com/dotintent/flutter_blue_ultra/master/.github/connect-demo.gif" width="280" />
+  <img alt="Accessory Setup Kit example: pairing an accessory by service UUID" src="https://raw.githubusercontent.com/dotintent/flutter_blue_ultra/master/.github/accessory-setup-demo.gif" width="280" />
+</p>
+
+<p align="center">
+  <sub><a href="https://github.com/dotintent/flutter_blue_ultra/tree/master/packages/flutter_blue_ultra/example">Example app</a> — scan, connect, discover services, subscribe &nbsp;·&nbsp; <a href="https://github.com/dotintent/flutter_blue_ultra/tree/master/packages/flutter_blue_ultra_accessory_setup/example">Accessory Setup Kit example</a> — iOS pairing flow</sub>
 </p>
 
 ## ✨ Features

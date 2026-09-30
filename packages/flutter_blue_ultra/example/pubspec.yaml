@@ -3,6 +3,8 @@ description: Demonstrates how to use the flutter_blue_ultra plugin.
 
 publish_to: 'none'
 
+version: 1.0.0+2
+
 environment:
   sdk: ^3.4.0
 
