@@ -9,11 +9,15 @@ class ScanStatusCard extends StatelessWidget {
     required this.phase,
     required this.deviceCount,
     required this.onPrimaryAction,
+    this.progress,
+    this.busy = false,
   });
 
   final ScanStatusPhase phase;
   final int deviceCount;
   final VoidCallback onPrimaryAction;
+  final double? progress;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +40,11 @@ class ScanStatusCard extends StatelessWidget {
       children: [
         DsStatusRing(
           tone: tone,
-          spinning: phase == ScanStatusPhase.scanning,
+          // Determinate for the whole scan window: the ring sweeps to full and
+          // stays full when the scan ends, instead of stopping part-way and
+          // reading as a stalled loader.
+          progress: adapterOff ? null : progress,
+          spinning: phase == ScanStatusPhase.scanning && progress == null,
           child: adapterOff
               ? Icon(
                   Icons.bluetooth_disabled,
@@ -100,6 +108,7 @@ class ScanStatusCard extends StatelessWidget {
                 const SizedBox(width: DsSpace.s16),
                 _ActionButton(
                   scanning: phase == ScanStatusPhase.scanning,
+                  busy: busy,
                   onPressed: onPrimaryAction,
                 ),
               ],
@@ -109,9 +118,14 @@ class ScanStatusCard extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.scanning, required this.onPressed});
+  const _ActionButton({
+    required this.scanning,
+    required this.busy,
+    required this.onPressed,
+  });
 
   final bool scanning;
+  final bool busy;
   final VoidCallback onPressed;
 
   @override
@@ -119,13 +133,18 @@ class _ActionButton extends StatelessWidget {
     final colors = DsColors.of(context);
 
     return DsIconButton(
-      onPressed: onPressed,
+      // Inert until the radio reports the new state. Accepting taps in that
+      // window let a start and a stop race, which left the card claiming a
+      // scan was running while nothing was listening.
+      onPressed: busy ? null : onPressed,
       variant: DsIconButtonVariant.filled,
       size: DsSize.controlMedium,
       tooltip: scanning ? 'Stop scan' : 'Rescan',
       style: IconButton.styleFrom(
         backgroundColor: scanning ? colors.textPrimary : colors.brandFill,
         foregroundColor: scanning ? colors.background : colors.onAccent,
+        disabledBackgroundColor: colors.surfaceControl,
+        disabledForegroundColor: colors.textFaint,
       ),
       child: Icon(
         scanning ? Icons.stop_rounded : Icons.refresh,

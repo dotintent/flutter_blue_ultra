@@ -15,6 +15,7 @@ class DsStatusRing extends StatefulWidget {
     this.arc = 0.22,
     this.trackOpacity = 0.3,
     this.duration,
+    this.progress,
   });
 
   final Color tone;
@@ -25,6 +26,10 @@ class DsStatusRing extends StatefulWidget {
   final double arc;
   final double trackOpacity;
   final Duration? duration;
+
+  /// 0‥1 to draw a determinate arc from the top instead of the indeterminate
+  /// sweep. Takes precedence over [spinning] and [arc].
+  final double? progress;
 
   @override
   State<DsStatusRing> createState() => _DsStatusRingState();
@@ -37,17 +42,20 @@ class _DsStatusRingState extends State<DsStatusRing>
     duration: widget.duration ?? DsMotion.wave,
   );
 
+  bool get _indeterminate => widget.spinning && widget.progress == null;
+
   @override
   void initState() {
     super.initState();
-    if (widget.spinning) _controller.repeat();
+    if (_indeterminate) _controller.repeat();
   }
 
   @override
   void didUpdateWidget(DsStatusRing oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.spinning == oldWidget.spinning) return;
-    if (widget.spinning) {
+    final wasIndeterminate = oldWidget.spinning && oldWidget.progress == null;
+    if (_indeterminate == wasIndeterminate) return;
+    if (_indeterminate) {
       _controller.repeat();
     } else {
       _controller
@@ -76,9 +84,9 @@ class _DsStatusRingState extends State<DsStatusRing>
                 size: Size.square(widget.size),
                 painter: _StatusRingPainter(
                   tone: widget.tone,
-                  phase: _controller.value,
+                  phase: widget.progress == null ? _controller.value : 0,
                   strokeWidth: widget.strokeWidth,
-                  arc: widget.arc,
+                  arc: widget.progress?.clamp(0.0, 1.0) ?? widget.arc,
                   trackOpacity: widget.trackOpacity,
                 ),
               ),
