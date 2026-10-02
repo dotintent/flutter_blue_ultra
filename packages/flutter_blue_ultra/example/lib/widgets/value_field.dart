@@ -125,18 +125,24 @@ class QuickFillChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = DsColors.of(context);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: DsSpace.s8),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: colors.surfaceControl,
-          borderRadius: BorderRadius.circular(DsRadius.small),
-        ),
-        child: Text(
-          label,
-          style: DsTextStyles.monoMd(color: colors.textPrimary),
+    return Material(
+      color: colors.surfaceControl,
+      borderRadius: BorderRadius.circular(DsRadius.small),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(DsRadius.small),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: DsSize.controlMedium),
+          alignment: Alignment.center,
+          child: SizedBox(
+            height: 40,
+            child: Center(
+              child: Text(
+                label,
+                style: DsTextStyles.monoMd(color: colors.textPrimary),
+              ),
+            ),
+          ),
         ),
       ),
     );

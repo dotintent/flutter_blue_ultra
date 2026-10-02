@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
 
 import '../cubits/permission_cubit.dart';
+import '../widgets/app_snack_bar.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/footer_message.dart';
 import '../widgets/permission_row.dart';
@@ -21,24 +22,57 @@ class PermissionScreen extends StatelessWidget {
   }
 }
 
-class _PermissionView extends StatelessWidget {
+class _PermissionView extends StatefulWidget {
   const _PermissionView({required this.onGranted});
 
   final VoidCallback onGranted;
 
-  Future<void> _onPrimaryTap(BuildContext context) async {
+  @override
+  State<_PermissionView> createState() => _PermissionViewState();
+}
+
+class _PermissionViewState extends State<_PermissionView>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (lifecycleState != AppLifecycleState.resumed) return;
+    _recheck();
+  }
+
+  Future<void> _recheck() async {
+    final cubit = context.read<PermissionCubit>();
+    if (!cubit.state.denied) return;
+    final granted = await cubit.refresh();
+    if (granted && mounted) widget.onGranted();
+  }
+
+  Future<void> _onPrimaryTap() async {
     final cubit = context.read<PermissionCubit>();
     if (cubit.state.blocked) {
       await cubit.openSettings();
       return;
     }
 
-    final messenger = ScaffoldMessenger.of(context);
     try {
-      if (await cubit.requestPermissions()) onGranted();
+      final granted = await cubit.requestPermissions();
+      if (granted && mounted) widget.onGranted();
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Permission request failed: $e')),
+      if (!mounted) return;
+      showAppMessage(
+        context,
+        AppMessage.error('Permission request failed: $e'),
       );
     }
   }
@@ -136,7 +170,7 @@ class _PermissionView extends StatelessWidget {
                   DsButton(
                     label: _buttonLabel(state),
                     loading: state.requesting,
-                    onPressed: () => _onPrimaryTap(context),
+                    onPressed: _onPrimaryTap,
                     style: FilledButton.styleFrom(
                       disabledBackgroundColor: colors.brandFill,
                       disabledForegroundColor: colors.onAccent,

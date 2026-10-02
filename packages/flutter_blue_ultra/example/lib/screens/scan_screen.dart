@@ -7,6 +7,7 @@ import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_syste
 import 'package:permission_handler/permission_handler.dart';
 
 import '../cubits/scan_cubit.dart';
+import '../widgets/app_snack_bar.dart';
 import '../widgets/brand_header.dart';
 import '../widgets/device_row.dart';
 import '../widgets/scan_status_card.dart';
@@ -35,14 +36,14 @@ class _ScanView extends StatefulWidget {
 }
 
 class _ScanViewState extends State<_ScanView> {
-  StreamSubscription<String>? _messageSub;
+  StreamSubscription<AppMessage>? _messageSub;
 
   @override
   void initState() {
     super.initState();
-    _messageSub = context.read<ScanCubit>().messages.listen((msg) {
+    _messageSub = context.read<ScanCubit>().messages.listen((message) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      showAppMessage(context, message);
     });
   }
 
@@ -52,33 +53,74 @@ class _ScanViewState extends State<_ScanView> {
     super.dispose();
   }
 
+  Future<void> _select(ScanResult result) async {
+    if (result.device.platformName.isNotEmpty) {
+      widget.onDeviceSelected(result.device, result.rssi);
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final colors = DsColors.of(dialogContext);
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DsRadius.large),
+            side: BorderSide(color: colors.borderHi),
+          ),
+          title: Text(
+            'Connect to an unnamed device?',
+            style: DsTextStyles.headingSm(color: colors.textPrimary),
+          ),
+          content: Text(
+            'This peripheral advertises no name. Connecting opens a GATT '
+            'link to ${result.device.remoteId.str}, which may belong to '
+            'someone nearby.',
+            style: DsTextStyles.bodySm(color: colors.textDim),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(
+                'Cancel',
+                style: DsTextStyles.bodySm(color: colors.textDim),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(
+                'Connect',
+                style: DsTextStyles.bodySmBold(color: colors.accent),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+    widget.onDeviceSelected(result.device, result.rssi);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = DsColors.of(context);
 
     return BlocBuilder<ScanCubit, ScanState>(
-      // The 200 ms elapsed tick isn't rendered by this design, so it must not
-      // drive rebuilds here.
+      // The 200 ms elapsed tick only drives the status card, which subscribes
+      // to it separately — it must not rebuild the whole device list.
       buildWhen: (p, c) =>
           p.scanning != c.scanning ||
           p.results != c.results ||
           p.adapterState != c.adapterState,
       builder: (context, state) {
-        final cubit = context.read<ScanCubit>();
         final adapterOn = state.adapterState == BluetoothAdapterState.on;
         final adapterKnown =
             state.adapterState != BluetoothAdapterState.unknown;
         final adapterOff = adapterKnown && !adapterOn;
         final scanning = state.scanning && adapterOn;
-
-        final sorted = [...state.results]
-          ..sort((a, b) => b.rssi.compareTo(a.rssi));
-
-        final phase = adapterOff
-            ? ScanStatusPhase.adapterOff
-            : scanning
-                ? ScanStatusPhase.scanning
-                : ScanStatusPhase.idle;
+        final results = state.results;
 
         return Scaffold(
           backgroundColor: colors.background,
@@ -104,24 +146,16 @@ class _ScanViewState extends State<_ScanView> {
                   ),
                 ),
                 const SizedBox(height: DsSpace.s32),
-                ScanStatusCard(
-                  phase: phase,
-                  deviceCount: state.results.length,
-                  onPrimaryAction: () => switch (phase) {
-                    ScanStatusPhase.adapterOff => openAppSettings(),
-                    ScanStatusPhase.scanning => cubit.stopScan(),
-                    ScanStatusPhase.idle => cubit.startScan(),
-                  },
-                ),
+                const _StatusCard(),
                 if (!adapterOff) ...[
                   const SizedBox(height: DsSpace.s32),
                   DsSectionHeader(
                     label: 'Nearby',
-                    count: sorted.length,
-                    trailingLabel: 'By RSSI',
+                    count: results.length,
+                    trailingLabel: 'In order found',
                   ),
                   const SizedBox(height: DsSpace.s8),
-                  if (sorted.isEmpty)
+                  if (results.isEmpty)
                     DsEmptyState(
                       icon: scanning ? Icons.search : Icons.search_off,
                       title: scanning
@@ -132,18 +166,53 @@ class _ScanViewState extends State<_ScanView> {
                           : 'Nothing advertised during the scan.',
                     )
                   else
-                    for (final result in sorted)
+                    for (final result in results)
                       DeviceRow(
                         result: result,
-                        onTap: () => widget.onDeviceSelected(
-                          result.device,
-                          result.rssi,
-                        ),
+                        onTap: () => _select(result),
                       ),
                 ],
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class _StatusCard extends StatelessWidget {
+  const _StatusCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ScanCubit, ScanState>(
+      buildWhen: (p, c) =>
+          p.scanning != c.scanning ||
+          p.busy != c.busy ||
+          p.adapterState != c.adapterState ||
+          p.results.length != c.results.length ||
+          p.progress != c.progress,
+      builder: (context, state) {
+        final cubit = context.read<ScanCubit>();
+        final adapterOn = state.adapterState == BluetoothAdapterState.on;
+        final adapterOff =
+            state.adapterState != BluetoothAdapterState.unknown && !adapterOn;
+
+        final phase = adapterOff
+            ? ScanStatusPhase.adapterOff
+            : state.scanning && adapterOn
+                ? ScanStatusPhase.scanning
+                : ScanStatusPhase.idle;
+
+        return ScanStatusCard(
+          phase: phase,
+          deviceCount: state.results.length,
+          progress: state.progress,
+          busy: state.busy,
+          onPrimaryAction: phase == ScanStatusPhase.adapterOff
+              ? openAppSettings
+              : cubit.toggleScan,
         );
       },
     );

@@ -33,7 +33,12 @@ const Map<String, String> kGattCharacteristicNames = {
 /// short alias when present (e.g. `0000180F-0000-1000-8000-00805F9B34FB` → `180F`).
 final RegExp kShortUuidPattern = RegExp(r'^0000([0-9a-fA-F]{4})-');
 
-/// Returns the uppercase 16-bit alias of [uuid] when [uuid] follows the SIG
-/// base UUID, otherwise null.
-String? shortUuid(String uuid) =>
-    kShortUuidPattern.firstMatch(uuid)?.group(1)?.toUpperCase();
+final RegExp kBareShortUuidPattern = RegExp(r'^([0-9a-fA-F]{4})$');
+
+/// Returns the uppercase 16-bit alias of [uuid] when [uuid] is a SIG-base
+/// 128-bit UUID or the bare alias itself, otherwise null.
+String? shortUuid(String uuid) {
+  final fromLongForm = kShortUuidPattern.firstMatch(uuid)?.group(1);
+  if (fromLongForm != null) return fromLongForm.toUpperCase();
+  return kBareShortUuidPattern.firstMatch(uuid)?.group(1)?.toUpperCase();
+}

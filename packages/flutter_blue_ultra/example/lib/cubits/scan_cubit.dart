@@ -3,37 +3,55 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_ultra/flutter_blue_ultra.dart';
 
-const Duration _kScanDuration = Duration(seconds: 12);
+import '../models/ble_error_text.dart';
+import '../widgets/app_snack_bar.dart';
+
+const Duration kScanDuration = Duration(seconds: 12);
 const Duration _kElapsedTick = Duration(milliseconds: 200);
 
 class ScanState extends Equatable {
   const ScanState({
     this.results = const [],
     this.scanning = false,
+    this.busy = false,
+    this.hasScanned = false,
     this.elapsed = 0,
     this.adapterState = BluetoothAdapterState.unknown,
   });
 
   final List<ScanResult> results;
   final bool scanning;
+
+  final bool busy;
+  final bool hasScanned;
   final double elapsed;
   final BluetoothAdapterState adapterState;
+
+  double? get progress {
+    if (scanning) return (elapsed / kScanDuration.inSeconds).clamp(0.0, 1.0);
+    return hasScanned ? 1.0 : null;
+  }
 
   ScanState copyWith({
     List<ScanResult>? results,
     bool? scanning,
+    bool? busy,
+    bool? hasScanned,
     double? elapsed,
     BluetoothAdapterState? adapterState,
   }) =>
       ScanState(
         results: results ?? this.results,
         scanning: scanning ?? this.scanning,
+        busy: busy ?? this.busy,
+        hasScanned: hasScanned ?? this.hasScanned,
         elapsed: elapsed ?? this.elapsed,
         adapterState: adapterState ?? this.adapterState,
       );
 
   @override
-  List<Object?> get props => [results, scanning, elapsed, adapterState];
+  List<Object?> get props =>
+      [results, scanning, busy, hasScanned, elapsed, adapterState];
 }
 
 class ScanCubit extends Cubit<ScanState> {
@@ -57,7 +75,7 @@ class ScanCubit extends Cubit<ScanState> {
       if (adapterState == BluetoothAdapterState.on &&
           !state.scanning &&
           state.results.isEmpty &&
-          !_startInFlight) {
+          !state.busy) {
         startScan();
       }
     });
@@ -68,26 +86,33 @@ class ScanCubit extends Cubit<ScanState> {
   StreamSubscription<bool>? _isScanningSub;
   StreamSubscription<BluetoothAdapterState>? _adapterSub;
   Timer? _elapsedTimer;
-  bool _startInFlight = false;
-  final StreamController<String> _messages =
-      StreamController<String>.broadcast();
+  final StreamController<AppMessage> _messages =
+      StreamController<AppMessage>.broadcast();
 
-  Stream<String> get messages => _messages.stream;
+  Stream<AppMessage> get messages => _messages.stream;
+
+  Future<void> toggleScan() {
+    if (state.busy) return Future<void>.value();
+    return state.scanning ? stopScan() : startScan();
+  }
 
   Future<void> startScan() async {
-    if (_startInFlight || state.scanning) return;
+    if (state.busy || state.scanning) return;
     if (state.adapterState != BluetoothAdapterState.on) {
-      _messages.add('Bluetooth is not available for scanning.');
+      _messages.add(
+        const AppMessage.warning('Bluetooth is not available for scanning.'),
+      );
       return;
     }
-    _startInFlight = true;
+    emit(state.copyWith(busy: true));
     await _scanResultsSub?.cancel();
     _scanResultsSub = null;
     _elapsedTimer?.cancel();
     _stopwatch
       ..reset()
       ..start();
-    emit(state.copyWith(results: const [], elapsed: 0));
+    emit(state.copyWith(results: const [], elapsed: 0, hasScanned: true));
+
     _scanResultsSub = FlutterBlueUltra.onScanResults.listen((incoming) {
       if (isClosed) return;
       final merged = List<ScanResult>.from(state.results);
@@ -109,27 +134,34 @@ class ScanCubit extends Cubit<ScanState> {
     });
 
     try {
-      await FlutterBlueUltra.startScan(timeout: _kScanDuration);
+      await FlutterBlueUltra.startScan(timeout: kScanDuration);
     } catch (e) {
       _elapsedTimer?.cancel();
       _stopwatch.stop();
       if (!isClosed) {
-        emit(state.copyWith(scanning: false));
-        _messages.add('Scan failed to start: $e');
+        emit(state.copyWith(scanning: false, hasScanned: false));
+        _messages.add(
+          AppMessage.error('Scan failed to start. ${describeBleError(e)}'),
+        );
       }
     } finally {
-      _startInFlight = false;
+      if (!isClosed) emit(state.copyWith(busy: false));
     }
   }
 
   Future<void> stopScan() async {
-    if (_startInFlight || !state.scanning) return;
+    if (state.busy || !state.scanning) return;
+    emit(state.copyWith(busy: true));
     _elapsedTimer?.cancel();
     _stopwatch.stop();
     try {
       await FlutterBlueUltra.stopScan();
     } catch (e) {
-      _messages.add('Scan failed to stop: $e');
+      _messages.add(
+        AppMessage.error('Scan failed to stop. ${describeBleError(e)}'),
+      );
+    } finally {
+      if (!isClosed) emit(state.copyWith(busy: false));
     }
   }
 
@@ -141,7 +173,9 @@ class ScanCubit extends Cubit<ScanState> {
     await _isScanningSub?.cancel();
     await _adapterSub?.cancel();
     await _messages.close();
-    await FlutterBlueUltra.stopScan();
+    try {
+      await FlutterBlueUltra.stopScan();
+    } catch (_) {}
     return super.close();
   }
 }

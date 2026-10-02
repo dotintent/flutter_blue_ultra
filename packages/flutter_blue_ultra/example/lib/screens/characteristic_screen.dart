@@ -9,6 +9,7 @@ import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_syste
 import '../cubits/characteristic_cubit.dart';
 import '../models/ble_models.dart';
 import '../models/gatt_names.dart';
+import '../widgets/app_snack_bar.dart';
 import '../widgets/format_segments.dart';
 import '../widgets/notify_toggle.dart';
 import '../widgets/screen_nav.dart';
@@ -62,7 +63,7 @@ class _CharacteristicView extends StatefulWidget {
 class _CharacteristicViewState extends State<_CharacteristicView> {
   late final List<_CharTab> _tabs;
   late int _index;
-  StreamSubscription<String>? _messageSub;
+  StreamSubscription<AppMessage>? _messageSub;
   final TextEditingController _payloadController = TextEditingController();
 
   @override
@@ -78,9 +79,10 @@ class _CharacteristicViewState extends State<_CharacteristicView> {
     _payloadController.text =
         context.read<CharacteristicCubit>().state.writeInput;
 
-    _messageSub = context.read<CharacteristicCubit>().messages.listen((msg) {
+    _messageSub =
+        context.read<CharacteristicCubit>().messages.listen((message) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      showAppMessage(context, message);
     });
   }
 
@@ -104,9 +106,7 @@ class _CharacteristicViewState extends State<_CharacteristicView> {
     Clipboard.setData(
       ClipboardData(text: widget.characteristic.characteristicUuid.str),
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('UUID copied')),
-    );
+    showAppMessage(context, const AppMessage.success('UUID copied'));
   }
 
   @override
@@ -121,6 +121,7 @@ class _CharacteristicViewState extends State<_CharacteristicView> {
           backgroundColor: colors.background,
           body: SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ScreenNav(
                   actions: [
@@ -210,6 +211,17 @@ class _ReadTab extends StatelessWidget {
   final CharacteristicState state;
   final CharacteristicCubit cubit;
 
+  static String _lastValueLabel(CharacteristicState state, int length) {
+    final size =
+        length == 0 ? '—' : '$length ${length == 1 ? 'byte' : 'bytes'}';
+    final at = state.lastReadAt;
+    if (at == null) return 'Last value · $size';
+    final stamp = '${at.hour.toString().padLeft(2, '0')}:'
+        '${at.minute.toString().padLeft(2, '0')}:'
+        '${at.second.toString().padLeft(2, '0')}';
+    return 'Last value · $size · read at $stamp';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = DsColors.of(context);
@@ -224,9 +236,7 @@ class _ReadTab extends StatelessWidget {
       ),
       children: [
         Text(
-          length == 0
-              ? 'Last value · —'
-              : 'Last value · $length ${length == 1 ? 'byte' : 'bytes'}',
+          _lastValueLabel(state, length),
           style: DsTextStyles.monoLabel(color: colors.textDim),
         ),
         const SizedBox(height: DsSpace.s8),
@@ -239,9 +249,10 @@ class _ReadTab extends StatelessWidget {
         ),
         const SizedBox(height: DsSpace.s16),
         DsButton(
-          label: 'Read',
+          label: state.reading ? 'Reading…' : 'Read',
           icon: Icons.download,
-          onPressed: cubit.doRead,
+          loading: state.reading,
+          onPressed: state.reading ? null : cubit.doRead,
         ),
       ],
     );
@@ -324,9 +335,10 @@ class _WriteTab extends StatelessWidget {
         ),
         const SizedBox(height: DsSpace.s16),
         DsButton(
-          label: 'Write',
+          label: state.writing ? 'Writing…' : 'Write',
           icon: Icons.upload,
-          onPressed: cubit.doWrite,
+          loading: state.writing,
+          onPressed: state.writing ? null : cubit.doWrite,
         ),
       ],
     );
@@ -345,7 +357,7 @@ class _NotifyTab extends StatelessWidget {
     final count = state.packets.length;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -413,16 +425,23 @@ class _NotifyTab extends StatelessWidget {
         ),
         Expanded(
           child: state.packets.isEmpty
-              ? DsEmptyState(
-                  iconWidget: state.notifying
-                      ? const DsSpinner(size: DsSize.iconXXLarge)
-                      : null,
-                  icon: state.notifying ? null : Icons.notifications_off,
-                  title: state.notifying
-                      ? 'Waiting for first packet…'
-                      : 'Notifications off',
-                  description:
-                      state.notifying ? null : 'Subscribe to stream values.',
+              ? Center(
+                  child: DsEmptyState(
+                    iconWidget: state.notifying
+                        ? const DsSpinner(size: DsSize.iconXXLarge)
+                        : null,
+                    icon: state.notifying ? null : Icons.notifications_off,
+                    title: state.notifying
+                        ? 'Waiting for first packet…'
+                        : 'Notifications off',
+                    description: state.notifying
+                        ? (state.notifyQuiet
+                            ? 'Subscribed, but nothing has arrived yet. Many '
+                                'characteristics only notify when their value '
+                                'changes.'
+                            : null)
+                        : 'Subscribe to stream values.',
+                  ),
                 )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(

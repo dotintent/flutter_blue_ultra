@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_system.dart';
 
 class BrandHeader extends StatelessWidget {
-  const BrandHeader({super.key, this.logoHeight = 12});
+  const BrandHeader({super.key, this.logoHeight = 18});
 
   final double logoHeight;
 

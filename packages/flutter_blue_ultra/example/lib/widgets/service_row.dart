@@ -183,15 +183,14 @@ class PropertyChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = DsColors.of(context);
 
-    return DsChip(
-      label: label,
+    return DsAvatar(
+      size: 24,
       backgroundColor: colors.surfaceAlt,
-      side: BorderSide(color: colors.borderHi),
-      padding: const EdgeInsets.symmetric(
-        horizontal: DsSpace.s8,
-        vertical: DsSpace.s2,
+      borderColor: colors.borderHi,
+      child: Text(
+        label,
+        style: DsTextStyles.monoLabel(color: colors.textPrimary),
       ),
-      labelStyle: DsTextStyles.monoLabel(color: colors.textPrimary),
     );
   }
 }

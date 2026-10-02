@@ -7,6 +7,7 @@ import 'package:flutter_blue_ultra_design_system/flutter_blue_ultra_design_syste
 
 import '../cubits/device_cubit.dart';
 import '../models/ble_models.dart';
+import '../widgets/app_snack_bar.dart';
 import '../widgets/connection_dot.dart';
 import '../widgets/screen_nav.dart';
 import '../widgets/service_row.dart';
@@ -39,14 +40,16 @@ class _DeviceView extends StatefulWidget {
 }
 
 class _DeviceViewState extends State<_DeviceView> {
-  StreamSubscription<String>? _messageSub;
+  StreamSubscription<AppMessage>? _messageSub;
+
+  bool _leaving = false;
 
   @override
   void initState() {
     super.initState();
-    _messageSub = context.read<DeviceCubit>().messages.listen((msg) {
+    _messageSub = context.read<DeviceCubit>().messages.listen((message) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      showAppMessage(context, message);
     });
   }
 
@@ -56,9 +59,24 @@ class _DeviceViewState extends State<_DeviceView> {
     super.dispose();
   }
 
+  Future<void> _cancelConnect(BuildContext context) async {
+    if (_leaving) return;
+    setState(() => _leaving = true);
+    await context.read<DeviceCubit>().cancelConnect();
+    _pop();
+  }
+
   Future<void> _disconnect(BuildContext context) async {
+    if (_leaving) return;
+    setState(() => _leaving = true);
     await context.read<DeviceCubit>().disconnect();
-    if (context.mounted) Navigator.of(context).pop();
+    _pop();
+  }
+
+  void _pop() {
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) navigator.pop();
   }
 
   @override
@@ -73,8 +91,11 @@ class _DeviceViewState extends State<_DeviceView> {
       buildWhen: (p, c) =>
           p.connState != c.connState ||
           p.failure != c.failure ||
+          p.failureDetail != c.failureDetail ||
           p.services != c.services ||
           p.mtu != c.mtu ||
+          p.attempt != c.attempt ||
+          p.disconnecting != c.disconnecting ||
           p.expanded != c.expanded,
       builder: (context, state) {
         final cubit = context.read<DeviceCubit>();
@@ -91,8 +112,10 @@ class _DeviceViewState extends State<_DeviceView> {
                   actions: [
                     if (connected)
                       NavPillButton(
-                        label: 'Disconnect',
-                        onPressed: () => _disconnect(context),
+                        label: state.disconnecting
+                            ? 'Disconnecting…'
+                            : 'Disconnect',
+                        onPressed: _leaving ? null : () => _disconnect(context),
                       ),
                   ],
                 ),
@@ -204,11 +227,18 @@ class _DeviceViewState extends State<_DeviceView> {
                             title: state.connState == ConnectionPhase.connecting
                                 ? 'Establishing GATT...'
                                 : 'Discovering services...',
+                            description: state.retrying
+                                ? 'Attempt ${state.attempt} of '
+                                    '${state.maxAttempts} — the device did not '
+                                    'answer the first time.'
+                                : null,
                             action: DsButton(
-                              label: 'Cancel',
+                              label: _leaving ? 'Cancelling…' : 'Cancel',
                               expand: false,
                               variant: DsButtonVariant.outlined,
-                              onPressed: () => _disconnect(context),
+                              onPressed: _leaving
+                                  ? null
+                                  : () => _cancelConnect(context),
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: colors.surface,
                                 side: BorderSide(color: colors.borderHi),
@@ -233,19 +263,20 @@ class _DeviceViewState extends State<_DeviceView> {
                                 'Service discovery failed',
                               DeviceFailure.none => 'Disconnected',
                             },
-                            description: switch (state.failure) {
-                              DeviceFailure.connectionLost =>
-                                'Retry to reconnect.',
-                              DeviceFailure.connectFailed =>
-                                'Retry to connect.',
-                              DeviceFailure.discoveryFailed =>
-                                "Connected, but couldn't read services.",
-                              DeviceFailure.none => 'Retry to connect.',
-                            },
+                            description: state.failureDetail ??
+                                switch (state.failure) {
+                                  DeviceFailure.connectionLost =>
+                                    'Retry to reconnect.',
+                                  DeviceFailure.connectFailed =>
+                                    'Retry to connect.',
+                                  DeviceFailure.discoveryFailed =>
+                                    "Connected, but couldn't read services.",
+                                  DeviceFailure.none => 'Retry to connect.',
+                                },
                             action: DsButton(
                               label: 'Retry',
                               expand: false,
-                              onPressed: cubit.connect,
+                              onPressed: _leaving ? null : cubit.connect,
                             ),
                           ),
                       ],

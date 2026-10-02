@@ -7,12 +7,13 @@ class DsBluetoothGlyph extends StatelessWidget {
     super.key,
     this.size = DsSize.iconXLarge,
     this.color,
-    this.strokeWidth = 2.2,
+    this.strokeWidth,
   });
 
   final double size;
   final Color? color;
-  final double strokeWidth;
+
+  final double? strokeWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,7 @@ class DsBluetoothGlyph extends StatelessWidget {
       size: Size(size, size),
       painter: _BluetoothPainter(
         color: color ?? IconTheme.of(context).color ?? Colors.white,
-        strokeWidth: strokeWidth,
+        strokeWidth: strokeWidth ?? size / 10,
       ),
     );
   }
@@ -40,15 +41,20 @@ class _BluetoothPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    final scale = size.width / 22;
+
+    final inset = strokeWidth / 2;
+    final height = size.height - strokeWidth;
+    final scale = height / 22;
     final cx = size.width / 2;
+    final top = inset;
+
     final path = Path()
-      ..moveTo(cx - 5 * scale, 5 * scale)
-      ..lineTo(cx + 5 * scale, 13 * scale)
-      ..lineTo(cx, 22 * scale)
-      ..lineTo(cx, 0)
-      ..lineTo(cx + 5 * scale, 8 * scale)
-      ..lineTo(cx - 5 * scale, 16 * scale);
+      ..moveTo(cx - 5 * scale, top + 5 * scale)
+      ..lineTo(cx + 5 * scale, top + 13 * scale)
+      ..lineTo(cx, top + 22 * scale)
+      ..lineTo(cx, top)
+      ..lineTo(cx + 5 * scale, top + 8 * scale)
+      ..lineTo(cx - 5 * scale, top + 16 * scale);
     canvas.drawPath(path, paint);
   }
 

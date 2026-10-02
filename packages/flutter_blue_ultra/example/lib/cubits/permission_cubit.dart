@@ -220,5 +220,33 @@ class PermissionCubit extends Cubit<PermissionState> {
     }
   }
 
+  Future<bool> refresh() async {
+    final permissions = await blePermissionsForCurrentPlatform();
+    if (permissions.isEmpty) return true;
+
+    final statuses = <Permission, PermissionStatus>{
+      for (final permission in permissions) permission: await permission.status,
+    };
+    final granted = statuses.values.every(isGrantedOrLimited);
+    if (isClosed) return granted;
+
+    emit(state.copyWith(
+      phase: granted
+          ? PermissionPhase.initial
+          : statuses.values.any(isBlocked)
+              ? PermissionPhase.deniedBlocked
+              : state.phase,
+      items: [
+        for (final item in state.items)
+          item.copyWith(
+            denied: !isGrantedOrLimited(
+              statuses[item.permission] ?? PermissionStatus.granted,
+            ),
+          ),
+      ],
+    ));
+    return granted;
+  }
+
   Future<void> openSettings() => openAppSettings();
 }
