@@ -25,13 +25,8 @@ class _LastMessage {
   final DateTime at;
 }
 
-/// Keyed by messenger so the entry dies with the messenger rather than
-/// accumulating in a long-lived map.
 final Expando<_LastMessage> _lastByMessenger = Expando<_LastMessage>();
 
-/// Shows [message] as the only visible snackbar. Repeating the same text
-/// within [_kDedupeWindow] is dropped, so hammering a failing action doesn't
-/// build a queue that keeps replaying after the user has moved on.
 void showAppMessage(BuildContext context, AppMessage message) {
   final messenger = ScaffoldMessenger.maybeOf(context);
   if (messenger == null) return;

@@ -13,9 +13,6 @@ class DsBluetoothGlyph extends StatelessWidget {
   final double size;
   final Color? color;
 
-  /// Defaults to a tenth of [size]. A fixed width made the glyph look broken
-  /// at list-row sizes, where the stroke no longer fit the box it was drawn
-  /// in and the caps were clipped away.
   final double? strokeWidth;
 
   @override
@@ -45,8 +42,6 @@ class _BluetoothPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // Inset by half a stroke so the round caps at the tips stay inside the
-    // box instead of being clipped by its edges.
     final inset = strokeWidth / 2;
     final height = size.height - strokeWidth;
     final scale = height / 22;

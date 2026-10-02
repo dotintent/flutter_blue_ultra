@@ -22,16 +22,11 @@ class ScanState extends Equatable {
   final List<ScanResult> results;
   final bool scanning;
 
-  /// A start/stop command is in flight. The radio has not reported the new
-  /// state yet, so the control has to stay inert instead of accepting a
-  /// second command that would race the first.
   final bool busy;
   final bool hasScanned;
   final double elapsed;
   final BluetoothAdapterState adapterState;
 
-  /// 0‥1 across [kScanDuration], pinned to 1 once a scan has finished, so the
-  /// progress ring lands full rather than freezing mid-sweep.
   double? get progress {
     if (scanning) return (elapsed / kScanDuration.inSeconds).clamp(0.0, 1.0);
     return hasScanned ? 1.0 : null;
@@ -96,8 +91,6 @@ class ScanCubit extends Cubit<ScanState> {
 
   Stream<AppMessage> get messages => _messages.stream;
 
-  /// Single entry point for the scan control, so a burst of taps resolves to
-  /// one command instead of interleaving a start and a stop.
   Future<void> toggleScan() {
     if (state.busy) return Future<void>.value();
     return state.scanning ? stopScan() : startScan();
@@ -120,8 +113,6 @@ class ScanCubit extends Cubit<ScanState> {
       ..start();
     emit(state.copyWith(results: const [], elapsed: 0, hasScanned: true));
 
-    // Results keep their discovery order: the list is a tap target, and
-    // re-sorting it live (by RSSI, say) moves rows out from under the finger.
     _scanResultsSub = FlutterBlueUltra.onScanResults.listen((incoming) {
       if (isClosed) return;
       final merged = List<ScanResult>.from(state.results);
@@ -184,9 +175,7 @@ class ScanCubit extends Cubit<ScanState> {
     await _messages.close();
     try {
       await FlutterBlueUltra.stopScan();
-    } catch (_) {
-      // Teardown path: an error here would escape into the widget disposal.
-    }
+    } catch (_) {}
     return super.close();
   }
 }

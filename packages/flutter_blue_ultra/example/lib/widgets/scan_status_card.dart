@@ -40,9 +40,6 @@ class ScanStatusCard extends StatelessWidget {
       children: [
         DsStatusRing(
           tone: tone,
-          // Determinate for the whole scan window: the ring sweeps to full and
-          // stays full when the scan ends, instead of stopping part-way and
-          // reading as a stalled loader.
           progress: adapterOff ? null : progress,
           spinning: phase == ScanStatusPhase.scanning && progress == null,
           child: adapterOff
@@ -133,9 +130,6 @@ class _ActionButton extends StatelessWidget {
     final colors = DsColors.of(context);
 
     return DsIconButton(
-      // Inert until the radio reports the new state. Accepting taps in that
-      // window let a start and a stop race, which left the card claiming a
-      // scan was running while nothing was listening.
       onPressed: busy ? null : onPressed,
       variant: DsIconButtonVariant.filled,
       size: DsSize.controlMedium,

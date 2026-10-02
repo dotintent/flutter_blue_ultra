@@ -12,20 +12,10 @@ const Duration _kRssiPollInterval = Duration(seconds: 2);
 const Duration _kDisconnectTimeout = Duration(seconds: 3);
 const int _kRequestedMtu = 512;
 
-/// Connect attempts per user-initiated try. Radios routinely reject the first
-/// attempt with a transient error (Android's GATT 133/147, CoreBluetooth's
-/// connection timeout) and succeed immediately after, which is why a manual
-/// "Retry" used to look like a fix — the app now does it for the user.
 const int _kMaxConnectAttempts = 3;
 
-/// Silent reconnects after an established link drops. Bounded so a device
-/// that keeps dropping surfaces the failure instead of looping forever.
 const int _kMaxAutoReconnects = 1;
 
-/// A link that survived this long counts as healthy, so the next drop starts
-/// a fresh reconnect budget. Without it a device that reconnects and drops
-/// again seconds later would flap forever, since every success would clear
-/// the budget it had just spent.
 const Duration _kStableLinkThreshold = Duration(seconds: 30);
 
 const List<Duration> _kRetryBackoff = [
@@ -159,10 +149,6 @@ class DeviceCubit extends Cubit<DeviceState> {
     ));
 
     try {
-      // `connectionState` replays the cached state on listen, which is
-      // `disconnected` for a device we have never connected to. Only a drop
-      // *after* we reached `connected` is a real failure here — connect-time
-      // failures surface as a throw from `device.connect()` below.
       _connSub = device.connectionState.listen((s) {
         if (isClosed || _abandoned) return;
         if (s == BluetoothConnectionState.connected) {
@@ -191,8 +177,6 @@ class DeviceCubit extends Cubit<DeviceState> {
   }
 
   void _scheduleRetry(int attempt) {
-    // The stack keeps the failed link cached; clearing it first is what makes
-    // the immediate retry succeed as reliably as a manual one does.
     unawaited(_safeDisconnect());
     emit(state.copyWith(
       connState: ConnectionPhase.connecting,
@@ -316,10 +300,6 @@ class DeviceCubit extends Cubit<DeviceState> {
     emit(state.copyWith(expanded: next));
   }
 
-  /// Abandons an in-flight connect. Returns as soon as the app has stopped
-  /// caring about the attempt — the platform teardown runs in the background
-  /// so the screen can close immediately instead of waiting on a radio that
-  /// is, by definition, not responding.
   Future<void> cancelConnect() async {
     _abandoned = true;
     _retryTimer?.cancel();
@@ -338,8 +318,6 @@ class DeviceCubit extends Cubit<DeviceState> {
     unawaited(_safeDisconnect());
   }
 
-  /// Tears down an established link. Unlike [cancelConnect] this waits for the
-  /// platform so the caller can report a failure rather than claiming success.
   Future<bool> disconnect() async {
     _abandoned = true;
     _retryTimer?.cancel();
@@ -372,10 +350,7 @@ class DeviceCubit extends Cubit<DeviceState> {
   Future<void> _safeDisconnect() async {
     try {
       await device.disconnect().timeout(_kDisconnectTimeout);
-    } catch (_) {
-      // Nothing useful to do: the screen is going away either way, and an
-      // uncaught error here would take the app down with it.
-    }
+    } catch (_) {}
   }
 
   @override

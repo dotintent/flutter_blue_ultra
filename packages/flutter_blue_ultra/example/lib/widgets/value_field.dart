@@ -131,8 +131,6 @@ class QuickFillChip extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(DsRadius.small),
-        // 40 px of visible chip inside a 44 px touch target, so the ink
-        // response covers everything a finger can reasonably hit.
         child: Container(
           constraints: const BoxConstraints(minHeight: DsSize.controlMedium),
           alignment: Alignment.center,

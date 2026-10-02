@@ -53,9 +53,6 @@ class _ScanViewState extends State<_ScanView> {
     super.dispose();
   }
 
-  /// A row with no advertised name says nothing about whose device it is.
-  /// Connecting is not a read-only act, so an unnamed peripheral gets a
-  /// confirmation rather than opening a link on a single stray tap.
   Future<void> _select(ScanResult result) async {
     if (result.device.platformName.isNotEmpty) {
       widget.onDeviceSelected(result.device, result.rssi);

@@ -27,8 +27,6 @@ class DsStatusRing extends StatefulWidget {
   final double trackOpacity;
   final Duration? duration;
 
-  /// 0‥1 to draw a determinate arc from the top instead of the indeterminate
-  /// sweep. Takes precedence over [spinning] and [arc].
   final double? progress;
 
   @override

@@ -67,8 +67,6 @@ String? _reasonFor(FlutterBlueUltraException error) {
   };
 }
 
-/// Turns a raw platform string such as `GATT_CONNECTION_TIMEOUT` into
-/// `Gatt connection timeout` so it reads as a sentence next to our own copy.
 String _humanize(String raw) {
   final trimmed = raw.trim();
   if (trimmed.isEmpty) return trimmed;

@@ -45,9 +45,6 @@ class _PermissionViewState extends State<_PermissionView>
     super.dispose();
   }
 
-  /// The user may have granted access in the system settings while we were
-  /// backgrounded. Re-checking on resume is what lets them continue without
-  /// force-quitting the app first.
   @override
   void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
     if (lifecycleState != AppLifecycleState.resumed) return;

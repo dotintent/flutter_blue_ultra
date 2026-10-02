@@ -11,9 +11,6 @@ import '../widgets/app_snack_bar.dart';
 
 const int _kNotifyRingBufferSize = 40;
 
-/// How long a subscription may sit silent before the UI says so. Plenty of
-/// characteristics only notify on change, and an indefinite spinner reads as
-/// a hang rather than as "nothing has happened yet".
 const Duration _kQuietNotifyHint = Duration(seconds: 10);
 
 const Object _sentinel = Object();
@@ -97,10 +94,6 @@ class CharacteristicCubit extends Cubit<CharacteristicState> {
   /// fired twice in a row both arrive at the listener.
   Stream<AppMessage> get messages => _messages.stream;
 
-  /// [announce] is off for the read the constructor fires: the screen is still
-  /// opening, and a toast for work the user did not ask for is noise. Every
-  /// button-driven read confirms itself — re-reading an unchanged value used
-  /// to leave the screen looking completely inert.
   Future<void> doRead({bool announce = true}) async {
     if (isClosed || state.reading) return;
     emit(state.copyWith(reading: true));

@@ -220,10 +220,6 @@ class PermissionCubit extends Cubit<PermissionState> {
     }
   }
 
-  /// Re-reads the current statuses without prompting. Granting a permission
-  /// in the system settings does not notify the app, so the screen has to ask
-  /// again when it comes back to the foreground — otherwise the user returns
-  /// to a screen still telling them access is denied.
   Future<bool> refresh() async {
     final permissions = await blePermissionsForCurrentPlatform();
     if (permissions.isEmpty) return true;

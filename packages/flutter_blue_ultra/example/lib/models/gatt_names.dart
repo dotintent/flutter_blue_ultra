@@ -33,8 +33,6 @@ const Map<String, String> kGattCharacteristicNames = {
 /// short alias when present (e.g. `0000180F-0000-1000-8000-00805F9B34FB` → `180F`).
 final RegExp kShortUuidPattern = RegExp(r'^0000([0-9a-fA-F]{4})-');
 
-/// Matches the alias on its own, which is what `Guid.str` returns for SIG
-/// UUIDs (e.g. `180f`).
 final RegExp kBareShortUuidPattern = RegExp(r'^([0-9a-fA-F]{4})$');
 
 /// Returns the uppercase 16-bit alias of [uuid] when [uuid] is a SIG-base

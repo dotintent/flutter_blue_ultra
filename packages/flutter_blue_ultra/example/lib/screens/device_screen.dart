@@ -42,9 +42,6 @@ class _DeviceView extends StatefulWidget {
 class _DeviceViewState extends State<_DeviceView> {
   StreamSubscription<AppMessage>? _messageSub;
 
-  /// Guards the pop. Cancel and Disconnect are both reachable while their own
-  /// work is in flight, and a second pop would take the scan screen down with
-  /// this one, leaving an empty navigator behind.
   bool _leaving = false;
 
   @override
