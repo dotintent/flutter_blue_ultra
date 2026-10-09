@@ -66,6 +66,14 @@ void main() async {
 
 A full runnable app lives in [`example/`](https://github.com/dotintent/flutter_blue_ultra/tree/master/packages/flutter_blue_ultra/example).
 
+## 🤖 Scaffold an integration with the MCP
+
+Prefer to skip the boilerplate? [**flutter_blue_ultra_mcp**](https://github.com/dotintent/flutter_blue_ultra_mcp)
+is an MCP server that turns a declarative BLE *blueprint* into a ready-to-use
+`flutter_blue_ultra` integration — a typed client with safety nets (reconnect,
+MTU/OTA chunking, adapter gating), platform setup, and a starter test — driven
+from any MCP-capable editor (Claude Code, Cursor, Codex, …).
+
 ## 📘 Documentation
 
 - [Getting started](https://github.com/dotintent/flutter_blue_ultra/blob/master/docs/getting_started.md)
