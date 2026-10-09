@@ -7,15 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		079DD28AD91B57AA07BF707E /* WatchApp.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AC2117AB0ACA171747D615DF /* WatchApp.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		1935F989EA566BAF72298D7B /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27BB10853F9698A80FF921B /* DesignTokens.swift */; };
+		2ECF5F93AA9217A99909048D /* BleTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 305E9BCA68FF6B997B8A7C2A /* BleTypes.swift */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		5AC3A75F7460F02C903C4CD1 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF643AC5A9572CC7D472084 /* Pods_Runner.framework */; };
 		5B7AAC0747ED49A7A75D3633 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 62C2124B850FB5637B18008E /* Pods_RunnerTests.framework */; };
+		5CC0CE6B8B5338F1B1F1227F /* BleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC327EE769AEF2EDB964596 /* BleClient.swift */; };
+		5EC3B9E025AC033553F5831D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4A59F28069E37463772482B /* Foundation.framework */; };
+		68C962844F8268400E558FC8 /* BleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D659359303D2A5AD09BC2C6A /* BleViewModel.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		7C835F4B2818F412338955F5 /* CoreBluetoothClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26950104F63B7A13420CAA3 /* CoreBluetoothClient.swift */; };
+		87B6907405B1A4C93B423DD4 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = C706D23DF1B215909830DED5 /* Components.swift */; };
+		96908BB8E5226F346E5A50B9 /* WatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252656F422142EDB907C4990 /* WatchApp.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		9E1574D13EDF8985D7886D4E /* MockBleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EBEF8AF83B8FD915E1D01C /* MockBleClient.swift */; };
+		A8EBB21B492C6A0174F9B35E /* DeviceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 397AA61E72BFD48A6BDCEA2D /* DeviceDetailView.swift */; };
+		C3B4FE5266A75770FD796D15 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 816C8418A65ADEE6D8C478E6 /* ScanView.swift */; };
+		E7E2966F8FE97E7FC2499AC8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 82AF667B9FB1DDE9BB7A5D38 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,9 +39,27 @@
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
 		};
+		EC230FFCECCE72FE867514C5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A0134224A086F7CE4C998829;
+			remoteInfo = WatchApp;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		611E093FED7D01F352B7E206 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				079DD28AD91B57AA07BF707E /* WatchApp.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -42,18 +73,27 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0729C246D9BE42CD2BE1DAFF /* Flutter/Watch-Release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Flutter/Watch-Release.xcconfig"; sourceTree = "<group>"; };
+		10EEDB7B40264A5B75752D7D /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		1B12E604E9C2758170663D43 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		252656F422142EDB907C4990 /* WatchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchApp.swift; sourceTree = "<group>"; };
 		2EFADE09C3DF35585211E0EB /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
+		305E9BCA68FF6B997B8A7C2A /* BleTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BleTypes.swift; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		397AA61E72BFD48A6BDCEA2D /* DeviceDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeviceDetailView.swift; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		46EBEF8AF83B8FD915E1D01C /* MockBleClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockBleClient.swift; sourceTree = "<group>"; };
 		4AF643AC5A9572CC7D472084 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		62C2124B850FB5637B18008E /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A953D1EE6408F7040452DC1 /* Flutter/Watch-Debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Flutter/Watch-Debug.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		816C8418A65ADEE6D8C478E6 /* ScanView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
+		82AF667B9FB1DDE9BB7A5D38 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		94EC0C5F2639162D0F9C8889 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -62,8 +102,15 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A4A59F28069E37463772482B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		AC2117AB0ACA171747D615DF /* WatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AEC327EE769AEF2EDB964596 /* BleClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BleClient.swift; sourceTree = "<group>"; };
+		C706D23DF1B215909830DED5 /* Components.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		C71A396444A3BF329682B473 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		D27BB10853F9698A80FF921B /* DesignTokens.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		D659359303D2A5AD09BC2C6A /* BleViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BleViewModel.swift; sourceTree = "<group>"; };
 		DA1B3A530D2251C802D35A8A /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		E26950104F63B7A13420CAA3 /* CoreBluetoothClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoreBluetoothClient.swift; sourceTree = "<group>"; };
 		FBAE8DAAF65121BEDF0CE7D3 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,6 +131,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E983909543C80456502A68D7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5EC3B9E025AC033553F5831D /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -92,8 +147,22 @@
 			children = (
 				4AF643AC5A9572CC7D472084 /* Pods_Runner.framework */,
 				62C2124B850FB5637B18008E /* Pods_RunnerTests.framework */,
+				8AAB23EE5F4EBB72300EAC84 /* watchOS */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		2AAC1320CC9DF6D178EFA1C2 /* WatchApp */ = {
+			isa = PBXGroup;
+			children = (
+				873C9485E882366E7FE99186 /* Ble */,
+				90EA2CFF6F239E5CB03DE555 /* Design */,
+				9362F596102E2E60B506E46F /* UI */,
+				252656F422142EDB907C4990 /* WatchApp.swift */,
+				10EEDB7B40264A5B75752D7D /* Info.plist */,
+				82AF667B9FB1DDE9BB7A5D38 /* Assets.xcassets */,
+			);
+			path = WatchApp;
 			sourceTree = "<group>";
 		};
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
@@ -104,6 +173,44 @@
 			path = RunnerTests;
 			sourceTree = "<group>";
 		};
+		873C9485E882366E7FE99186 /* Ble */ = {
+			isa = PBXGroup;
+			children = (
+				AEC327EE769AEF2EDB964596 /* BleClient.swift */,
+				305E9BCA68FF6B997B8A7C2A /* BleTypes.swift */,
+				D659359303D2A5AD09BC2C6A /* BleViewModel.swift */,
+				E26950104F63B7A13420CAA3 /* CoreBluetoothClient.swift */,
+				46EBEF8AF83B8FD915E1D01C /* MockBleClient.swift */,
+			);
+			path = Ble;
+			sourceTree = "<group>";
+		};
+		8AAB23EE5F4EBB72300EAC84 /* watchOS */ = {
+			isa = PBXGroup;
+			children = (
+				A4A59F28069E37463772482B /* Foundation.framework */,
+			);
+			name = watchOS;
+			sourceTree = "<group>";
+		};
+		90EA2CFF6F239E5CB03DE555 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				D27BB10853F9698A80FF921B /* DesignTokens.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		9362F596102E2E60B506E46F /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				C706D23DF1B215909830DED5 /* Components.swift */,
+				397AA61E72BFD48A6BDCEA2D /* DeviceDetailView.swift */,
+				816C8418A65ADEE6D8C478E6 /* ScanView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
@@ -111,6 +218,8 @@
 				9740EEB21CF90195004384FC /* Debug.xcconfig */,
 				7AFA3C8E1D35360C0083082E /* Release.xcconfig */,
 				9740EEB31CF90195004384FC /* Generated.xcconfig */,
+				6A953D1EE6408F7040452DC1 /* Flutter/Watch-Debug.xcconfig */,
+				0729C246D9BE42CD2BE1DAFF /* Flutter/Watch-Release.xcconfig */,
 			);
 			name = Flutter;
 			sourceTree = "<group>";
@@ -124,6 +233,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				DAF6F466593F3B21F0448A93 /* Pods */,
 				14349CFD79ABEBC5E992A2D0 /* Frameworks */,
+				2AAC1320CC9DF6D178EFA1C2 /* WatchApp */,
 			);
 			sourceTree = "<group>";
 		};
@@ -132,6 +242,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				AC2117AB0ACA171747D615DF /* WatchApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -196,6 +307,7 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				611E093FED7D01F352B7E206 /* Embed Watch Content */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				46432125BAFBE0D0E8A2AB56 /* [CP] Embed Pods Frameworks */,
 				339D3F1A943A9BF2A10DB7C2 /* [CP] Copy Pods Resources */,
@@ -203,10 +315,28 @@
 			buildRules = (
 			);
 			dependencies = (
+				16A3E708A93A6E21F973F63D /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A0134224A086F7CE4C998829 /* WatchApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C4C3490C18B991D047B2BE3 /* Build configuration list for PBXNativeTarget "WatchApp" */;
+			buildPhases = (
+				0E01C89CB84D00C27CEAA291 /* Sources */,
+				E983909543C80456502A68D7 /* Frameworks */,
+				DE8538B52D7782F5F6C702F4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WatchApp;
+			productName = WatchApp;
+			productReference = AC2117AB0ACA171747D615DF /* WatchApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -244,6 +374,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				A0134224A086F7CE4C998829 /* WatchApp */,
 			);
 		};
 /* End PBXProject section */
@@ -267,6 +398,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DE8538B52D7782F5F6C702F4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7E2966F8FE97E7FC2499AC8 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -278,9 +417,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -311,9 +454,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -382,6 +529,23 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0E01C89CB84D00C27CEAA291 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5CC0CE6B8B5338F1B1F1227F /* BleClient.swift in Sources */,
+				2ECF5F93AA9217A99909048D /* BleTypes.swift in Sources */,
+				68C962844F8268400E558FC8 /* BleViewModel.swift in Sources */,
+				7C835F4B2818F412338955F5 /* CoreBluetoothClient.swift in Sources */,
+				9E1574D13EDF8985D7886D4E /* MockBleClient.swift in Sources */,
+				1935F989EA566BAF72298D7B /* DesignTokens.swift in Sources */,
+				87B6907405B1A4C93B423DD4 /* Components.swift in Sources */,
+				A8EBB21B492C6A0174F9B35E /* DeviceDetailView.swift in Sources */,
+				C3B4FE5266A75770FD796D15 /* ScanView.swift in Sources */,
+				96908BB8E5226F346E5A50B9 /* WatchApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		331C807D294A63A400263BE5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -402,6 +566,12 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		16A3E708A93A6E21F973F63D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WatchApp;
+			target = A0134224A086F7CE4C998829 /* WatchApp */;
+			targetProxy = EC230FFCECCE72FE867514C5 /* PBXContainerItemProxy */;
+		};
 		331C8086294A63A400263BE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
@@ -429,6 +599,38 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		1EF1417461E9A3B1E8B8F99D /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0729C246D9BE42CD2BE1DAFF /* Flutter/Watch-Release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = 457FBQ4469;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WatchApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.lib.flutterBlueUltraExample.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Profile;
+		};
 		249021D3217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -551,6 +753,38 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
 			};
 			name = Profile;
+		};
+		40FA5E37EB5FEC4AD02D151F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6A953D1EE6408F7040452DC1 /* Flutter/Watch-Debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = 457FBQ4469;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WatchApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.lib.flutterBlueUltraExample.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
 		};
 		97C147031CF9000F007C117D /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -706,9 +940,51 @@
 			};
 			name = Release;
 		};
+		AE495D8FA0A27570F93E8E1E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0729C246D9BE42CD2BE1DAFF /* Flutter/Watch-Release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = 457FBQ4469;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WatchApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.lib.flutterBlueUltraExample.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0C4C3490C18B991D047B2BE3 /* Build configuration list for PBXNativeTarget "WatchApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE495D8FA0A27570F93E8E1E /* Release */,
+				40FA5E37EB5FEC4AD02D151F /* Debug */,
+				1EF1417461E9A3B1E8B8F99D /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		331C8087294A63A400263BE5 /* Build configuration list for PBXNativeTarget "RunnerTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

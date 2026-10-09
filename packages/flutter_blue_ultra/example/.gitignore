@@ -44,3 +44,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# >>> watchkit:gitignore start
+.watchkit/
+# <<< watchkit:gitignore end
